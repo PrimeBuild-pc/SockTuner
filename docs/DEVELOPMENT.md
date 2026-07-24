@@ -47,15 +47,15 @@ The variable is an operator confirmation, not proof of virtualization. Use it on
 
 ## Private pre-releases
 
-Pushing a semantic version tag such as `v0.2.0-alpha.1` runs `.github/workflows/release.yml`. It builds and tests, publishes a self-contained `win-x64` single-file app (native libraries self-extract at runtime), creates a ZIP and SHA-256 file, uploads the artifact, and creates a GitHub pre-release.
+Create an existing semantic-version tag such as `v0.2.0-alpha.1`, then manually run `.github/workflows/release.yml` from the Actions tab and provide that tag. The owner-only workflow validates the tag, requires its commit to belong to `main`, builds and tests, publishes a self-contained `win-x64` single-file app (native libraries self-extract at runtime), creates a ZIP and SHA-256 file, and creates a GitHub pre-release.
 
-Release safety requirements:
+Release safety controls:
 
 - the repository must still be private and named `PrimeBuild-pc/SockTuner`;
-- only a tag pushed by the repository owner can publish;
-- protect the `v*` tag namespace so only maintainers can create release tags;
-- configure the `private-release` GitHub environment with required reviewers;
-- store signing secrets in that protected environment, not as unprotected repository secrets.
+- only the repository owner can run the publishing jobs;
+- release execution is manual, so an untrusted tag push cannot expose signing secrets;
+- the `private-release` GitHub environment scopes signing secrets;
+- add environment required reviewers and tag rules if the repository billing plan later supports them.
 
 Unsigned builds receive `UNSIGNED-PREVIEW.txt` and must not be redistributed. To sign the executable, configure these protected-environment secrets:
 

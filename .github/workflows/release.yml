@@ -1,26 +1,76 @@
 name: Private pre-release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing semantic-version tag to publish (for example v0.2.0-alpha.1)
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.release_tag }}
   cancel-in-progress: false
 
 jobs:
   build-release:
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
     runs-on: windows-latest
     timeout-minutes: 30
     permissions:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.value }}
+      tag: ${{ steps.version.outputs.tag }}
+      commit: ${{ steps.source.outputs.commit }}
 
     steps:
-      - name: Checkout
+      - name: Refuse release outside the private repository
+        shell: pwsh
+        env:
+          REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if ($env:REPOSITORY_VISIBILITY -ne 'private') {
+            throw "This workflow is restricted to private pre-releases."
+          }
+          if ($env:REPOSITORY -ne 'PrimeBuild-pc/SockTuner') {
+            throw "Unexpected repository."
+          }
+
+      - name: Validate requested tag
+        id: version
+        shell: pwsh
+        env:
+          TAG_NAME: ${{ inputs.release_tag }}
+        run: |
+          $match = [regex]::Match($env:TAG_NAME, '\Av(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?\z')
+          if (-not $match.Success) { throw "Tag is not a supported semantic version" }
+          if ($match.Groups[4].Success) {
+            foreach ($identifier in $match.Groups[4].Value.Split('.')) {
+              if ($identifier -match '^[0-9]+$' -and $identifier.Length -gt 1 -and $identifier.StartsWith('0')) {
+                throw "Numeric pre-release identifiers cannot contain leading zeroes"
+              }
+            }
+          }
+          "tag=$env:TAG_NAME" >> $env:GITHUB_OUTPUT
+          "value=$($env:TAG_NAME.Substring(1))" >> $env:GITHUB_OUTPUT
+
+      - name: Checkout requested tag
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: refs/tags/${{ steps.version.outputs.tag }}
+          fetch-depth: 0
+
+      - name: Require tag commit to belong to main
+        id: source
+        shell: pwsh
+        run: |
+          git fetch origin main
+          if ($LASTEXITCODE -ne 0) { throw "Failed to refresh origin/main" }
+          git merge-base --is-ancestor HEAD origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Release tag is not on main" }
+          "commit=$((git rev-parse HEAD).Trim())" >> $env:GITHUB_OUTPUT
 
       - name: Setup .NET
         uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
@@ -28,18 +78,6 @@ jobs:
           dotnet-version: 10.0.x
           cache: true
           cache-dependency-path: tests/SockTuner.Tests/SockTuner.Tests.csproj
-
-      - name: Resolve version
-        id: version
-        shell: pwsh
-        env:
-          TAG_NAME: ${{ github.ref_name }}
-        run: |
-          $version = $env:TAG_NAME.TrimStart('v')
-          if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
-            throw "Tag is not a supported semantic version"
-          }
-          "value=$version" >> $env:GITHUB_OUTPUT
 
       - name: Restore
         run: |
@@ -68,7 +106,7 @@ jobs:
             -p:Version=$env:VERSION `
             -o artifacts/SockTuner
 
-      - name: Upload unsigned build for protected release job
+      - name: Upload unsigned build for release job
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: unsigned-app
@@ -78,7 +116,7 @@ jobs:
 
   publish-release:
     needs: build-release
-    if: github.actor == github.repository_owner
+    if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
     runs-on: windows-latest
     timeout-minutes: 15
     environment: private-release
@@ -86,17 +124,21 @@ jobs:
       contents: write
 
     steps:
-      - name: Refuse release outside the private repository
+      - name: Revalidate repository and immutable release source
         shell: pwsh
         env:
-          REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+          GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          TAG_NAME: ${{ needs.build-release.outputs.tag }}
+          BUILT_COMMIT: ${{ needs.build-release.outputs.commit }}
         run: |
-          if ($env:REPOSITORY_VISIBILITY -ne 'private') {
-            throw "This workflow is restricted to private pre-releases."
+          $repository = gh api "repos/$env:REPOSITORY" | ConvertFrom-Json
+          if ($repository.visibility -ne 'private' -or $repository.full_name -ne 'PrimeBuild-pc/SockTuner') {
+            throw "This workflow is restricted to the private PrimeBuild-pc/SockTuner repository."
           }
-          if ($env:REPOSITORY -ne 'PrimeBuild-pc/SockTuner') {
-            throw "Unexpected repository."
+          $liveCommit = (gh api "repos/$env:REPOSITORY/commits/$env:TAG_NAME" --jq '.sha').Trim()
+          if ($liveCommit -ne $env:BUILT_COMMIT) {
+            throw "Release tag moved after build; refusing to publish."
           }
 
       - name: Download unsigned build
@@ -154,11 +196,14 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ github.ref_name }}
+          TAG_NAME: ${{ needs.build-release.outputs.tag }}
           REPOSITORY: ${{ github.repository }}
           RELEASE_TITLE: SockTuner ${{ needs.build-release.outputs.version }}
           ARCHIVE: ${{ steps.package.outputs.archive }}
+          BUILT_COMMIT: ${{ needs.build-release.outputs.commit }}
         run: |
+          $liveCommit = (gh api "repos/$env:REPOSITORY/commits/$env:TAG_NAME" --jq '.sha').Trim()
+          if ($liveCommit -ne $env:BUILT_COMMIT) { throw "Release tag moved after packaging." }
           gh release create "$env:TAG_NAME" `
             "artifacts/$env:ARCHIVE" `
             "artifacts/$env:ARCHIVE.sha256" `
