@@ -24,8 +24,9 @@ public sealed class AdapterInfoTests
         var adapter = new AdapterInfo(
             "id", "name", "description", NetworkInterfaceType.Ethernet,
             OperationalStatus.Up, 1_000_000_000, "00-00-00-00-00-00",
-            [], [], [], true, true, error);
+            [], [], [], true, true, error, null, [], false, null);
 
         Assert.Equal(expected, adapter.InventoryStatus);
+        Assert.Equal("Unsupported", adapter.NdisPropertyCountDisplay);
     }
 }

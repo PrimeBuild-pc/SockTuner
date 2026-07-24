@@ -34,5 +34,5 @@ public sealed class RouteGatewayResolverTests
 
     private static AdapterInfo Adapter(string name, NetworkInterfaceType type, string address, string gateway) =>
         new(name, name, name, type, OperationalStatus.Up, 1_000_000_000, "00-00-00-00-00-00",
-            [address], [gateway], [], true, true, null);
+            [address], [gateway], [], true, true, null, null, [], false, null);
 }

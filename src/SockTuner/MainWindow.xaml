@@ -1,9 +1,10 @@
 <Window x:Class="SockTuner.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SockTuner" Height="800" Width="1280" MinHeight="640" MinWidth="980"
-        WindowStartupLocation="CenterScreen">
-    <Grid Margin="28,22,28,18">
+        Title="SockTuner" Icon="Assets/SockTuner.ico" Height="820" Width="1320" MinHeight="680" MinWidth="1040"
+        WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+    <Grid Margin="28,22,28,18" Background="{StaticResource PageBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="18"/>
@@ -17,14 +18,12 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="SOCK" FontSize="25" FontWeight="Bold"/>
-                    <TextBlock Text="TUNER" FontSize="25" FontWeight="Bold" Foreground="{StaticResource PrimaryBrush}"/>
-                </StackPanel>
-                <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
+                <TextBlock Text="SockTuner" FontSize="30" FontWeight="Light"/>
+                <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
             </StackPanel>
-            <Border Grid.Column="1" Background="{StaticResource PrimaryMutedBrush}" CornerRadius="14" Padding="12,6" VerticalAlignment="Center">
-                <TextBlock Text="READ-ONLY PREVIEW" Foreground="{StaticResource PrimaryBrush}" FontSize="12" FontWeight="Bold"/>
+            <Border Grid.Column="1" Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
+                    BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
+                <TextBlock Text="READ-ONLY PREVIEW" Foreground="{StaticResource PrimaryTextBrush}" FontSize="11" FontWeight="SemiBold"/>
             </Border>
         </Grid>
 
@@ -34,6 +33,7 @@
                     <StackPanel>
                         <Grid>
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
                                 <ColumnDefinition/>
@@ -57,10 +57,16 @@
                                     <TextBlock x:Name="ProcessorCountText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="3" Style="{StaticResource Card}">
+                            <Border Grid.Column="3" Style="{StaticResource Card}" Margin="0,0,12,0">
+                                <StackPanel>
+                                    <TextBlock Text="NDIS PARAMETERS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="NdisPropertyCountText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="4" Style="{StaticResource Card}">
                                 <StackPanel>
                                     <TextBlock Text="PRIVILEGE" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="PrivilegeText" Text="—" FontSize="20" FontWeight="Bold" Margin="0,12,0,0" Foreground="{StaticResource PrimaryBrush}"/>
+                                    <TextBlock x:Name="PrivilegeText" Text="—" FontSize="17" FontWeight="Bold" Margin="0,13,0,0" Foreground="{StaticResource PrimaryTextBrush}"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -112,7 +118,8 @@
                             <TextBlock Text="Network adapters" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock Text="Stable identity, state, link speed, addresses, gateways, and protocol support." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Center"
+                                Style="{StaticResource PrimaryButton}" AutomationProperties.Name="Refresh network inventory"/>
                     </Grid>
                     <DataGrid x:Name="AdaptersGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -121,9 +128,34 @@
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding InterfaceType}" Width="140"/>
                             <DataGridTextColumn Header="Speed" Binding="{Binding SpeedDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Driver" Binding="{Binding DriverDisplay}" Width="180"/>
+                            <DataGridTextColumn Header="NDIS" Binding="{Binding NdisPropertyCountDisplay}" Width="105"/>
                             <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" Width="110"/>
                             <DataGridTextColumn Header="Inventory" Binding="{Binding InventoryStatus}" Width="160"/>
                             <DataGridTextColumn Header="Addresses" Binding="{Binding AddressesDisplay}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="NDIS &amp; drivers">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Driver-advertised NDIS properties" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="NdisSummaryText" Text="Reading native driver metadata…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="NdisPropertiesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding Adapter}" Width="140"/>
+                            <DataGridTextColumn Header="Provider / version" Binding="{Binding Driver}" Width="180"/>
+                            <DataGridTextColumn Header="Property" Binding="{Binding Property}" Width="180"/>
+                            <DataGridTextColumn Header="Keyword" Binding="{Binding Keyword}" Width="150"/>
+                            <DataGridTextColumn Header="Current" Binding="{Binding Current}" Width="110"/>
+                            <DataGridTextColumn Header="Default" Binding="{Binding Default}" Width="100"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90"/>
+                            <DataGridTextColumn Header="Driver-advertised values" Binding="{Binding ValidValues}" Width="2*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -142,18 +174,22 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Margin="0,0,12,0">
                                     <TextBlock Text="GAME OR REGIONAL ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="DiagnosticTargetText" Text="" Margin="0,6,0,0" ToolTip="Host name or IP address"/>
+                                    <TextBox x:Name="DiagnosticTargetText" Text="" Margin="0,6,0,0" ToolTip="Host name or IP address"
+                                             AutomationProperties.Name="Game or regional endpoint"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
                                     <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"/>
+                                    <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"
+                                             AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="2" Content="Run diagnosis" Click="RunDiagnostic_Click" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
-                                <Button x:Name="CancelDiagnosticButton" Grid.Column="3" Content="Cancel" Click="CancelDiagnostic_Click" VerticalAlignment="Bottom" Background="#31405D" Foreground="{StaticResource TextBrush}" IsEnabled="False"/>
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="2" Content="Run diagnosis" Click="RunDiagnostic_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
+                                <Button x:Name="CancelDiagnosticButton" Grid.Column="3" Content="Cancel" Click="CancelDiagnostic_Click"
+                                        VerticalAlignment="Bottom" IsEnabled="False"/>
                             </Grid>
                         </Border>
 
-                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryBrush}" Margin="4,12,0,0"/>
+                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0"/>
 
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -200,8 +236,9 @@
                                 <TextBlock Text="Evidence-gated setting catalog" FontSize="22" FontWeight="SemiBold"/>
                                 <TextBlock Text="Only typed, allowlisted settings can enter a future change plan. Experimental TCP controls are never silently recommended." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                             </StackPanel>
-                            <Border Grid.Column="1" Background="#3D2E19" CornerRadius="12" Padding="12,6" VerticalAlignment="Center">
-                                <TextBlock Text="LIVE WRITES LOCKED" Foreground="{StaticResource WarningBrush}" FontSize="11" FontWeight="Bold"/>
+                            <Border Grid.Column="1" Background="{StaticResource WarningMutedBrush}" BorderBrush="#E6C15A"
+                                    BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
+                                <TextBlock Text="LIVE WRITES LOCKED" Foreground="{StaticResource WarningBrush}" FontSize="11" FontWeight="SemiBold"/>
                             </Border>
                         </Grid>
                     </Border>
@@ -224,7 +261,7 @@
         <Grid Grid.Row="3" Margin="0,14,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="StatusText" Text="Ready" Foreground="{StaticResource MutedTextBrush}"/>
-            <TextBlock Grid.Column="1" Text="PRE-ALPHA 0.2" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+            <TextBlock Grid.Column="1" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

@@ -23,10 +23,20 @@ public sealed record AdapterInfo(
     IReadOnlyList<string> DnsServers,
     bool SupportsIPv4,
     bool SupportsIPv6,
-    string? InventoryError)
+    string? InventoryError,
+    DriverInfo? Driver,
+    IReadOnlyList<NdisAdvancedProperty> NdisProperties,
+    bool NdisSupported,
+    string? NdisInventoryError)
 {
     public string SpeedDisplay => FormatSpeed(SpeedBitsPerSecond);
-    public string InventoryStatus => InventoryError is null ? "Complete" : $"Partial: {InventoryError}";
+    public string DriverDisplay => Driver is null ? "Unavailable" : $"{Driver.Provider} {Driver.Version}".Trim();
+    public string NdisPropertyCountDisplay => NdisInventoryError is not null
+        ? "Partial"
+        : NdisSupported ? NdisProperties.Count.ToString() : "Unsupported";
+    public string InventoryStatus => string.Join("; ", new[] { InventoryError, NdisInventoryError }
+        .Where(error => !string.IsNullOrWhiteSpace(error))
+        .Select(error => $"Partial: {error}")) is { Length: > 0 } errors ? errors : "Complete";
     public string AddressesDisplay => Addresses.Count == 0 ? "—" : string.Join(", ", Addresses);
     public string GatewaysDisplay => Gateways.Count == 0 ? "—" : string.Join(", ", Gateways);
     public string DnsDisplay => DnsServers.Count == 0 ? "Automatic / unavailable" : string.Join(", ", DnsServers);
@@ -47,6 +57,28 @@ public sealed record AdapterInfo(
         _ => "Unknown"
     };
 }
+
+public sealed record DriverInfo(
+    string Provider,
+    string Version,
+    string Date,
+    string InfPath,
+    string ComponentId,
+    string NdisVersion);
+
+public sealed record NdisAdvancedProperty(
+    string Keyword,
+    string DisplayName,
+    string CurrentValue,
+    string DefaultValue,
+    string Type,
+    string ValidValues);
+
+public sealed record NdisInventoryResult(
+    DriverInfo? Driver,
+    IReadOnlyList<NdisAdvancedProperty> Properties,
+    bool IsSupported,
+    string? Error);
 
 public sealed record NetworkSnapshot(SystemOverview System, IReadOnlyList<AdapterInfo> Adapters)
 {

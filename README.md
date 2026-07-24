@@ -54,10 +54,10 @@ The reference scripts in this private workspace are research inputs, not product
 ## Current stage
 
 - Architecture and product scope approved.
-- Read-only WPF desktop foundation, initial OS/adapter inventory, and short-run gaming diagnostics implemented.
-- Typed allowlisting, stale-plan checks, read-back verification, and session-bound rollback that refuses external drift are covered by in-memory failure tests.
-- Next: expand route/counter diagnostics and validate the locked Windows write backend in a disposable VM.
-- Live network mutations remain unavailable from the UI until isolated-VM validation exists.
+- Step 1 is in progress: dark Metro shell, application icon, OS/adapter inventory, driver-advertised NDIS property discovery, and short-run gaming diagnostics are implemented.
+- Next in Step 1: finish DPI/accessibility checks plus adapter/NDIS filtering, copy, and clearer unsupported/partial states.
+- Steps 2–4 then complete read-only inventory, log/snapshot export, diagnostics, monitoring, reports, history, and comparison.
+- The typed transaction core is covered by in-memory failure tests, but writable UI remains locked until the preview and disposable-VM gates in Steps 5–6 pass.
 
 ## Important notice
 

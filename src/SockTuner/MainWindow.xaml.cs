@@ -1,4 +1,6 @@
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using SockTuner.Models;
 using SockTuner.Services;
 
@@ -6,6 +8,9 @@ namespace SockTuner;
 
 public partial class MainWindow : Window
 {
+    private const int UseImmersiveDarkMode = 20;
+    private const int UseImmersiveDarkModeBefore20H1 = 19;
+
     private readonly SystemInventoryService _inventory = new();
     private readonly NetworkDiagnosticService _diagnostics = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
@@ -16,6 +21,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
+        SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
     }
 
@@ -42,12 +48,29 @@ public partial class MainWindow : Window
         ActiveAdaptersText.Text = snapshot.ActiveAdapterCount.ToString();
         AdapterCountText.Text = snapshot.Adapters.Count.ToString();
         ProcessorCountText.Text = snapshot.System.LogicalProcessors.ToString();
+        NdisPropertyCountText.Text = snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count).ToString();
         PrivilegeText.Text = snapshot.System.IsAdministrator ? "Elevated" : "Standard user";
         OsText.Text = snapshot.System.OperatingSystem;
         BuildText.Text = snapshot.System.Version;
         MachineText.Text = snapshot.System.MachineName;
         CapturedText.Text = snapshot.System.CapturedAt.ToString("yyyy-MM-dd HH:mm:ss zzz");
         AdaptersGrid.ItemsSource = snapshot.Adapters;
+
+        var ndisProperties = snapshot.Adapters
+            .SelectMany(adapter => adapter.NdisProperties.Select(property => new
+            {
+                Adapter = adapter.Name,
+                Driver = adapter.DriverDisplay,
+                Property = property.DisplayName,
+                property.Keyword,
+                Current = property.CurrentValue,
+                Default = property.DefaultValue,
+                property.Type,
+                property.ValidValues
+            }))
+            .ToArray();
+        NdisPropertiesGrid.ItemsSource = ndisProperties;
+        NdisSummaryText.Text = $"{ndisProperties.Length} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
@@ -129,4 +152,17 @@ public partial class MainWindow : Window
         DnsResultText.Text = value;
         FindingsGrid.ItemsSource = null;
     }
+
+    private void ApplyDarkTitleBar()
+    {
+        var enabled = 1;
+        var handle = new WindowInteropHelper(this).Handle;
+        if (DwmSetWindowAttribute(handle, UseImmersiveDarkMode, ref enabled, sizeof(int)) != 0)
+        {
+            DwmSetWindowAttribute(handle, UseImmersiveDarkModeBefore20H1, ref enabled, sizeof(int));
+        }
+    }
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
 }

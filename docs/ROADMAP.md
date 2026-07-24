@@ -1,191 +1,232 @@
-# Implementation Roadmap
+# SockTuner Delivery Roadmap
 
-No dates are assigned yet. Each phase ends with a working, reviewable increment and must meet its exit criteria before the next phase expands writable scope.
+SockTuner is built in small, testable increments. A step is complete only when its exit criteria pass; unfinished work is not hidden behind a polished screen.
 
-## Phase 0 — Specification and evidence catalog
+## Priorities
 
-### Deliverables
+| Priority | Meaning |
+| --- | --- |
+| **P0** | Required for a trustworthy usable core; blocks writable features |
+| **P1** | Required for private beta and controlled tuning |
+| **P2** | Release hardening or valuable follow-up work |
 
-- Approve [Architecture](ARCHITECTURE.md) and [Product Scope](PRODUCT_SCOPE.md).
-- Inventory all candidate settings found in the research corpus.
-- Build the setting catalog: API, scope, type, supported values, OS/driver gates, risk, evidence, verification, restart, and rollback.
-- Resolve contradictory recommendations in the source material through official documentation and repeatable tests.
-- Define the versioned JSON schemas for inventory, plans, snapshots, and reports.
-- Audit source provenance and licenses; separate private research material from future public repository content.
+## Safety gates
 
-### Exit criteria
+These apply to every step:
 
-- No candidate setting enters implementation without an evidence classification.
-- Initial Windows and hardware test matrix is agreed.
-- Public claims are limited to capabilities the project can actually test.
+- Production uses native Windows/.NET APIs first and has no PowerShell runtime dependency.
+- Material under `research/` is reference-only: never executed, bundled, or copied without validation and license review.
+- Read-only inventory and diagnostics run unelevated where Windows permits.
+- Every writable setting needs an allowlisted type, exact target, validation, snapshot, read-back verification, and exact rollback.
+- Real writes are tested only in an explicitly prepared disposable VM. Default tests use fakes.
+- The UI remains write-locked until the complete low-risk transaction path passes its VM gate.
 
-## Phase 1 — Read-only desktop foundation (`0.1`) — In progress
+## Execution order
 
-The first increment provides the WPF shell, normal-user startup, initial OS/adapter inventory, visible per-adapter read errors, refresh, and unit-test foundation. Driver, route, TCP, QoS, Winsock, export, and persistence coverage remain in this phase.
+### Step 1 — Complete shell and inventory integrity (`0.1`) — **P0, current**
 
-### Deliverables
+**Goal:** finish the dark Windows desktop shell and make adapter/driver discovery reliable enough to support later diagnostics and plans.
 
-- Create the C#/.NET 10 WPF application and one test project.
-- Implement navigation, error presentation, structured logging, and local JSON persistence.
-- Discover OS, CPU, adapters, drivers, interfaces, addresses, routes, metrics, DNS, bindings, TCP state, offloads, QoS, Winsock catalog, and driver-advertised properties.
-- Add refresh, search/filter, copy, JSON export, and redacted support report.
-- Run normally without administrator rights where Windows permits.
+Deliverables:
 
-### Exit criteria
+- Complete dark Metro/Aero2 treatment for the window, title bar, navigation, cards, inputs, grids, selection, focus, disabled states, scrollbars, and dialogs.
+- Embed the SockTuner application icon in the window and executable.
+- Inventory OS, CPU, adapters, stable interface GUIDs, addresses, gateways, DNS, link state/speed, driver identity/version, and driver-advertised NDIS properties.
+- Distinguish supported, unsupported, unavailable, and partial inventory instead of reporting an empty result as success.
+- Add refresh, adapter/property filtering, copy, and visible per-surface errors.
+- Keep all discovery read-only and localization-resilient.
 
-- No setting can be modified.
-- Inventory works on the Windows test matrix and on non-English Windows.
-- Physical, virtual, disconnected, and unsupported adapters are identified without hard-coded names.
-- Errors are visible; no blanket silent failure handling.
+Exit criteria:
 
-## Phase 2 — Transactional change engine (`0.2`) — In progress
+- No unintended light surfaces remain in the dark theme at 100%, 125%, 150%, or 200% DPI.
+- Keyboard focus and normal text meet contrast requirements.
+- Physical, virtual, disconnected, and unsupported adapters are identified without hard-coded adapter names.
+- Supported Intel/Realtek adapters expose raw NDIS keywords, current values, defaults, and driver-advertised ranges/enums.
+- Build, format, tests, and supervisor gate pass.
 
-The first increment implements a typed allowlist, write-boundary value/address/adapter validation, serialized apply/rollback, immediate stale checks, read-back verification, and session/machine-bound rollback that refuses external drift. Failure tests use an in-memory store. A Windows registry backend exists but is locked behind an explicit operator confirmation intended only for a disposable VM; the guard does not prove virtualization. The UI remains catalog-only and cannot invoke writes.
+### Step 2 — Complete read-only Windows network inventory (`0.2`) — **P0**
 
-### Deliverables
+**Goal:** show the actual Windows network state before adding more tests or any writes.
 
-- Add typed change plans and value validation.
-- Add same-executable elevated worker mode with strict operation allowlist.
-- Revalidate targets and current values after elevation.
-- Implement snapshots, deterministic ordering, read-back verification, history, and exact rollback.
-- Add apply locking, cancellation boundaries, restart/reboot states, and failure injection tests.
-- Start with a small set of low-risk settings to prove the full lifecycle.
+Deliverables:
 
-### Exit criteria
+- Active routes, default route, interface metrics, IPv4/IPv6 MTU, network profiles, and DNS configuration.
+- TCP global/template state, RSS/RSC/offload state, bindings, QoS policy inventory, Winsock providers, and relevant NIC/link counters.
+- Search/filter across inventory and copy selected values.
+- Versioned JSON snapshot export and redacted support snapshot.
+- Structured local application log with bounded retention and an **Export logs** action.
 
-For every writable setting in this phase:
+Exit criteria:
+
+- Exported data matches the visible snapshot and carries schema/tool versions and capture time.
+- Sensitive identifiers are explicitly included or redacted by the user, never silently leaked.
+- Errors identify the failed surface and do not discard successful inventory from other surfaces.
+- English and Italian Windows validation finds no dependency on localized property labels.
+
+### Step 3 — Diagnostic and monitoring workbench (`0.3`) — **P0**
+
+**Goal:** turn the current short diagnostic into a complete, observable test workflow.
+
+Deliverables:
+
+- Configurable quick, standard, and extended test profiles.
+- Concurrent timestamped probes to gateway, neutral reference, custom/game endpoint, and first reachable ISP boundary when discoverable.
+- Sent/received/lost, minimum, median, average, P95, P99, maximum, named jitter, and spike timeline.
+- DNS timing, optional TCP connection timing, repeated route sampling, path-MTU discovery, and NIC counter deltas.
+- Continuous read-only monitoring with explicit start/stop, duration, interval, cancellation, and bounded in-memory samples.
+- Clear states for timeout, blocked/deprioritized ICMP, DNS failure, route failure, refusal, cancellation, and local API failure.
+
+Exit criteria:
+
+- Deterministic fixtures test every calculation and classification.
+- No network test starts automatically or generates uncontrolled traffic.
+- Intermediate-hop ICMP behavior is not mislabeled as end-to-end loss.
+- Monitoring can run and stop repeatedly without leaking tasks, sockets, or memory.
+
+### Step 4 — Reports, history, and comparison (`0.4`) — **P0**
+
+**Goal:** make observations reproducible and useful for before/after analysis or support escalation.
+
+Deliverables:
+
+- Versioned JSON and self-contained offline HTML diagnostic reports.
+- Raw sample export, run metadata, targets, intervals, route samples, load conditions, and calculation method.
+- Local run history with bounded retention, delete, redaction, and export.
+- Baseline/post-change comparison using identical test parameters.
+- Multi-run metric trends and a redacted ISP/support evidence report.
+
+Exit criteria:
+
+- Reports render without a CDN or internet connection.
+- Imported SockTuner reports are schema-validated and never execute content.
+- “Improvement” is shown only for valid comparable runs.
+
+### Step 5 — Transaction engine and write preview (`0.5`) — **P0**
+
+**Goal:** connect the existing typed transaction core to a safe plan UI without enabling uncontrolled writes.
+
+Deliverables:
+
+- Change cart with selected adapter, current value, proposed value, source, evidence, risk, trade-off, and restart requirement.
+- Dry-run diff, stale-plan rejection, deterministic ordering, exact snapshot, read-back verification, audit history, and rollback preview.
+- Same signed executable elevated-worker mode accepting only versioned typed operations.
+- Strict operation and registry-address allowlists; no executable paths, scripts, shell fragments, or arbitrary registry paths in plans.
+- In-memory failure injection for partial apply, verification failure, cancellation boundaries, external drift, and rollback failure.
+
+Exit criteria:
+
+- The UI cannot bypass the transaction service or create an unlisted operation.
+- Default and CI tests cannot mutate the host.
+- The complete fake-backed path passes:
 
 ```text
 read → plan → snapshot → apply → verify → rollback → verify original state
 ```
 
-must pass on disposable systems. Arbitrary commands and arbitrary registry paths cannot enter an elevated plan.
+- The production write backend remains unavailable until Step 6 VM validation passes.
 
-## Phase 3 — NIC and driver controls (`0.3`)
+### Step 6 — First writable settings in a disposable VM (`0.6`) — **P1**
 
-### Deliverables
+**Goal:** prove a very small end-to-end writable surface before expanding coverage.
 
-- Implement supported offload, RSS, moderation, flow-control, buffer/queue, power, wake, and link controls.
-- Enumerate valid driver values and ranges from the installed driver.
-- Add adapter-restart planning and reconnection verification.
-- Add transparent Balanced and Low Latency proposal profiles for validated hardware.
-- Validate common Intel and Realtek Ethernet families first; all other adapters remain capability-driven and may be read-only.
+Deliverables:
 
-### Exit criteria
+- Select a few documented, exactly reversible, low-disruption settings.
+- Re-detect machine, adapter, driver, capability, and current value after UAC.
+- Apply, verify, persist audit state, roll back, and verify the original value.
+- Recovery behavior for interruption, stale values, access denied, target disappearance, and pending restart.
+- Explicit VM-only operator gate and documented recovery path.
 
-- Unsupported settings are never created.
-- Profiles produce a visible plan and touch only the selected adapter.
-- Adapter restart, network loss, driver rejection, and rollback paths are tested.
-- Performance recommendations include throughput, CPU, power, virtualization, and Wake-on-LAN trade-offs.
+Exit criteria:
 
-## Phase 4 — TCP/IP, interface, QoS, and Winsock (`0.4`)
+- Every supported setting passes repeated read/apply/read/rollback/read testing on disposable Windows 10/11 VMs.
+- External drift is refused rather than overwritten.
+- No adapter restart, reboot, or connectivity interruption occurs without explicit preview and confirmation.
 
-### Deliverables
+### Step 7 — NIC and driver controls (`0.7`) — **P1**
 
-- Implement supported TCP global/template controls.
-- Add selected IPv4/IPv6 interface controls, MTU, metrics, DNS, and QoS policy management.
-- Add carefully scoped TCP ACK/Nagle controls with protocol and evidence warnings.
-- Add Winsock catalog inspection and separately gated repair workflows.
-- Separate tuning, connectivity repair, and destructive reset actions in the UI.
+**Goal:** expose only capabilities actually advertised by the selected driver.
 
-### Exit criteria
+Deliverables:
 
-- Every setting is gated by the active OS surface rather than an OS-name guess.
-- IPv6, adapter bindings, and hidden adapters are never blanket-disabled.
-- Rollback restores exact captured state; no broad reset command is presented as rollback.
-- A remote-session warning appears before changes that may break connectivity.
+- RSS, moderation, flow control, buffers/queues, supported offloads, jumbo frames, EEE, power, wake, and link controls.
+- Driver enum/range validation and absent/unsupported-state handling.
+- Adapter restart planning, reconnection verification, and exact rollback.
+- Transparent **Balanced**, **Low latency**, and **Custom** proposal profiles for validated hardware only.
 
-## Phase 5 — Native diagnostic foundation (`0.5`) — In progress
+Exit criteria:
 
-The first diagnostic increment provides concurrent gateway/reference/game-endpoint ICMP sampling, DNS and optional TCP-connect timing, percentile/jitter/loss calculations, cancellation, and evidence-ranked findings. Repeated routes, path MTU, NIC counters, longer profiles, and report export remain.
+- No missing driver property is created or guessed.
+- Profiles remain editable diffs and touch only the selected adapter.
+- Intel I219/I225/I226 and Realtek RTL8111/RTL8125-class validation records expected trade-offs and failures.
 
-### Deliverables
+### Step 8 — TCP/IP, interfaces, QoS, and Winsock (`0.8`) — **P1**
 
-- Add concurrent ICMP latency/loss runs, named jitter calculation, DNS timing, TCP-connect timing, repeated traceroute, path-MTU discovery, and relevant NIC/link counters.
-- Support gateway, first reachable ISP boundary, neutral reference, game endpoint, and custom targets.
-- Record timestamped raw samples and minimum, median, average, P95, P99, maximum, loss, and spikes.
-- Add baseline and post-change runs using identical parameters.
-- Add versioned JSON and self-contained HTML reports.
-- Distinguish timeouts, blocked/deprioritized ICMP, DNS failure, route failure, remote refusal, and local API failure.
+**Goal:** expand controlled writes beyond NIC properties without introducing broad reset behavior.
 
-### Exit criteria
+Deliverables:
 
-- Calculations have deterministic tests using recorded fixtures.
-- Reports state sample count, duration, interval, targets, route samples, load conditions, and calculation method.
-- Intermediate-hop behavior is not called packet loss unless end-to-end evidence supports it.
-- No metric is labeled “gaming improvement” without a valid before/after comparison.
+- Supported TCP global/template controls, selected interface settings, MTU, metrics, DNS, and QoS policy editing.
+- Carefully scoped TCP ACK/Nagle controls with TCP-only and experimental warnings.
+- Winsock inspection and separately gated targeted repair workflows.
+- Remote-session and connectivity-disruption warnings.
 
-## Phase 6 — Gaming root-cause analysis and recommendations (`0.6`)
+Exit criteria:
 
-### Deliverables
+- Capability gates use the active Windows surface, not OS-name guesses.
+- IPv6, bindings, and hidden adapters are never blanket-disabled.
+- Rollback restores exact captured state; broad resets are not presented as rollback.
 
-- Add a guided gaming diagnostic using a game/region profile or user-provided game endpoint.
-- Correlate PC/NIC, gateway, LAN/Wi-Fi, router/access link, ISP edge, route/peering, region/distance, DNS, and remote-endpoint evidence.
-- Add confidence-ranked candidate causes with supporting and contradicting observations.
-- Separate local fixes from router guidance, ISP escalation, region selection, and remote-server findings.
-- Add controlled loaded-latency testing with explicit test-service selection.
-- Add multi-run comparison, profile result tracking, and an exportable ISP/support evidence report.
-- Add report redaction and import/export for SockTuner-owned schemas.
-- Refine recovery UX and provide an offline emergency-restore workflow.
+### Step 9 — Gaming root-cause analysis (`0.9`) — **P1**
 
-### Exit criteria
+**Goal:** correlate inventory, counters, routes, and measurements into evidence-ranked findings.
 
-- The analyzer can return **inconclusive** instead of inventing a cause.
-- DNS is not blamed for steady in-session RTT without evidence that endpoint selection changed.
-- Every local recommendation links to observed facts, evidence level, expected trade-off, and proposed diff.
-- External causes produce evidence and guidance, not ineffective Windows tweaks.
-- Profiles remain editable plans, not opaque macros.
-- Recovery works after interrupted application and after reboot-required changes.
+Deliverables:
 
-## Phase 7 — Hardening and private beta (`0.9`)
+- Guided game/region profiles and direct endpoint input.
+- Candidate causes across PC/NIC, LAN/Wi-Fi, router/access link, ISP, routing/peering, region, and remote endpoint.
+- Supporting and contradicting observations plus confidence and ownership of the fix.
+- Controlled loaded-latency testing with an explicitly selected endpoint.
+- Local proposals only when SockTuner controls the observed cause; otherwise router/ISP/region guidance.
 
-### Deliverables
+Exit criteria:
 
-- Test clean Windows 10 22H2 and supported Windows 11 installations.
-- Expand hardware and driver matrix.
-- Complete accessibility, localization resilience, performance, and long-run stability checks.
-- Threat-model the elevated worker and update path.
-- Add code signing, installer, SBOM, privacy notice, license, and vulnerability reporting policy.
-- Remove private research artifacts and third-party material from the release tree.
+- **Inconclusive** remains a valid result.
+- DNS is not blamed for steady in-session RTT without endpoint-selection evidence.
+- TCP-only changes are not presented as generic UDP game optimizations.
 
-### Exit criteria
+### Step 10 — Private beta and `1.0` (`0.9.x` → `1.0`) — **P2**
 
-- No critical rollback, privilege-boundary, data-loss, or connectivity-recovery defects.
-- All distributed files have known provenance and licenses.
+Deliverables:
+
+- Windows 10 22H2 and supported Windows 11 matrix testing at multiple DPI levels and English/Italian locales.
+- Accessibility, performance, long-run stability, elevated-worker threat model, recovery drills, and privacy review.
+- Signed installer/update path, SBOM, license, vulnerability policy, support documentation, and release checklist.
+- Remove private captures, nested repositories, external binaries, archives, and unknown-license material from release inputs.
+
+Exit criteria:
+
+- No critical privilege-boundary, rollback, data-loss, or connectivity-recovery defects.
+- All distributed files have known provenance and valid licenses.
 - Signed builds install, update, repair, and uninstall cleanly.
 
-## Phase 8 — Public `1.0`
+## Current queue
 
-### Deliverables
+Work only from the top unfinished item:
 
-- Publish signed stable builds and complete user/technical documentation.
-- Publish the validated setting catalog and known-hardware matrix.
-- Provide troubleshooting, recovery, and responsible issue templates.
-- Enable public repository features only after release artifacts and policies are ready.
+1. **P0 / Step 1:** finish all dark-theme surfaces and verify screenshots at common DPI levels.
+2. **P0 / Step 1:** validate NDIS discovery against real supported and unsupported adapters.
+3. **P0 / Step 1:** add adapter/NDIS filtering, copy, and clearer partial-state presentation.
+4. **P0 / Step 2:** add native routes, metrics, MTU, and DNS inventory.
+5. **P0 / Step 2:** add versioned snapshot/log export.
+6. **P0 / Step 3:** expand diagnostics and continuous monitoring.
 
-## Post-1.0 candidates
+Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 
-Prioritize these only from measured demand:
+## Deferred until measured demand
 
-1. External bufferbloat report import and correlation.
-2. Additional loaded-latency/throughput service integrations.
-3. ETW flow analysis and optional PCAP import.
-4. Process/game endpoint correlation.
-5. Wi-Fi-specific controls and additional NIC validation packs.
-6. CLI automation and signed profile exchange.
-7. ARM64 and managed-enterprise deployment.
-
-A custom capture driver, permanent service, plugin marketplace, or cloud platform requires a separate architecture and security review.
-
-## Initial validation matrix
-
-| Dimension | Initial coverage |
-| --- | --- |
-| OS | Windows 10 22H2 x64; currently supported Windows 11 x64 releases |
-| Locale | English and Italian minimum |
-| Ethernet | Common Intel I219/I225/I226 and Realtek RTL8111/RTL8125-class drivers |
-| Other adapters | Inventory first; writable support only after capability and rollback validation |
-| Network states | DHCP/static, IPv4/dual-stack, disconnected, VPN present, virtual adapters present |
-| Failure states | Access denied, unsupported value, driver rejection, adapter restart failure, target disappears, ICMP blocked, offline system, reboot pending |
-
-The matrix should expand from real test results, not from unverified model-name profiles.
+- ETW process-to-endpoint correlation and optional PCAP import.
+- Additional loaded-latency/throughput service integrations.
+- Wi-Fi radio/roaming controls and additional NIC validation packs.
+- CLI automation, signed profile exchange, ARM64, enterprise deployment.
+- A custom capture driver, permanent service, plugin marketplace, or cloud platform; each requires a separate security and architecture review.

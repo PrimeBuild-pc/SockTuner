@@ -39,6 +39,8 @@ public sealed class SystemInventoryService
             inventoryError = exception.Message;
         }
 
+        var ndis = WindowsNdisInventory.Read(networkInterface.Id);
+
         return new AdapterInfo(
             networkInterface.Id,
             networkInterface.Name,
@@ -52,7 +54,11 @@ public sealed class SystemInventoryService
             properties?.DnsAddresses.Select(item => item.ToString()).ToArray() ?? [],
             networkInterface.Supports(NetworkInterfaceComponent.IPv4),
             networkInterface.Supports(NetworkInterfaceComponent.IPv6),
-            inventoryError);
+            inventoryError,
+            ndis.Driver,
+            ndis.Properties,
+            ndis.IsSupported,
+            ndis.Error);
     }
 
     private static string FormatMacAddress(PhysicalAddress address)
