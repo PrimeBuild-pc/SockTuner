@@ -1,0 +1,169 @@
+name: Private pre-release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.value }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: tests/SockTuner.Tests/SockTuner.Tests.csproj
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $version = $env:TAG_NAME.TrimStart('v')
+          if ($version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$') {
+            throw "Tag is not a supported semantic version"
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Restore
+        run: |
+          dotnet restore SockTuner.sln
+          dotnet restore src/SockTuner/SockTuner.csproj -r win-x64
+
+      - name: Build and test
+        run: |
+          dotnet build SockTuner.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
+          dotnet test SockTuner.sln -c Release --no-build
+
+      - name: Publish self-contained x64 build
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          dotnet publish src/SockTuner/SockTuner.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            --no-restore `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:Version=$env:VERSION `
+            -o artifacts/SockTuner
+
+      - name: Upload unsigned build for protected release job
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unsigned-app
+          path: artifacts/SockTuner/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-release:
+    needs: build-release
+    if: github.actor == github.repository_owner
+    runs-on: windows-latest
+    timeout-minutes: 15
+    environment: private-release
+    permissions:
+      contents: write
+
+    steps:
+      - name: Refuse release outside the private repository
+        shell: pwsh
+        env:
+          REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          if ($env:REPOSITORY_VISIBILITY -ne 'private') {
+            throw "This workflow is restricted to private pre-releases."
+          }
+          if ($env:REPOSITORY -ne 'PrimeBuild-pc/SockTuner') {
+            throw "Unexpected repository."
+          }
+
+      - name: Download unsigned build
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: unsigned-app
+          path: artifacts/SockTuner
+
+      - name: Sign executable when certificate is configured
+        shell: pwsh
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
+            "This is an unsigned private pre-release. Do not redistribute it." |
+              Set-Content artifacts/SockTuner/UNSIGNED-PREVIEW.txt
+            exit 0
+          }
+
+          $certificatePath = Join-Path $env:RUNNER_TEMP "SockTuner.pfx"
+          [IO.File]::WriteAllBytes($certificatePath, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE))
+          $signTool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+          if (-not $signTool) { throw "signtool.exe not found" }
+
+          & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com `
+            /f $certificatePath /p $env:WINDOWS_CERTIFICATE_PASSWORD artifacts/SockTuner/SockTuner.exe
+          if ($LASTEXITCODE -ne 0) { throw "Code signing failed" }
+          Remove-Item $certificatePath -Force
+
+      - name: Package and checksum
+        id: package
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.build-release.outputs.version }}
+        run: |
+          $archive = "SockTuner-$env:VERSION-win-x64.zip"
+          Compress-Archive -Path artifacts/SockTuner/* -DestinationPath "artifacts/$archive"
+          $hash = (Get-FileHash "artifacts/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $archive" | Set-Content "artifacts/$archive.sha256"
+          "archive=$archive" >> $env:GITHUB_OUTPUT
+
+      - name: Upload final workflow artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: SockTuner-${{ needs.build-release.outputs.version }}-win-x64
+          path: |
+            artifacts/${{ steps.package.outputs.archive }}
+            artifacts/${{ steps.package.outputs.archive }}.sha256
+          if-no-files-found: error
+
+      - name: Create GitHub pre-release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+          RELEASE_TITLE: SockTuner ${{ needs.build-release.outputs.version }}
+          ARCHIVE: ${{ steps.package.outputs.archive }}
+        run: |
+          gh release create "$env:TAG_NAME" `
+            "artifacts/$env:ARCHIVE" `
+            "artifacts/$env:ARCHIVE.sha256" `
+            --repo "$env:REPOSITORY" `
+            --title "$env:RELEASE_TITLE" `
+            --generate-notes `
+            --prerelease `
+            --verify-tag

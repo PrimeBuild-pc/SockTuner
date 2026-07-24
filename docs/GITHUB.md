@@ -35,7 +35,7 @@ wpf
 ## Suggested About settings
 
 - **Website:** leave empty until an official project page exists.
-- **Releases:** disabled or unused during planning.
+- **Releases:** private pre-releases are automated from semantic-version tags; stable releases remain disabled until public-release gates pass.
 - **Packages:** disabled unless a packaging workflow needs them.
 - **Discussions:** enable only when the repository becomes public and moderation is available.
 - **Issues:** keep private-team use during development; add templates before public beta.
@@ -57,7 +57,7 @@ Use this near the top of the README until a safe public build exists:
 - Publish the supported Windows/hardware matrix and known limitations.
 - Remove external binaries, PCAP files, personal reports, nested repositories, and unlicensed reference material.
 - Verify every performance claim with a reproducible method and representative results.
-- Add CI build/test and dependency/SBOM generation.
+- Keep CI build/test and Dependabot green; add SBOM generation before public release.
 - Review exported diagnostics for IP addresses, MAC addresses, hostnames, and other sensitive data.
 
 ## Positioning line

@@ -43,7 +43,7 @@ See the [Documentation Index](docs/README.md) and [Product Scope](docs/PRODUCT_S
 
 WPF is the deliberate choice for a Windows-only administrative tool: it is mature, works across Windows 10 and 11, integrates cleanly with native Windows management surfaces, and avoids a browser runtime or an unnecessary UI platform dependency.
 
-Read the full [Architecture](docs/ARCHITECTURE.md) and [Implementation Roadmap](docs/ROADMAP.md).
+Read the full [Architecture](docs/ARCHITECTURE.md), [Implementation Roadmap](docs/ROADMAP.md), and [Development Guide](docs/DEVELOPMENT.md).
 
 ## Engineering position
 
