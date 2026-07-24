@@ -38,7 +38,9 @@ The first increment provides the WPF shell, normal-user startup, initial OS/adap
 - Physical, virtual, disconnected, and unsupported adapters are identified without hard-coded names.
 - Errors are visible; no blanket silent failure handling.
 
-## Phase 2 — Transactional change engine (`0.2`)
+## Phase 2 — Transactional change engine (`0.2`) — In progress
+
+The first increment implements a typed allowlist, write-boundary value/address/adapter validation, serialized apply/rollback, immediate stale checks, read-back verification, and session/machine-bound rollback that refuses external drift. Failure tests use an in-memory store. A Windows registry backend exists but is locked behind an explicit operator confirmation intended only for a disposable VM; the guard does not prove virtualization. The UI remains catalog-only and cannot invoke writes.
 
 ### Deliverables
 

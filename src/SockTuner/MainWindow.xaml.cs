@@ -15,6 +15,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         Loaded += async (_, _) => await RefreshInventoryAsync();
     }
 

@@ -191,20 +191,40 @@
             </TabItem>
 
             <TabItem Header="Tuning plan">
-                <Border Style="{StaticResource Card}" Margin="0,20,0,0" VerticalAlignment="Top">
-                    <StackPanel>
-                        <TextBlock Text="Evidence-gated tuning" FontSize="22" FontWeight="SemiBold"/>
-                        <TextBlock Text="Driver-advertised properties and Windows settings will appear here as a dry-run diff before any elevated action." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                        <TextBlock Text="Live mutation backend: disabled" Foreground="{StaticResource WarningBrush}" FontWeight="SemiBold" Margin="0,16,0,0"/>
-                    </StackPanel>
-                </Border>
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <Border Style="{StaticResource Card}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Evidence-gated setting catalog" FontSize="22" FontWeight="SemiBold"/>
+                                <TextBlock Text="Only typed, allowlisted settings can enter a future change plan. Experimental TCP controls are never silently recommended." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="#3D2E19" CornerRadius="12" Padding="12,6" VerticalAlignment="Center">
+                                <TextBlock Text="LIVE WRITES LOCKED" Foreground="{StaticResource WarningBrush}" FontSize="11" FontWeight="Bold"/>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <DataGrid x:Name="TuningCatalogGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Setting" Binding="{Binding Title}" Width="170"/>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150"/>
+                            <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="110"/>
+                            <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="110"/>
+                            <DataGridTextColumn Header="Risk" Binding="{Binding Risk}" Width="80"/>
+                            <DataGridTextColumn Header="Restart" Binding="{Binding RestartRequirement}" Width="110"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                            <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
             </TabItem>
         </TabControl>
 
         <Grid Grid.Row="3" Margin="0,14,0,0">
             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="StatusText" Text="Ready" Foreground="{StaticResource MutedTextBrush}"/>
-            <TextBlock Grid.Column="1" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+            <TextBlock Grid.Column="1" Text="PRE-ALPHA 0.2" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

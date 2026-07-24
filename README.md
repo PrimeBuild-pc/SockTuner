@@ -2,7 +2,7 @@
 
 **Advanced, all-in-one network tuning and diagnostics for Windows 10 and Windows 11.**
 
-> **Status: pre-alpha development.** The read-only WPF shell, Windows network inventory, and initial gaming diagnostic run are implemented. Tuning and mutation features remain disabled.
+> **Status: pre-alpha development.** Read-only inventory and gaming diagnostics are implemented. The typed tuning catalog and transaction engine are under isolated test; UI-triggered mutations remain disabled.
 
 SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
 
@@ -55,8 +55,9 @@ The reference scripts in this private workspace are research inputs, not product
 
 - Architecture and product scope approved.
 - Read-only WPF desktop foundation, initial OS/adapter inventory, and short-run gaming diagnostics implemented.
-- Next: expand route/counter diagnostics and prove the transactional change engine.
-- Live network mutations remain unavailable until isolated-VM validation exists.
+- Typed allowlisting, stale-plan checks, read-back verification, and session-bound rollback that refuses external drift are covered by in-memory failure tests.
+- Next: expand route/counter diagnostics and validate the locked Windows write backend in a disposable VM.
+- Live network mutations remain unavailable from the UI until isolated-VM validation exists.
 
 ## Important notice
 
