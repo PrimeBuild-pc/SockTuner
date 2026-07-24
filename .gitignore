@@ -1,0 +1,25 @@
+# Build output
+**/bin/
+**/obj/
+artifacts/
+TestResults/
+
+# IDE and user state
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs and local app data
+*.log
+*.dmp
+
+# Private research corpus: keep local, publish only its index
+research/*
+!research/README.md
+
+# OS files
+.DS_Store
+Thumbs.db
