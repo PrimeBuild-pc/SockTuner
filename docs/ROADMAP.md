@@ -93,7 +93,9 @@ must pass on disposable systems. Arbitrary commands and arbitrary registry paths
 - Rollback restores exact captured state; no broad reset command is presented as rollback.
 - A remote-session warning appears before changes that may break connectivity.
 
-## Phase 5 — Native diagnostic foundation (`0.5`)
+## Phase 5 — Native diagnostic foundation (`0.5`) — In progress
+
+The first diagnostic increment provides concurrent gateway/reference/game-endpoint ICMP sampling, DNS and optional TCP-connect timing, percentile/jitter/loss calculations, cancellation, and evidence-ranked findings. Repeated routes, path MTU, NIC counters, longer profiles, and report export remain.
 
 ### Deliverables
 

@@ -130,13 +130,64 @@
             </TabItem>
 
             <TabItem Header="Gaming diagnostics">
-                <Border Style="{StaticResource Card}" Margin="0,20,0,0" VerticalAlignment="Top">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
-                        <TextBlock Text="Layered gaming diagnosis" FontSize="22" FontWeight="SemiBold"/>
-                        <TextBlock Text="The next phase will correlate gateway, ISP boundary, neutral reference, route, DNS, and game-endpoint evidence." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                        <TextBlock Text="No test runs automatically, and no network setting will be changed." Foreground="{StaticResource PrimaryBrush}" Margin="0,16,0,0"/>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="GAME OR REGIONAL ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DiagnosticTargetText" Text="" Margin="0,6,0,0" ToolTip="Host name or IP address"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"/>
+                                </StackPanel>
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="2" Content="Run diagnosis" Click="RunDiagnostic_Click" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
+                                <Button x:Name="CancelDiagnosticButton" Grid.Column="3" Content="Cancel" Click="CancelDiagnostic_Click" VerticalAlignment="Bottom" Background="#31405D" Foreground="{StaticResource TextBrush}" IsEnabled="False"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryBrush}" Margin="4,12,0,0"/>
+
+                        <Grid Margin="0,18,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Card}" Margin="0,0,10,0">
+                                <StackPanel><TextBlock Text="GATEWAY" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/><TextBlock x:Name="GatewayResultText" Text="Not run" TextWrapping="Wrap" FontSize="15" Margin="0,8,0,0"/></StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,10,0">
+                                <StackPanel><TextBlock Text="REFERENCE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/><TextBlock x:Name="ReferenceResultText" Text="Not run" TextWrapping="Wrap" FontSize="15" Margin="0,8,0,0"/></StackPanel>
+                            </Border>
+                            <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0,0,10,0">
+                                <StackPanel><TextBlock Text="GAME ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/><TextBlock x:Name="GameResultText" Text="Not run" TextWrapping="Wrap" FontSize="15" Margin="0,8,0,0"/></StackPanel>
+                            </Border>
+                            <Border Grid.Column="3" Style="{StaticResource Card}">
+                                <StackPanel><TextBlock Text="DNS / CONNECTION" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/><TextBlock x:Name="DnsResultText" Text="Not run" TextWrapping="Wrap" FontSize="15" Margin="0,8,0,0"/></StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Evidence-ranked findings" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DiagnosticRunSummaryText" Text="Run a diagnosis to populate findings." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,14"/>
+                                <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" MinHeight="190">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="120"/>
+                                        <DataGridTextColumn Header="Confidence" Binding="{Binding Confidence}" Width="100"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="1.3*"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
-                </Border>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Tuning plan">
