@@ -2,7 +2,7 @@
 
 **Advanced, all-in-one network tuning and diagnostics for Windows 10 and Windows 11.**
 
-> **Status: architecture and planning.** SockTuner is not yet available for use. This repository currently defines the product before implementation begins.
+> **Status: pre-alpha development.** The read-only WPF shell and initial Windows network inventory are implemented. Tuning and mutation features remain disabled.
 
 SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
 
@@ -53,13 +53,10 @@ The reference scripts in this private workspace are research inputs, not product
 
 ## Current stage
 
-1. Review and approve the architecture and product scope.
-2. Build a documented setting and compatibility catalog.
-3. Implement read-only discovery.
-4. Add the transactional apply, verify, and rollback engine.
-5. Add tuning modules and diagnostics incrementally.
-
-No application code will be started until the planning documents are approved.
+- Architecture and product scope approved.
+- Read-only WPF desktop foundation and initial OS/adapter inventory implemented.
+- Next: expand inventory, add native gaming diagnostics, then prove the transactional change engine.
+- Live network mutations remain unavailable until isolated-VM validation exists.
 
 ## Important notice
 

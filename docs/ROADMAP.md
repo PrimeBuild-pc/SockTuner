@@ -19,7 +19,9 @@ No dates are assigned yet. Each phase ends with a working, reviewable increment 
 - Initial Windows and hardware test matrix is agreed.
 - Public claims are limited to capabilities the project can actually test.
 
-## Phase 1 — Read-only desktop foundation (`0.1`)
+## Phase 1 — Read-only desktop foundation (`0.1`) — In progress
+
+The first increment provides the WPF shell, normal-user startup, initial OS/adapter inventory, visible per-adapter read errors, refresh, and unit-test foundation. Driver, route, TCP, QoS, Winsock, export, and persistence coverage remain in this phase.
 
 ### Deliverables
 

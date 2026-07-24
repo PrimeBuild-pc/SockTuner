@@ -43,9 +43,9 @@ wpf
 
 ## Repository status text
 
-Use this near the top of the README until the first usable build exists:
+Use this near the top of the README until a safe public build exists:
 
-> **Status: architecture and planning. SockTuner is not yet available for use.**
+> **Status: pre-alpha development. Read-only inventory and diagnostics are under construction; live network mutations remain disabled.**
 
 ## Public-launch checklist
 
