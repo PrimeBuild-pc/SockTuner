@@ -21,10 +21,14 @@
                 <TextBlock Text="SockTuner" FontSize="30" FontWeight="Light"/>
                 <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
             </StackPanel>
-            <Border Grid.Column="1" Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
-                    BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
-                <TextBlock Text="READ-ONLY PREVIEW" Foreground="{StaticResource PrimaryTextBrush}" FontSize="11" FontWeight="SemiBold"/>
-            </Border>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Export snapshot" Click="ExportSnapshot_Click" Margin="0,0,8,0"/>
+                <Button Content="Export logs" Click="ExportLogs_Click" Margin="0,0,12,0"/>
+                <Border Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
+                        BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
+                    <TextBlock Text="READ-ONLY PREVIEW" Foreground="{StaticResource PrimaryTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                </Border>
+            </StackPanel>
         </Grid>
 
         <TabControl Grid.Row="2">
@@ -113,12 +117,23 @@
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="220"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Network adapters" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock Text="Stable identity, state, link speed, addresses, gateways, and protocol support." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                         </StackPanel>
-                        <Button Grid.Column="1" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Center"
+                        <StackPanel Grid.Column="1" Margin="12,0">
+                            <TextBlock Text="SEARCH" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                            <TextBox x:Name="AdapterFilterText" TextChanged="AdapterFilter_TextChanged" Margin="0,5,0,0"
+                                     AutomationProperties.Name="Filter network adapters"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="Copy selected" Click="CopyAdapter_Click" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Bottom"
                                 Style="{StaticResource PrimaryButton}" AutomationProperties.Name="Refresh network inventory"/>
                     </Grid>
                     <DataGrid x:Name="AdaptersGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
@@ -126,8 +141,10 @@
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
+                            <DataGridTextColumn Header="Kind" Binding="{Binding AdapterKindDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding InterfaceType}" Width="140"/>
                             <DataGridTextColumn Header="Speed" Binding="{Binding SpeedDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="MTU" Binding="{Binding MtuDisplay}" Width="120"/>
                             <DataGridTextColumn Header="Driver" Binding="{Binding DriverDisplay}" Width="180"/>
                             <DataGridTextColumn Header="NDIS" Binding="{Binding NdisPropertyCountDisplay}" Width="105"/>
                             <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" Width="110"/>
@@ -141,11 +158,20 @@
             <TabItem Header="NDIS &amp; drivers">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Driver-advertised NDIS properties" FontSize="22" FontWeight="SemiBold"/>
-                        <TextBlock x:Name="NdisSummaryText" Text="Reading native driver metadata…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Driver-advertised NDIS properties" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="NdisSummaryText" Text="Reading native driver metadata…"
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="12,0">
+                            <TextBlock Text="SEARCH" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                            <TextBox x:Name="NdisFilterText" TextChanged="NdisFilter_TextChanged" Margin="0,5,0,0"
+                                     AutomationProperties.Name="Filter NDIS properties"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="Copy selected" Click="CopyNdisProperty_Click" VerticalAlignment="Bottom"/>
+                    </Grid>
                     <DataGrid x:Name="NdisPropertiesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding Adapter}" Width="140"/>
@@ -156,6 +182,41 @@
                             <DataGridTextColumn Header="Default" Binding="{Binding Default}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90"/>
                             <DataGridTextColumn Header="Driver-advertised values" Binding="{Binding ValidValues}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Routes &amp; DNS">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="2*"/>
+                        <RowDefinition Height="18"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="IPv4 route table" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="RouteSummaryText" Text="Reading native route inventory…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="RoutesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Destination" Binding="{Binding Destination}" Width="160"/>
+                            <DataGridTextColumn Header="Next hop" Binding="{Binding NextHop}" Width="140"/>
+                            <DataGridTextColumn Header="Interface" Binding="{Binding InterfaceName}" Width="180"/>
+                            <DataGridTextColumn Header="Index" Binding="{Binding InterfaceIndex}" Width="80"/>
+                            <DataGridTextColumn Header="Metric" Binding="{Binding Metric}" Width="80"/>
+                            <DataGridTextColumn Header="Protocol" Binding="{Binding Protocol}" Width="120"/>
+                            <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="4" Text="Interface addressing" FontSize="18" FontWeight="SemiBold"/>
+                    <DataGrid x:Name="DnsInterfacesGrid" Grid.Row="6" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150"/>
+                            <DataGridTextColumn Header="IPv4 index" Binding="{Binding Ipv4Index}" Width="100"/>
+                            <DataGridTextColumn Header="MTU" Binding="{Binding MtuDisplay}" Width="150"/>
+                            <DataGridTextColumn Header="Gateways" Binding="{Binding GatewaysDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="DNS servers" Binding="{Binding DnsDisplay}" Width="2*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -259,9 +320,10 @@
         </TabControl>
 
         <Grid Grid.Row="3" Margin="0,14,0,0">
-            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
             <TextBlock x:Name="StatusText" Text="Ready" Foreground="{StaticResource MutedTextBrush}"/>
-            <TextBlock Grid.Column="1" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+            <TextBlock x:Name="LogStatusText" Grid.Column="1" Foreground="{StaticResource WarningBrush}" Margin="0,0,18,0"/>
+            <TextBlock Grid.Column="2" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

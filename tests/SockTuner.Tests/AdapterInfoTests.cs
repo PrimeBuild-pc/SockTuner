@@ -16,6 +16,18 @@ public sealed class AdapterInfoTests
         Assert.Equal(expected, AdapterInfo.FormatSpeed(bitsPerSecond));
     }
 
+    [Fact]
+    public void ClassifyAdapter_UsesTypeAndDriverCharacteristicsWithoutAdapterNames()
+    {
+        var physical = new DriverInfo("Intel", "1", "—", "—", "—", "—", "PCI\\VEN_8086", 0x4);
+        var virtualAdapter = new DriverInfo("Microsoft", "1", "—", "—", "—", "—", "ROOT\\VMS_MP", 0x1);
+
+        Assert.Equal(AdapterKind.Physical, AdapterInfo.ClassifyAdapter(NetworkInterfaceType.Ethernet, physical, true, true));
+        Assert.Equal(AdapterKind.Virtual, AdapterInfo.ClassifyAdapter(NetworkInterfaceType.Ethernet, virtualAdapter, true, true));
+        Assert.Equal(AdapterKind.Loopback, AdapterInfo.ClassifyAdapter(NetworkInterfaceType.Loopback, null, true, true));
+        Assert.Equal(AdapterKind.Filter, AdapterInfo.ClassifyAdapter(NetworkInterfaceType.Ethernet, null, false, false));
+    }
+
     [Theory]
     [InlineData(null, "Complete")]
     [InlineData("Driver rejected query", "Partial: Driver rejected query")]
@@ -24,7 +36,7 @@ public sealed class AdapterInfoTests
         var adapter = new AdapterInfo(
             "id", "name", "description", NetworkInterfaceType.Ethernet,
             OperationalStatus.Up, 1_000_000_000, "00-00-00-00-00-00",
-            [], [], [], true, true, error, null, [], false, null);
+            [], [], [], 0, 0, 0, 0, true, true, error, null, [], false, null);
 
         Assert.Equal(expected, adapter.InventoryStatus);
         Assert.Equal("Unsupported", adapter.NdisPropertyCountDisplay);

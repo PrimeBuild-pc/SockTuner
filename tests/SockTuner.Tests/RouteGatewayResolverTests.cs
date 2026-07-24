@@ -15,7 +15,9 @@ public sealed class RouteGatewayResolverTests
             [
                 Adapter("VPN", NetworkInterfaceType.Tunnel, "10.0.0.2", "10.0.0.1"),
                 Adapter("Ethernet", NetworkInterfaceType.Ethernet, "192.168.1.20", "192.168.1.1")
-            ]);
+            ],
+            [],
+            null);
 
         var gateway = RouteGatewayResolver.SelectGateway(snapshot, IPAddress.Parse("192.168.1.20"));
 
@@ -27,12 +29,14 @@ public sealed class RouteGatewayResolverTests
     {
         var snapshot = new NetworkSnapshot(
             new SystemOverview("Windows", "10", "PC", 8, false, DateTimeOffset.UnixEpoch),
-            [Adapter("Ethernet", NetworkInterfaceType.Ethernet, "192.168.1.20", "::")]);
+            [Adapter("Ethernet", NetworkInterfaceType.Ethernet, "192.168.1.20", "::")],
+            [],
+            null);
 
         Assert.Null(RouteGatewayResolver.SelectGateway(snapshot, IPAddress.Parse("192.168.1.20")));
     }
 
     private static AdapterInfo Adapter(string name, NetworkInterfaceType type, string address, string gateway) =>
         new(name, name, name, type, OperationalStatus.Up, 1_000_000_000, "00-00-00-00-00-00",
-            [address], [gateway], [], true, true, null, null, [], false, null);
+            [address], [gateway], [], 1, 1500, 1, 1500, true, true, null, null, [], false, null);
 }

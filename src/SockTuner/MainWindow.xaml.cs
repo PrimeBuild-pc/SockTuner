@@ -1,7 +1,10 @@
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using Microsoft.Win32;
 using SockTuner.Models;
+using SockTuner.Persistence;
 using SockTuner.Services;
 
 namespace SockTuner;
@@ -16,6 +19,8 @@ public partial class MainWindow : Window
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private NetworkSnapshot? _snapshot;
     private CancellationTokenSource? _diagnosticCancellation;
+    private IReadOnlyList<AdapterInfo> _adapterRows = [];
+    private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
 
     public MainWindow()
     {
@@ -23,6 +28,7 @@ public partial class MainWindow : Window
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
+        WriteLog("app.started", "SockTuner UI started.");
     }
 
     private async void RefreshInventory_Click(object sender, RoutedEventArgs e) => await RefreshInventoryAsync();
@@ -36,10 +42,12 @@ public partial class MainWindow : Window
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
             StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
+            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IPv4 routes, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
             StatusText.Text = $"Inventory failed: {exception.Message}";
+            WriteLog("inventory.failed", exception.Message);
         }
     }
 
@@ -54,23 +62,26 @@ public partial class MainWindow : Window
         BuildText.Text = snapshot.System.Version;
         MachineText.Text = snapshot.System.MachineName;
         CapturedText.Text = snapshot.System.CapturedAt.ToString("yyyy-MM-dd HH:mm:ss zzz");
-        AdaptersGrid.ItemsSource = snapshot.Adapters;
-
-        var ndisProperties = snapshot.Adapters
-            .SelectMany(adapter => adapter.NdisProperties.Select(property => new
-            {
-                Adapter = adapter.Name,
-                Driver = adapter.DriverDisplay,
-                Property = property.DisplayName,
+        _adapterRows = snapshot.Adapters;
+        _ndisRows = snapshot.Adapters
+            .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
+                adapter.Name,
+                adapter.DriverDisplay,
+                property.DisplayName,
                 property.Keyword,
-                Current = property.CurrentValue,
-                Default = property.DefaultValue,
+                property.CurrentValue,
+                property.DefaultValue,
                 property.Type,
-                property.ValidValues
-            }))
+                property.ValidValues)))
             .ToArray();
-        NdisPropertiesGrid.ItemsSource = ndisProperties;
-        NdisSummaryText.Text = $"{ndisProperties.Length} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
+        ApplyAdapterFilter();
+        ApplyNdisFilter();
+        NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
+        RoutesGrid.ItemsSource = snapshot.Routes;
+        DnsInterfacesGrid.ItemsSource = snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0);
+        RouteSummaryText.Text = snapshot.RouteInventoryError is null
+            ? $"{snapshot.Routes.Count} native IPv4 route(s). IPv6 route inventory is scheduled next."
+            : $"Route inventory partial: {snapshot.RouteInventoryError}";
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
@@ -100,6 +111,7 @@ public partial class MainWindow : Window
         ClearDiagnosticResults("Running…");
         DiagnosticRunSummaryText.Text = $"Resolving {target}, then collecting concurrent gateway, reference, and endpoint samples…";
         StatusText.Text = $"Diagnosing {target}…";
+        WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}.");
 
         try
         {
@@ -115,24 +127,187 @@ public partial class MainWindow : Window
             FindingsGrid.ItemsSource = report.Findings;
             DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from a {report.Duration.TotalSeconds:0.0}s short run. Confirm issues with a longer run before changing settings.";
             StatusText.Text = $"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}";
+            WriteLog("diagnostic.completed", $"Target={report.RequestedTarget}; Duration={report.Duration.TotalSeconds:0.0}s; Findings={report.Findings.Count}.");
         }
         catch (OperationCanceledException)
         {
             ClearDiagnosticResults("Canceled");
             DiagnosticRunSummaryText.Text = $"Diagnosis for {target} canceled. Partial samples were discarded.";
             StatusText.Text = "Diagnosis canceled";
+            WriteLog("diagnostic.canceled", $"Target={target}.");
         }
         catch (Exception exception)
         {
             ClearDiagnosticResults("Failed");
             DiagnosticRunSummaryText.Text = $"Diagnosis for {target} failed: {exception.Message}";
             StatusText.Text = "Diagnosis failed";
+            WriteLog("diagnostic.failed", $"Target={target}; Error={exception.Message}");
         }
         finally
         {
             SetDiagnosticBusy(false);
         }
     }
+
+    private void ExportSnapshot_Click(object sender, RoutedEventArgs e)
+    {
+        if (_snapshot is null)
+        {
+            StatusText.Text = "Refresh inventory before exporting a snapshot.";
+            return;
+        }
+
+        if (MessageBox.Show(
+                "The snapshot contains machine, adapter, address, route, DNS, and driver identifiers. Export it anyway?",
+                "Export diagnostic snapshot",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Filter = "SockTuner JSON snapshot (*.json)|*.json",
+            DefaultExt = ".json",
+            AddExtension = true,
+            FileName = $"SockTuner-snapshot-{DateTime.Now:yyyyMMdd-HHmmss}.json"
+        };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, SnapshotExporter.Serialize(_snapshot));
+            StatusText.Text = $"Snapshot exported to {dialog.FileName}.";
+            WriteLog("snapshot.exported", dialog.FileName);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Snapshot export failed: {exception.Message}";
+            WriteLog("snapshot.export_failed", exception.Message);
+        }
+    }
+
+    private void ExportLogs_Click(object sender, RoutedEventArgs e)
+    {
+        if (MessageBox.Show(
+                "Logs can contain diagnostic targets and local file paths. Export them anyway?",
+                "Export application logs",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Filter = "SockTuner JSON Lines log (*.jsonl)|*.jsonl",
+            DefaultExt = ".jsonl",
+            AddExtension = true,
+            FileName = $"SockTuner-log-{DateTime.Now:yyyyMMdd-HHmmss}.jsonl"
+        };
+        if (dialog.ShowDialog(this) != true)
+        {
+            return;
+        }
+
+        try
+        {
+            AppLog.Export(dialog.FileName);
+            StatusText.Text = $"Log exported to {dialog.FileName}.";
+            WriteLog("log.exported", dialog.FileName);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Log export failed: {exception.Message}";
+        }
+    }
+
+    private void AdapterFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyAdapterFilter();
+
+    private void NdisFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyNdisFilter();
+
+    private void ApplyAdapterFilter()
+    {
+        var search = AdapterFilterText.Text.Trim();
+        AdaptersGrid.ItemsSource = string.IsNullOrEmpty(search)
+            ? _adapterRows
+            : _adapterRows.Where(adapter => Contains(adapter.Name, search)
+                || Contains(adapter.Description, search)
+                || Contains(adapter.Id, search)
+                || Contains(adapter.Status.ToString(), search)
+                || Contains(adapter.AdapterKindDisplay, search)
+                || Contains(adapter.InterfaceType.ToString(), search)
+                || Contains(adapter.SpeedDisplay, search)
+                || Contains(adapter.MtuDisplay, search)
+                || Contains(adapter.DriverDisplay, search)
+                || Contains(adapter.NdisPropertyCountDisplay, search)
+                || Contains(adapter.ProtocolsDisplay, search)
+                || Contains(adapter.AddressesDisplay, search)
+                || Contains(adapter.GatewaysDisplay, search)
+                || Contains(adapter.DnsDisplay, search)
+                || Contains(adapter.InventoryStatus, search));
+    }
+
+    private void ApplyNdisFilter()
+    {
+        var search = NdisFilterText.Text.Trim();
+        NdisPropertiesGrid.ItemsSource = string.IsNullOrEmpty(search)
+            ? _ndisRows
+            : _ndisRows.Where(row => Contains(row.Adapter, search)
+                || Contains(row.Driver, search)
+                || Contains(row.Property, search)
+                || Contains(row.Keyword, search)
+                || Contains(row.Current, search)
+                || Contains(row.Default, search)
+                || Contains(row.Type, search)
+                || Contains(row.ValidValues, search));
+    }
+
+    private void CopyAdapter_Click(object sender, RoutedEventArgs e)
+    {
+        if (AdaptersGrid.SelectedItem is not AdapterInfo adapter)
+        {
+            StatusText.Text = "Select an adapter to copy.";
+            return;
+        }
+
+        CopyToClipboard(
+            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
+            $"Copied adapter {adapter.Name}.");
+    }
+
+    private void CopyNdisProperty_Click(object sender, RoutedEventArgs e)
+    {
+        if (NdisPropertiesGrid.SelectedItem is not NdisPropertyRow property)
+        {
+            StatusText.Text = "Select an NDIS property to copy.";
+            return;
+        }
+
+        CopyToClipboard(
+            $"Adapter\t{property.Adapter}\nDriver\t{property.Driver}\nProperty\t{property.Property}\nKeyword\t{property.Keyword}\nCurrent\t{property.Current}\nDefault\t{property.Default}\nType\t{property.Type}\nValid values\t{property.ValidValues}",
+            $"Copied {property.Keyword}.");
+    }
+
+    private void CopyToClipboard(string text, string successMessage)
+    {
+        try
+        {
+            Clipboard.SetText(text);
+            StatusText.Text = successMessage;
+        }
+        catch (ExternalException exception)
+        {
+            StatusText.Text = $"Clipboard unavailable: {exception.Message}";
+        }
+    }
+
+    private static bool Contains(string value, string search) =>
+        value.Contains(search, StringComparison.CurrentCultureIgnoreCase);
 
     private void CancelDiagnostic_Click(object sender, RoutedEventArgs e) => _diagnosticCancellation?.Cancel();
 
@@ -153,6 +328,12 @@ public partial class MainWindow : Window
         FindingsGrid.ItemsSource = null;
     }
 
+    private void WriteLog(string eventName, string message)
+    {
+        var error = AppLog.Write(eventName, message);
+        LogStatusText.Text = error is null ? string.Empty : $"Logging unavailable: {error}";
+    }
+
     private void ApplyDarkTitleBar()
     {
         var enabled = 1;
@@ -165,4 +346,14 @@ public partial class MainWindow : Window
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
+
+    private sealed record NdisPropertyRow(
+        string Adapter,
+        string Driver,
+        string Property,
+        string Keyword,
+        string Current,
+        string Default,
+        string Type,
+        string ValidValues);
 }

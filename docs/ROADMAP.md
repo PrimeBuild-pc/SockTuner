@@ -212,14 +212,14 @@ Exit criteria:
 
 ## Current queue
 
-Work only from the top unfinished item:
+The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P0 / Step 1:** finish all dark-theme surfaces and verify screenshots at common DPI levels.
-2. **P0 / Step 1:** validate NDIS discovery against real supported and unsupported adapters.
-3. **P0 / Step 1:** add adapter/NDIS filtering, copy, and clearer partial-state presentation.
-4. **P0 / Step 2:** add native routes, metrics, MTU, and DNS inventory.
-5. **P0 / Step 2:** add versioned snapshot/log export.
-6. **P0 / Step 3:** expand diagnostics and continuous monitoring.
+1. **P0 / Step 1:** finish physical/virtual/filter adapter classification and verify common DPI levels.
+2. **P0 / Step 2:** add native IPv6 routes, interface metrics/profiles/bindings, TCP/offload/QoS/Winsock state, and NIC counters.
+3. **P0 / Step 2:** add redacted snapshot/support export and retention preferences.
+4. **P0 / Step 3:** expand diagnostics and continuous monitoring.
+5. **P0 / Step 4:** add offline HTML reports, history, and comparison.
+6. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
 
 Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 

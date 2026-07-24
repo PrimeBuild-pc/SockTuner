@@ -13,6 +13,15 @@ public sealed class WindowsNdisInventoryTests
         Assert.Equal("42", WindowsNdisInventory.FormatValue(42));
     }
 
+    [Fact]
+    public void TryReadCharacteristics_RejectsUnexpectedRegistryTypesWithoutThrowing()
+    {
+        Assert.True(WindowsNdisInventory.TryReadCharacteristics(0x84, out var characteristics));
+        Assert.Equal(0x84u, characteristics);
+        Assert.False(WindowsNdisInventory.TryReadCharacteristics("0x84", out characteristics));
+        Assert.Equal(0u, characteristics);
+    }
+
     [Theory]
     [InlineData("0000", true)]
     [InlineData("42", true)]

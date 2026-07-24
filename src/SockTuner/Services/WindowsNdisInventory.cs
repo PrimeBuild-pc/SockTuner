@@ -46,7 +46,8 @@ public static class WindowsNdisInventory
             }
 
             var properties = ReadProperties(adapterKey);
-            return new(ReadDriver(adapterKey), properties ?? [], properties is not null, null);
+            var driver = ReadDriver(adapterKey);
+            return new(driver.Driver, properties ?? [], properties is not null, driver.Error);
         }
         catch (Exception exception) when (exception is UnauthorizedAccessException or IOException or System.Security.SecurityException)
         {
@@ -63,13 +64,52 @@ public static class WindowsNdisInventory
         _ => Convert.ToString(value, CultureInfo.InvariantCulture) ?? "—"
     };
 
-    private static DriverInfo ReadDriver(RegistryKey key) => new(
-        FormatValue(key.GetValue("ProviderName")),
-        FormatValue(key.GetValue("DriverVersion")),
-        FormatValue(key.GetValue("DriverDate")),
-        FormatValue(key.GetValue("InfPath")),
-        FormatValue(key.GetValue("ComponentId")),
-        FormatValue(key.GetValue("NdisVersion")));
+    private static DriverReadResult ReadDriver(RegistryKey key)
+    {
+        var rawCharacteristics = key.GetValue("Characteristics");
+        var hasCharacteristics = TryReadCharacteristics(rawCharacteristics, out var characteristics);
+        return new(
+            new DriverInfo(
+                FormatValue(key.GetValue("ProviderName")),
+                FormatValue(key.GetValue("DriverVersion")),
+                FormatValue(key.GetValue("DriverDate")),
+                FormatValue(key.GetValue("InfPath")),
+                FormatValue(key.GetValue("ComponentId")),
+                FormatValue(key.GetValue("NdisVersion")),
+                FormatValue(key.GetValue("PnPInstanceID")),
+                characteristics),
+            hasCharacteristics
+                ? null
+                : $"Driver characteristics have unsupported type {rawCharacteristics?.GetType().Name ?? "null"}.");
+    }
+
+    internal static bool TryReadCharacteristics(object? value, out uint characteristics)
+    {
+        switch (value)
+        {
+            case null:
+                characteristics = 0;
+                return true;
+            case byte number:
+                characteristics = number;
+                return true;
+            case ushort number:
+                characteristics = number;
+                return true;
+            case int number when number >= 0:
+                characteristics = (uint)number;
+                return true;
+            case uint number:
+                characteristics = number;
+                return true;
+            case long number when number is >= 0 and <= uint.MaxValue:
+                characteristics = (uint)number;
+                return true;
+            default:
+                characteristics = 0;
+                return false;
+        }
+    }
 
     private static IReadOnlyList<NdisAdvancedProperty>? ReadProperties(RegistryKey adapterKey)
     {
@@ -149,4 +189,6 @@ public static class WindowsNdisInventory
             expected.Trim().Trim('{', '}'),
             actual.Trim().Trim('{', '}'),
             StringComparison.OrdinalIgnoreCase);
+
+    private sealed record DriverReadResult(DriverInfo Driver, string? Error);
 }
