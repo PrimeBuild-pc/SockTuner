@@ -36,7 +36,7 @@ public static class WindowsNdisInventory
             var matchingKeyName = FindMatchingAdapterKey(adapterId, candidates);
             if (matchingKeyName is null)
             {
-                return new(null, [], false, "No matching driver-advertised NDIS instance was found.");
+                return new(null, [], false, null);
             }
 
             using var adapterKey = adapterClass.OpenSubKey(matchingKeyName);

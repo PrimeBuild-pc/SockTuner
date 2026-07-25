@@ -35,7 +35,8 @@ public sealed record AdapterInfo(
 {
     public string SpeedDisplay => FormatSpeed(SpeedBitsPerSecond);
     public string DriverDisplay => Driver is null ? "Unavailable" : $"{Driver.Provider} {Driver.Version}".Trim();
-    public string AdapterKindDisplay => ClassifyAdapter(InterfaceType, Driver, SupportsIPv4, SupportsIPv6).ToString();
+    public AdapterKind Kind => ClassifyAdapter(InterfaceType, Driver, SupportsIPv4, SupportsIPv6);
+    public string AdapterKindDisplay => Kind.ToString();
     public string NdisPropertyCountDisplay => NdisInventoryError is not null
         ? "Partial"
         : NdisSupported ? NdisProperties.Count.ToString() : "Unsupported";
@@ -79,19 +80,25 @@ public sealed record AdapterInfo(
 
         if (driver is not null)
         {
-            if ((driver.Characteristics & 0x4) != 0
-                || driver.PnpInstanceId.StartsWith("PCI\\", StringComparison.OrdinalIgnoreCase)
-                || driver.PnpInstanceId.StartsWith("USB\\", StringComparison.OrdinalIgnoreCase))
+            var identities = new[] { driver.PnpInstanceId, driver.ComponentId };
+            if (identities.Any(IsVirtualDeviceId))
+            {
+                return AdapterKind.Virtual;
+            }
+
+            if (identities.Any(IsPhysicalDeviceId))
             {
                 return AdapterKind.Physical;
             }
 
-            if ((driver.Characteristics & 0x1) != 0
-                || driver.PnpInstanceId.StartsWith("ROOT\\", StringComparison.OrdinalIgnoreCase)
-                || driver.PnpInstanceId.StartsWith("VMBUS\\", StringComparison.OrdinalIgnoreCase)
-                || driver.PnpInstanceId.StartsWith("SWD\\", StringComparison.OrdinalIgnoreCase))
+            if ((driver.Characteristics & 0x1) != 0)
             {
                 return AdapterKind.Virtual;
+            }
+
+            if ((driver.Characteristics & 0x4) != 0)
+            {
+                return AdapterKind.Physical;
             }
 
             return AdapterKind.DriverBacked;
@@ -99,6 +106,15 @@ public sealed record AdapterInfo(
 
         return !supportsIPv4 && !supportsIPv6 ? AdapterKind.Filter : AdapterKind.System;
     }
+
+    private static bool IsVirtualDeviceId(string value) =>
+        value.StartsWith("ROOT\\", StringComparison.OrdinalIgnoreCase)
+        || value.StartsWith("VMBUS\\", StringComparison.OrdinalIgnoreCase)
+        || value.StartsWith("SWD\\", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsPhysicalDeviceId(string value) =>
+        value.StartsWith("PCI\\", StringComparison.OrdinalIgnoreCase)
+        || value.StartsWith("USB\\", StringComparison.OrdinalIgnoreCase);
 
     public static string FormatSpeed(long bitsPerSecond) => bitsPerSecond switch
     {
@@ -160,7 +176,12 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<RouteInfo> Routes,
     string? RouteInventoryError)
 {
-    public int ActiveAdapterCount => Adapters.Count(adapter => adapter.Status == OperationalStatus.Up);
+    public int ActiveAdapterCount => Adapters.Count(adapter =>
+        adapter.Status == OperationalStatus.Up
+        && (adapter.SupportsIPv4 || adapter.SupportsIPv6)
+        && adapter.Kind is not AdapterKind.Filter
+            and not AdapterKind.Loopback
+            and not AdapterKind.Tunnel);
     public int PhysicalLikeAdapterCount => Adapters.Count(adapter => adapter.InterfaceType is
         NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.Wireless80211);
 }
