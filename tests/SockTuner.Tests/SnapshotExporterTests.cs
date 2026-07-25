@@ -17,7 +17,7 @@ public sealed class SnapshotExporterTests
 
         using var document = JsonDocument.Parse(SnapshotExporter.Serialize(snapshot));
 
-        Assert.Equal(7, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(8, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("PC", document.RootElement.GetProperty("snapshot").GetProperty("system").GetProperty("machineName").GetString());
     }
 }

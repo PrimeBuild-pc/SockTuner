@@ -42,7 +42,7 @@ public partial class MainWindow : Window
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
             StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
-            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, {_snapshot.NetworkBindings?.Count ?? 0} bindings, {_snapshot.WinsockProviders?.Count ?? 0} Winsock providers, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
+            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, {_snapshot.NetworkBindings?.Count ?? 0} bindings, {_snapshot.AdapterOffloads?.Count ?? 0} adapter offload rows, {_snapshot.WinsockProviders?.Count ?? 0} Winsock providers, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
@@ -95,6 +95,11 @@ public partial class MainWindow : Window
         BindingSummaryText.Text = snapshot.NetworkBindingInventoryError is null
             ? $"{snapshot.NetworkBindings?.Count ?? 0} binding(s) from root/StandardCimv2. Inspection only; no protocol or filter is changed."
             : $"Network binding inventory partial: {snapshot.NetworkBindingInventoryError}";
+        GlobalOffloadsGrid.ItemsSource = snapshot.GlobalOffloads ?? [];
+        AdapterOffloadsGrid.ItemsSource = snapshot.AdapterOffloads ?? [];
+        OffloadSummaryText.Text = snapshot.OffloadInventoryError is null
+            ? $"{snapshot.GlobalOffloads?.Count ?? 0} global and {snapshot.AdapterOffloads?.Count ?? 0} adapter setting row(s). Inspection only; no offload is changed."
+            : $"Offload inventory partial: {snapshot.OffloadInventoryError}";
         WinsockProvidersGrid.ItemsSource = snapshot.WinsockProviders ?? [];
         WinsockSummaryText.Text = snapshot.WinsockInventoryError is null
             ? $"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated."

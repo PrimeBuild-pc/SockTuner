@@ -203,6 +203,18 @@ public sealed record IpInterfaceInfo(
     bool Connected,
     bool DefaultRoutesDisabled);
 
+public sealed record GlobalOffloadInfo(string Feature, string State, byte? RawValue);
+
+public sealed record AdapterOffloadInfo(
+    Guid AdapterId,
+    string AdapterName,
+    string InterfaceDescription,
+    string Feature,
+    string State,
+    string Ipv4State,
+    string Ipv6State,
+    string Details);
+
 public sealed record NetworkBindingInfo(
     Guid AdapterId,
     string AdapterName,
@@ -338,7 +350,10 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<WinsockProviderInfo>? WinsockProviders = null,
     string? WinsockInventoryError = null,
     IReadOnlyList<NetworkBindingInfo>? NetworkBindings = null,
-    string? NetworkBindingInventoryError = null)
+    string? NetworkBindingInventoryError = null,
+    IReadOnlyList<GlobalOffloadInfo>? GlobalOffloads = null,
+    IReadOnlyList<AdapterOffloadInfo>? AdapterOffloads = null,
+    string? OffloadInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up

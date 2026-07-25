@@ -28,6 +28,7 @@ public sealed class SystemInventoryService
         var profiles = WindowsNetworkProfileInventory.Read(adapters);
         var winsock = WindowsWinsockInventory.Read();
         var bindings = WindowsBindingInventory.Read();
+        var offloads = WindowsOffloadInventory.Read();
         return new NetworkSnapshot(
             overview,
             adapters,
@@ -39,7 +40,10 @@ public sealed class SystemInventoryService
             winsock.Providers,
             winsock.Error,
             bindings.Bindings,
-            bindings.Error);
+            bindings.Error,
+            offloads.GlobalSettings,
+            offloads.AdapterSettings,
+            offloads.Error);
     }
 
     private static AdapterInfo ReadAdapter(

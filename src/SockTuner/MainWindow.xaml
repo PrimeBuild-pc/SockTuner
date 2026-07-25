@@ -282,6 +282,36 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Offloads">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="Auto"/><RowDefinition Height="16"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="RSS, RSC and hardware offload state" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="OffloadSummaryText" Text="Reading StandardCimv2 offload state…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="GlobalOffloadsGrid" Grid.Row="2" AutoGenerateColumns="False" MaxHeight="190" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Global feature" Binding="{Binding Feature}" Width="2*"/>
+                            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="160"/>
+                            <DataGridTextColumn Header="Raw value" Binding="{Binding RawValue}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <DataGrid x:Name="AdapterOffloadsGrid" Grid.Row="4" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="160"/>
+                            <DataGridTextColumn Header="Feature" Binding="{Binding Feature}" Width="100"/>
+                            <DataGridTextColumn Header="State" Binding="{Binding State}" Width="120"/>
+                            <DataGridTextColumn Header="IPv4" Binding="{Binding Ipv4State}" Width="2*"/>
+                            <DataGridTextColumn Header="IPv6" Binding="{Binding Ipv6State}" Width="2*"/>
+                            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="2*"/>
+                            <DataGridTextColumn Header="Adapter ID" Binding="{Binding AdapterId}" Width="260"/>
+                            <DataGridTextColumn Header="Interface description" Binding="{Binding InterfaceDescription}" Width="220"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Winsock catalog">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
