@@ -42,7 +42,7 @@ public partial class MainWindow : Window
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
             StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
-            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IPv4 routes, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
+            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
@@ -79,8 +79,10 @@ public partial class MainWindow : Window
         NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
         RoutesGrid.ItemsSource = snapshot.Routes;
         DnsInterfacesGrid.ItemsSource = snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0);
+        var ipv4RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv4");
+        var ipv6RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv6");
         RouteSummaryText.Text = snapshot.RouteInventoryError is null
-            ? $"{snapshot.Routes.Count} native IPv4 route(s). IPv6 route inventory is scheduled next."
+            ? $"{ipv4RouteCount} native IPv4 and {ipv6RouteCount} native IPv6 route(s)."
             : $"Route inventory partial: {snapshot.RouteInventoryError}";
     }
 

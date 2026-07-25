@@ -162,6 +162,7 @@ public sealed record NdisInventoryResult(
     string? Error);
 
 public sealed record RouteInfo(
+    string AddressFamily,
     string Destination,
     string NextHop,
     int InterfaceIndex,

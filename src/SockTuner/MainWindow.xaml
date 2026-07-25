@@ -194,13 +194,14 @@
                         <RowDefinition Height="18"/><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <StackPanel>
-                        <TextBlock Text="IPv4 route table" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock Text="IP route table" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="RouteSummaryText" Text="Reading native route inventory…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
                     <DataGrid x:Name="RoutesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Destination" Binding="{Binding Destination}" Width="160"/>
+                            <DataGridTextColumn Header="Family" Binding="{Binding AddressFamily}" Width="75"/>
+                            <DataGridTextColumn Header="Destination" Binding="{Binding Destination}" Width="190"/>
                             <DataGridTextColumn Header="Next hop" Binding="{Binding NextHop}" Width="140"/>
                             <DataGridTextColumn Header="Interface" Binding="{Binding InterfaceName}" Width="180"/>
                             <DataGridTextColumn Header="Index" Binding="{Binding InterfaceIndex}" Width="80"/>
