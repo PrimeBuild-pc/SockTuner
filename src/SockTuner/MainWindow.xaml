@@ -538,6 +538,28 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="History &amp; comparison">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/></StackPanel>
+                        <Button Grid.Column="1" Content="Compare selected" Click="CompareHistory_Click" Margin="0,0,8,0"/>
+                        <Button Grid.Column="2" Content="Export selected redacted" Click="ExportHistory_Click" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Content="Delete selected" Click="DeleteHistory_Click"/>
+                    </Grid>
+                    <DataGrid x:Name="HistoryGrid" Grid.Row="2" AutoGenerateColumns="False" SelectionMode="Extended">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Saved" Binding="{Binding SavedAt}" Width="190"/>
+                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*"/>
+                            <DataGridTextColumn Header="Profile" Binding="{Binding Profile}" Width="110"/>
+                            <DataGridTextColumn Header="Game summary" Binding="{Binding GameSummary}" Width="3*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock x:Name="ComparisonText" Grid.Row="4" Text="No comparison selected." TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}"/>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Preferences">
                 <StackPanel Margin="0,20,0,0" MaxWidth="620" HorizontalAlignment="Left">
                     <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>

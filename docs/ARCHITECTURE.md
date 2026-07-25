@@ -203,6 +203,7 @@ Application-owned data is stored under `%LocalAppData%\PrimeBuild\SockTuner`:
 ```text
 Snapshots/   exact rollback data
 Reports/     diagnostic and comparison reports
+History/     bounded successful diagnostic runs
 Logs/        bounded operational logs
 Settings/    user preferences and profile copies
 ```

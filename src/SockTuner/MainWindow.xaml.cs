@@ -22,6 +22,8 @@ public partial class MainWindow : Window
     private readonly NetworkDiagnosticService _diagnostics = new();
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
+    private readonly DiagnosticHistoryStore _historyStore = new();
+    private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
@@ -43,6 +45,8 @@ public partial class MainWindow : Window
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
+        foreach (var entry in _historyStore.Load()) _history.Add(entry);
+        HistoryGrid.ItemsSource = _history;
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
@@ -185,6 +189,15 @@ public partial class MainWindow : Window
             ShowSnapshot(afterSnapshot);
             report = report with { CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters) };
             _lastReport = report;
+            try
+            {
+                _history.Insert(0, _historyStore.Save(report));
+                while (_history.Count > 20) _history.RemoveAt(_history.Count - 1);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                WriteLog("history.save_failed", exception.Message);
+            }
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -298,6 +311,11 @@ public partial class MainWindow : Window
             return;
         }
 
+        SaveReport(_lastReport, html, redact);
+    }
+
+    private void SaveReport(GamingDiagnosticReport report, bool html, bool redact)
+    {
         if (!redact && MessageBox.Show(
                 "The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?",
                 "Export full diagnostic report",
@@ -319,8 +337,8 @@ public partial class MainWindow : Window
         try
         {
             var content = html
-                ? DiagnosticReportExporter.SerializeHtml(_lastReport, redact)
-                : DiagnosticReportExporter.SerializeJson(_lastReport, redact);
+                ? DiagnosticReportExporter.SerializeHtml(report, redact)
+                : DiagnosticReportExporter.SerializeJson(report, redact);
             File.WriteAllText(dialog.FileName, content);
             StatusText.Text = $"Report exported to {dialog.FileName}.";
             WriteLog("report.exported", $"Format={(html ? "html" : "json")}; Redacted={redact}.");
@@ -364,6 +382,50 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusText.Text = $"Log export failed: {exception.Message}";
+        }
+    }
+
+    private void CompareHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().OrderBy(entry => entry.SavedAt).ToArray();
+        if (selected.Length != 2)
+        {
+            ComparisonText.Text = "Select exactly two runs.";
+            return;
+        }
+
+        var comparison = DiagnosticComparisonService.Compare(selected[0].Report, selected[1].Report);
+        ComparisonText.Text = comparison.Comparable
+            ? comparison.Reason + "\n" + string.Join("\n", comparison.Metrics.Select(metric => metric.Summary))
+            : $"Not comparable: {comparison.Reason}";
+    }
+
+    private void ExportHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
+        if (selected.Length != 1)
+        {
+            ComparisonText.Text = "Select exactly one run to export.";
+            return;
+        }
+        SaveReport(selected[0].Report, html: true, redact: true);
+    }
+
+    private void DeleteHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
+        try
+        {
+            foreach (var entry in selected)
+            {
+                _historyStore.Delete(entry.Id);
+                _history.Remove(entry);
+            }
+            ComparisonText.Text = $"Deleted {selected.Length} run(s).";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ComparisonText.Text = $"Delete failed: {exception.Message}";
         }
     }
 
