@@ -29,6 +29,7 @@ public sealed class SystemInventoryService
         var winsock = WindowsWinsockInventory.Read();
         var bindings = WindowsBindingInventory.Read();
         var offloads = WindowsOffloadInventory.Read();
+        var tcpSettings = WindowsTcpSettingInventory.Read();
         return new NetworkSnapshot(
             overview,
             adapters,
@@ -43,7 +44,9 @@ public sealed class SystemInventoryService
             bindings.Error,
             offloads.GlobalSettings,
             offloads.AdapterSettings,
-            offloads.Error);
+            offloads.Error,
+            tcpSettings.Settings,
+            tcpSettings.Error);
     }
 
     private static AdapterInfo ReadAdapter(

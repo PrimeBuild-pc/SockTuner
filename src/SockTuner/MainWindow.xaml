@@ -312,6 +312,32 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="TCP settings">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="TCP templates and effective policy" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="TcpSettingSummaryText" Text="Reading StandardCimv2 TCP settings…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="TcpSettingsGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Template" Binding="{Binding SettingName}" Width="140"/>
+                            <DataGridTextColumn Header="Auto-tuning" Binding="{Binding AutoTuningDisplay}" Width="260"/>
+                            <DataGridTextColumn Header="Congestion" Binding="{Binding CongestionDisplay}" Width="110"/>
+                            <DataGridTextColumn Header="ECN" Binding="{Binding EcnDisplay}" Width="90"/>
+                            <DataGridTextColumn Header="Timestamps" Binding="{Binding TimestampsDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Dynamic ports" Binding="{Binding DynamicPortRangeDisplay}" Width="190"/>
+                            <DataGridTextColumn Header="Timing" Binding="{Binding TimingDisplay}" Width="330"/>
+                            <DataGridTextColumn Header="Initial cwnd" Binding="{Binding InitialCongestionWindow}" Width="100"/>
+                            <DataGridTextColumn Header="SYN retries" Binding="{Binding MaxSynRetransmissions}" Width="90"/>
+                            <DataGridTextColumn Header="Other state" Binding="{Binding OtherFlagsDisplay}" Width="460"/>
+                            <DataGridTextColumn Header="Automatic custom" Binding="{Binding AutomaticUseCustomDisplay}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Winsock catalog">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>

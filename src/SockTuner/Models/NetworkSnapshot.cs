@@ -203,6 +203,113 @@ public sealed record IpInterfaceInfo(
     bool Connected,
     bool DefaultRoutesDisabled);
 
+public sealed record TcpSettingInfo(
+    string SettingName,
+    byte? AutomaticUseCustom,
+    byte? AutoTuningLevelEffective,
+    byte? AutoTuningLevelGroupPolicy,
+    byte? AutoTuningLevelLocal,
+    byte? CongestionProvider,
+    byte? CwndRestart,
+    byte? DelayedAckFrequency,
+    uint? DelayedAckTimeout,
+    ushort? DynamicPortRangeStartPort,
+    ushort? DynamicPortRangeNumberOfPorts,
+    byte? EcnCapability,
+    byte? ForceWindowScaling,
+    uint? InitialCongestionWindow,
+    uint? InitialRto,
+    byte? MaxSynRetransmissions,
+    byte? MemoryPressureProtection,
+    uint? MinRto,
+    byte? NonSackRttResiliency,
+    byte? ScalingHeuristics,
+    byte? Timestamps)
+{
+    public string AutoTuningDisplay =>
+        $"{FormatAutoTuning(AutoTuningLevelLocal)} ({FormatAutoTuningSource(AutoTuningLevelEffective)}; policy {FormatAutoTuningPolicy(AutoTuningLevelGroupPolicy)})";
+    public string CongestionDisplay => FormatCongestionProvider(CongestionProvider);
+    public string AutomaticUseCustomDisplay => FormatSwitch(AutomaticUseCustom);
+    public string EcnDisplay => FormatSwitch(EcnCapability);
+    public string TimestampsDisplay => Timestamps switch
+    {
+        null => "Unavailable",
+        0 => "Disabled",
+        1 => "Enabled",
+        2 => "Allowed",
+        _ => $"Value {Timestamps}"
+    };
+    public string DynamicPortRangeDisplay => (DynamicPortRangeStartPort, DynamicPortRangeNumberOfPorts) switch
+    {
+        ({ } start, { } count) when count > 0 => $"{start}–{start + count - 1} ({count} ports)",
+        ({ } start, 0) => $"No ports (start {start})",
+        _ => "Unavailable"
+    };
+    public string TimingDisplay =>
+        $"Initial RTO {FormatMilliseconds(InitialRto)}; minimum RTO {FormatMilliseconds(MinRto)}; delayed ACK timeout {FormatMilliseconds(DelayedAckTimeout)}; frequency {FormatNumber(DelayedAckFrequency)}";
+    public string OtherFlagsDisplay =>
+        $"Window scaling {FormatSwitch(ForceWindowScaling)}; heuristics {FormatSwitch(ScalingHeuristics)}; memory pressure {FormatMemoryPressure(MemoryPressureProtection)}; non-SACK RTT {FormatSwitch(NonSackRttResiliency)}; cwnd restart {FormatSwitch(CwndRestart)}";
+
+    public static string FormatAutoTuning(byte? value) => value switch
+    {
+        null => "Unavailable",
+        0 => "Disabled",
+        1 => "Highly restricted",
+        2 => "Restricted",
+        3 => "Normal",
+        4 => "Experimental",
+        _ => $"Value {value}"
+    };
+
+    public static string FormatCongestionProvider(byte? value) => value switch
+    {
+        null => "Unavailable",
+        0 => "Default",
+        1 => "NewReno",
+        2 => "CTCP",
+        3 => "DCTCP",
+        4 => "LEDBAT",
+        5 => "CUBIC",
+        6 => "BBR2",
+        _ => $"Value {value}"
+    };
+
+    private static string FormatAutoTuningSource(byte? value) => value switch
+    {
+        null => "source unavailable",
+        0 => "local",
+        1 => "group policy",
+        _ => $"source {value}"
+    };
+
+    private static string FormatAutoTuningPolicy(byte? value) => value switch
+    {
+        254 => "not configured",
+        255 => "not changed",
+        _ => FormatAutoTuning(value).ToLowerInvariant()
+    };
+
+    private static string FormatMemoryPressure(byte? value) => value switch
+    {
+        null => "Unavailable",
+        0 => "Disabled",
+        1 => "Enabled",
+        2 => "Default",
+        _ => $"Value {value}"
+    };
+
+    private static string FormatSwitch(byte? value) => value switch
+    {
+        null => "Unavailable",
+        0 => "Disabled",
+        1 => "Enabled",
+        _ => $"Value {value}"
+    };
+
+    private static string FormatMilliseconds(uint? value) => value is null ? "unavailable" : $"{value} ms";
+    private static string FormatNumber(byte? value) => value?.ToString() ?? "unavailable";
+}
+
 public sealed record GlobalOffloadInfo(string Feature, string State, byte? RawValue);
 
 public sealed record AdapterOffloadInfo(
@@ -353,7 +460,9 @@ public sealed record NetworkSnapshot(
     string? NetworkBindingInventoryError = null,
     IReadOnlyList<GlobalOffloadInfo>? GlobalOffloads = null,
     IReadOnlyList<AdapterOffloadInfo>? AdapterOffloads = null,
-    string? OffloadInventoryError = null)
+    string? OffloadInventoryError = null,
+    IReadOnlyList<TcpSettingInfo>? TcpSettings = null,
+    string? TcpSettingInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up
