@@ -13,15 +13,15 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             <StackPanel>
                 <TextBlock Text="SockTuner" FontSize="30" FontWeight="Light"/>
                 <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
                 <TextBox x:Name="InventoryFilterText" Width="170" Margin="0,0,8,0" VerticalContentAlignment="Center"
                          TextChanged="InventoryFilter_TextChanged" AutomationProperties.Name="Search all inventory"/>
                 <Button Content="Copy selected" Click="CopyInventorySelected_Click" Margin="0,0,8,0"/>
@@ -49,31 +49,31 @@
                             </Grid.ColumnDefinitions>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
-                                    <TextBlock Text="ACTIVE ADAPTERS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock Text="ACTIVE ADAPTERS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="ActiveAdaptersText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="1" Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
-                                    <TextBlock Text="NETWORK DEVICES" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock Text="NETWORK DEVICES" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="AdapterCountText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="2" Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
-                                    <TextBlock Text="LOGICAL PROCESSORS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock Text="LOGICAL PROCESSORS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="ProcessorCountText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="3" Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
-                                    <TextBlock Text="NDIS PARAMETERS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock Text="NDIS PARAMETERS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="NdisPropertyCountText" Text="—" FontSize="30" FontWeight="Bold" Margin="0,8,0,0"/>
                                 </StackPanel>
                             </Border>
                             <Border Grid.Column="4" Style="{StaticResource Card}">
                                 <StackPanel>
-                                    <TextBlock Text="PRIVILEGE" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                    <TextBlock Text="PRIVILEGE" Foreground="{StaticResource MutedTextBrush}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="PrivilegeText" Text="—" FontSize="17" FontWeight="Bold" Margin="0,13,0,0" Foreground="{StaticResource PrimaryTextBrush}"/>
                                 </StackPanel>
                             </Border>
@@ -106,9 +106,9 @@
                                 <StackPanel>
                                     <TextBlock Text="Safe workflow" FontSize="18" FontWeight="SemiBold"/>
                                     <TextBlock Text="1  Inspect the current state" Margin="0,18,0,8"/>
-                                    <TextBlock Text="2  Diagnose each network boundary" Margin="0,8"/>
+                                    <TextBlock Text="2  Diagnose each network boundary" Margin="0,8" TextWrapping="Wrap"/>
                                     <TextBlock Text="3  Preview a typed change plan" Margin="0,8"/>
-                                    <TextBlock Text="4  Snapshot, apply, verify, roll back" Margin="0,8"/>
+                                    <TextBlock Text="4  Snapshot, apply, verify, roll back" Margin="0,8" TextWrapping="Wrap"/>
                                     <TextBlock Text="Mutations remain disabled in this preview build." Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
                                 </StackPanel>
                             </Border>

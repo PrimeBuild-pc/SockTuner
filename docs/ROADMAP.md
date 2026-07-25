@@ -23,7 +23,7 @@ These apply to every step:
 
 ## Execution order
 
-### Step 1 — Complete shell and inventory integrity (`0.1`) — **P0, current**
+### Step 1 — Complete shell and inventory integrity (`0.1`) — **P0, complete**
 
 **Goal:** finish the dark Windows desktop shell and make adapter/driver discovery reliable enough to support later diagnostics and plans.
 
@@ -44,7 +44,7 @@ Exit criteria:
 - Supported Intel/Realtek adapters expose raw NDIS keywords, current values, defaults, and driver-advertised ranges/enums.
 - Build, format, tests, and supervisor gate pass.
 
-### Step 2 — Complete read-only Windows network inventory (`0.2`) — **P0**
+### Step 2 — Complete read-only Windows network inventory (`0.2`) — **P0, complete**
 
 **Goal:** show the actual Windows network state before adding more tests or any writes.
 
@@ -63,7 +63,7 @@ Exit criteria:
 - Errors identify the failed surface and do not discard successful inventory from other surfaces.
 - English and Italian Windows validation finds no dependency on localized property labels.
 
-### Step 3 — Diagnostic and monitoring workbench (`0.3`) — **P0**
+### Step 3 — Diagnostic and monitoring workbench (`0.3`) — **P0, current**
 
 **Goal:** turn the current short diagnostic into a complete, observable test workflow.
 
@@ -214,11 +214,9 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P0 / Step 1:** finish physical/virtual/filter adapter classification and verify common DPI levels.
-2. **P0 / Step 2:** run the final cross-inventory and export validation after Step 1 passes.
-3. **P0 / Step 3:** expand diagnostics and continuous monitoring.
-4. **P0 / Step 4:** add offline HTML reports, history, and comparison.
-5. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
+1. **P0 / Step 3:** expand diagnostics and continuous monitoring.
+2. **P0 / Step 4:** add offline HTML reports, history, and comparison.
+3. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
 
 Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 

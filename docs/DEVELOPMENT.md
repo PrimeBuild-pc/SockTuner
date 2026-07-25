@@ -25,6 +25,10 @@ dotnet run --project src/SockTuner/SockTuner.csproj
 
 The current UI exposes read-only inventory, read-only diagnostics, and a read-only setting catalog.
 
+## DPI validation
+
+The disposable Italian Windows 11 VM validates the live application at its Hyper-V display driver's native 100% scale. The virtual driver advertises no alternate scale offsets, so the same real WPF `App`/`MainWindow` visual tree is additionally rendered at 125%, 150%, and 200% pixel density for every tab. Evidence remains outside the repository under `C:\VmLab\Runs`; the VM is restored to `Clean-Base` afterward.
+
 ## Mutation safety
 
 `WindowsRegistrySettingStore.CreateForIsolatedVm()` is not reachable from the UI. It requires administrator rights and this explicit environment confirmation:
