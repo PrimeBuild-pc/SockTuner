@@ -16,6 +16,17 @@ public sealed class AdapterInfoTests
         Assert.Equal(expected, AdapterInfo.FormatSpeed(bitsPerSecond));
     }
 
+    [Theory]
+    [InlineData(-1, "Unavailable")]
+    [InlineData(0, "0 B")]
+    [InlineData(1_000, "1 KB")]
+    [InlineData(2_500_000, "2.5 MB")]
+    [InlineData(3_000_000_000, "3 GB")]
+    public void FormatByteCount_UsesStableReadableUnits(long bytes, string expected)
+    {
+        Assert.Equal(expected, AdapterInfo.FormatByteCount(bytes));
+    }
+
     [Fact]
     public void ClassifyAdapter_UsesTypeAndDriverCharacteristicsWithoutAdapterNames()
     {

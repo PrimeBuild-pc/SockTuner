@@ -31,7 +31,8 @@ public sealed record AdapterInfo(
     DriverInfo? Driver,
     IReadOnlyList<NdisAdvancedProperty> NdisProperties,
     bool NdisSupported,
-    string? NdisInventoryError)
+    string? NdisInventoryError,
+    AdapterCounters? Counters = null)
 {
     public string SpeedDisplay => FormatSpeed(SpeedBitsPerSecond);
     public string DriverDisplay => Driver is null ? "Unavailable" : $"{Driver.Provider} {Driver.Version}".Trim();
@@ -46,6 +47,14 @@ public sealed record AdapterInfo(
     public string AddressesDisplay => Addresses.Count == 0 ? "—" : string.Join(", ", Addresses);
     public string GatewaysDisplay => Gateways.Count == 0 ? "—" : string.Join(", ", Gateways);
     public string DnsDisplay => DnsServers.Count == 0 ? "Automatic / unavailable" : string.Join(", ", DnsServers);
+    public string ReceivedDisplay => Counters is null ? "Unavailable" : FormatByteCount(Counters.BytesReceived);
+    public string SentDisplay => Counters is null ? "Unavailable" : FormatByteCount(Counters.BytesSent);
+    public string ReceiveIssuesDisplay => Counters is null
+        ? "Unavailable"
+        : $"{Counters.IncomingPacketsWithErrors} errors / {Counters.IncomingPacketsDiscarded} discarded";
+    public string SendIssuesDisplay => Counters is null
+        ? "Unavailable"
+        : $"{Counters.OutgoingPacketsWithErrors} errors / {Counters.OutgoingPacketsDiscarded} discarded";
     public string MtuDisplay => (Ipv4Mtu, Ipv6Mtu) switch
     {
         ( > 0, > 0) when Ipv4Mtu == Ipv6Mtu => Ipv4Mtu.ToString(),
@@ -116,6 +125,15 @@ public sealed record AdapterInfo(
         value.StartsWith("PCI\\", StringComparison.OrdinalIgnoreCase)
         || value.StartsWith("USB\\", StringComparison.OrdinalIgnoreCase);
 
+    public static string FormatByteCount(long bytes) => bytes switch
+    {
+        >= 1_000_000_000 => FormattableString.Invariant($"{bytes / 1_000_000_000d:0.##} GB"),
+        >= 1_000_000 => FormattableString.Invariant($"{bytes / 1_000_000d:0.##} MB"),
+        >= 1_000 => FormattableString.Invariant($"{bytes / 1_000d:0.##} KB"),
+        >= 0 => $"{bytes} B",
+        _ => "Unavailable"
+    };
+
     public static string FormatSpeed(long bitsPerSecond) => bitsPerSecond switch
     {
         >= 1_000_000_000 => FormattableString.Invariant($"{bitsPerSecond / 1_000_000_000d:0.##} Gbps"),
@@ -160,6 +178,14 @@ public sealed record NdisInventoryResult(
     IReadOnlyList<NdisAdvancedProperty> Properties,
     bool IsSupported,
     string? Error);
+
+public sealed record AdapterCounters(
+    long BytesReceived,
+    long BytesSent,
+    long IncomingPacketsDiscarded,
+    long IncomingPacketsWithErrors,
+    long OutgoingPacketsDiscarded,
+    long OutgoingPacketsWithErrors);
 
 public sealed record RouteInfo(
     string AddressFamily,

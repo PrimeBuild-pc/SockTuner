@@ -32,6 +32,9 @@ public sealed class SystemInventoryService
         IPInterfaceProperties? properties = null;
         IPv4InterfaceProperties? ipv4 = null;
         IPv6InterfaceProperties? ipv6 = null;
+        AdapterCounters? counters = null;
+        var supportsIPv4 = networkInterface.Supports(NetworkInterfaceComponent.IPv4);
+        var supportsIPv6 = networkInterface.Supports(NetworkInterfaceComponent.IPv6);
         var inventoryErrors = new List<string>();
         try
         {
@@ -42,7 +45,7 @@ public sealed class SystemInventoryService
             inventoryErrors.Add($"IP properties: {exception.Message}");
         }
 
-        if (properties is not null && networkInterface.Supports(NetworkInterfaceComponent.IPv4))
+        if (properties is not null && supportsIPv4)
         {
             try
             {
@@ -54,7 +57,7 @@ public sealed class SystemInventoryService
             }
         }
 
-        if (properties is not null && networkInterface.Supports(NetworkInterfaceComponent.IPv6))
+        if (properties is not null && supportsIPv6)
         {
             try
             {
@@ -63,6 +66,25 @@ public sealed class SystemInventoryService
             catch (NetworkInformationException exception)
             {
                 inventoryErrors.Add($"IPv6 properties: {exception.Message}");
+            }
+        }
+
+        if (supportsIPv4 || supportsIPv6)
+        {
+            try
+            {
+                var statistics = networkInterface.GetIPv4Statistics();
+                counters = new AdapterCounters(
+                    statistics.BytesReceived,
+                    statistics.BytesSent,
+                    statistics.IncomingPacketsDiscarded,
+                    statistics.IncomingPacketsWithErrors,
+                    statistics.OutgoingPacketsDiscarded,
+                    statistics.OutgoingPacketsWithErrors);
+            }
+            catch (NetworkInformationException exception)
+            {
+                inventoryErrors.Add($"Interface counters: {exception.Message}");
             }
         }
 
@@ -85,13 +107,14 @@ public sealed class SystemInventoryService
             ipv4?.Mtu ?? 0,
             ipv6?.Index ?? 0,
             ipv6?.Mtu ?? 0,
-            networkInterface.Supports(NetworkInterfaceComponent.IPv4),
-            networkInterface.Supports(NetworkInterfaceComponent.IPv6),
+            supportsIPv4,
+            supportsIPv6,
             inventoryError,
             ndis.Driver,
             ndis.Properties,
             ndis.IsSupported,
-            ndis.Error);
+            ndis.Error,
+            counters);
     }
 
     private static string FormatMacAddress(PhysicalAddress address)

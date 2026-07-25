@@ -216,6 +216,10 @@
                             <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150"/>
                             <DataGridTextColumn Header="IPv4 index" Binding="{Binding Ipv4Index}" Width="100"/>
                             <DataGridTextColumn Header="MTU" Binding="{Binding MtuDisplay}" Width="150"/>
+                            <DataGridTextColumn Header="Received" Binding="{Binding ReceivedDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Sent" Binding="{Binding SentDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Receive issues" Binding="{Binding ReceiveIssuesDisplay}" Width="180"/>
+                            <DataGridTextColumn Header="Send issues" Binding="{Binding SendIssuesDisplay}" Width="180"/>
                             <DataGridTextColumn Header="Gateways" Binding="{Binding GatewaysDisplay}" Width="2*"/>
                             <DataGridTextColumn Header="DNS servers" Binding="{Binding DnsDisplay}" Width="2*"/>
                         </DataGrid.Columns>

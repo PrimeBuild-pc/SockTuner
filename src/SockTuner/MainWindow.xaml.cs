@@ -245,6 +245,10 @@ public partial class MainWindow : Window
                 || Contains(adapter.InterfaceType.ToString(), search)
                 || Contains(adapter.SpeedDisplay, search)
                 || Contains(adapter.MtuDisplay, search)
+                || Contains(adapter.ReceivedDisplay, search)
+                || Contains(adapter.SentDisplay, search)
+                || Contains(adapter.ReceiveIssuesDisplay, search)
+                || Contains(adapter.SendIssuesDisplay, search)
                 || Contains(adapter.DriverDisplay, search)
                 || Contains(adapter.NdisPropertyCountDisplay, search)
                 || Contains(adapter.ProtocolsDisplay, search)
@@ -278,7 +282,7 @@ public partial class MainWindow : Window
         }
 
         CopyToClipboard(
-            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
+            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nReceived\t{adapter.ReceivedDisplay}\nSent\t{adapter.SentDisplay}\nReceive issues\t{adapter.ReceiveIssuesDisplay}\nSend issues\t{adapter.SendIssuesDisplay}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
             $"Copied adapter {adapter.Name}.");
     }
 
