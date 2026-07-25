@@ -421,7 +421,23 @@
                             </Grid>
                         </Border>
 
-                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0"/>
+                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="120"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Continuous monitor" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,18,0"/>
+                                <TextBox x:Name="MonitorDurationText" Grid.Column="1" Text="30" AutomationProperties.Name="Monitor duration seconds"/>
+                                <TextBlock Grid.Column="2" Text="seconds" VerticalAlignment="Center" Margin="8,0,14,0"/>
+                                <TextBox x:Name="MonitorIntervalText" Grid.Column="3" Text="1000" AutomationProperties.Name="Monitor interval milliseconds"/>
+                                <TextBlock Grid.Column="4" Text="ms" VerticalAlignment="Center" Margin="8,0,14,0"/>
+                                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                                    <Button x:Name="MonitorStartButton" Content="Start" Click="StartMonitor_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                                    <Button x:Name="MonitorStopButton" Content="Stop" Click="StopMonitor_Click" IsEnabled="False"/>
+                                </StackPanel>
+                                <TextBlock x:Name="MonitorStatusText" Grid.Column="6" Text="Not running" Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="16,0,0,0" AutomationProperties.LiveSetting="Polite"/>
+                            </Grid>
+                        </Border>
 
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
@@ -450,6 +466,22 @@
                                         <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="1.3*"/>
                                         <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
                                         <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Monitoring timeline" FontSize="20" FontWeight="SemiBold"/>
+                                <DataGrid x:Name="MonitorSamplesGrid" AutoGenerateColumns="False" MinHeight="190" Margin="0,12,0,0">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="190"/>
+                                        <DataGridTextColumn Header="Target" Binding="{Binding Label}" Width="140"/>
+                                        <DataGridTextColumn Header="Address" Binding="{Binding Target}" Width="180"/>
+                                        <DataGridTextColumn Header="Result" Binding="{Binding ResultDisplay}" Width="130"/>
+                                        <DataGridTextColumn Header="State" Binding="{Binding Kind}" Width="120"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>

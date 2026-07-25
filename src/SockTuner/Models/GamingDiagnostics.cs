@@ -28,6 +28,67 @@ public static class DiagnosticProfiles
     ];
 }
 
+public sealed record MonitorTarget(string Label, string Target);
+
+public enum MonitorSampleKind
+{
+    Reply,
+    NoReply,
+    Unreachable,
+    Blocked,
+    LocalError
+}
+
+public sealed record MonitorSample(
+    DateTimeOffset Timestamp,
+    string Label,
+    string Target,
+    double? RoundTripTimeMs,
+    MonitorSampleKind Kind,
+    string? Error)
+{
+    public string ResultDisplay => RoundTripTimeMs is { } value ? $"{value:0.0} ms" : Error ?? Kind.ToString();
+}
+
+public sealed record MonitorTargetSummary(
+    string Label,
+    string Target,
+    int Samples,
+    int Replies,
+    int NoReplies,
+    int Unreachable,
+    int Blocked,
+    int LocalErrors,
+    ProbeStatistics ReplyStatistics)
+{
+    public string Summary => $"{Replies}/{Samples} replies · {NoReplies} no reply · {Unreachable} unreachable · {Blocked} blocked · {LocalErrors} local errors" +
+        (Replies > 0 ? $" · {ReplyStatistics.AverageMs:0.0} ms avg" : string.Empty);
+}
+
+public sealed record MonitorReport(
+    DateTimeOffset StartedAt,
+    TimeSpan Duration,
+    IReadOnlyList<MonitorSample> Samples,
+    int TotalSampleCount)
+{
+    public bool SamplesTruncated => TotalSampleCount > Samples.Count;
+    public IReadOnlyList<MonitorTargetSummary> Summaries => Samples
+        .GroupBy(sample => (sample.Label, sample.Target))
+        .Select(group =>
+        {
+            var values = group.ToArray();
+            var replies = values.Where(sample => sample.Kind == MonitorSampleKind.Reply).ToArray();
+            return new MonitorTargetSummary(
+                group.Key.Label, group.Key.Target, values.Length, replies.Length,
+                values.Count(sample => sample.Kind == MonitorSampleKind.NoReply),
+                values.Count(sample => sample.Kind == MonitorSampleKind.Unreachable),
+                values.Count(sample => sample.Kind == MonitorSampleKind.Blocked),
+                values.Count(sample => sample.Kind == MonitorSampleKind.LocalError),
+                ProbeStatistics.Calculate(group.Key.Label, group.Key.Target,
+                    replies.Select(sample => new ProbeSample(sample.Timestamp, sample.RoundTripTimeMs)).ToArray()));
+        }).ToArray();
+}
+
 public sealed record ProbeSample(DateTimeOffset Timestamp, double? RoundTripTimeMs, string? Error = null);
 
 public sealed record ProbeStatistics(
