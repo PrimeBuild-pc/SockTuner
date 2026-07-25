@@ -338,6 +338,28 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="QoS policies">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Windows QoS policy inventory" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="QosPolicySummaryText" Text="Reading StandardCimv2 QoS policies…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="QosPoliciesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="180"/>
+                            <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="150"/>
+                            <DataGridTextColumn Header="Profile" Binding="{Binding ProfileDisplay}" Width="90"/>
+                            <DataGridTextColumn Header="Precedence" Binding="{Binding Precedence}" Width="90"/>
+                            <DataGridTextColumn Header="Conditions" Binding="{Binding ConditionsDisplay}" Width="3*"/>
+                            <DataGridTextColumn Header="Actions" Binding="{Binding ActionsDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="100"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Winsock catalog">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>

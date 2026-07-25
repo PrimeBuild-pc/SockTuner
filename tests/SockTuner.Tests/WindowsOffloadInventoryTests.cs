@@ -39,4 +39,11 @@ public sealed class WindowsOffloadInventoryTests
     {
         Assert.Equal(expected, WindowsOffloadInventory.FormatRssProfile(value));
     }
+
+    [Fact]
+    public void FormatUroFailure_ExpandsFlagsAndPreservesUnknownBits()
+    {
+        Assert.Equal("None", WindowsOffloadInventory.FormatUroFailure(0));
+        Assert.Equal("WFP compatibility, Capability, Flags 0x2000", WindowsOffloadInventory.FormatUroFailure(2 | 32 | 8192));
+    }
 }

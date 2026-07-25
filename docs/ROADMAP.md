@@ -215,11 +215,10 @@ Exit criteria:
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
 1. **P0 / Step 1:** finish physical/virtual/filter adapter classification and verify common DPI levels.
-2. **P0 / Step 2:** add QoS and remaining offload state.
-3. **P0 / Step 2:** add redacted snapshot/support export and retention preferences.
-4. **P0 / Step 3:** expand diagnostics and continuous monitoring.
-5. **P0 / Step 4:** add offline HTML reports, history, and comparison.
-6. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
+2. **P0 / Step 2:** add redacted snapshot/support export and retention preferences.
+3. **P0 / Step 3:** expand diagnostics and continuous monitoring.
+4. **P0 / Step 4:** add offline HTML reports, history, and comparison.
+5. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
 
 Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 

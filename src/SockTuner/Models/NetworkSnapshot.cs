@@ -203,6 +203,92 @@ public sealed record IpInterfaceInfo(
     bool Connected,
     bool DefaultRoutesDisabled);
 
+public sealed record QosPolicyInfo(
+    string Name,
+    string Owner,
+    uint NetworkProfile,
+    uint Precedence,
+    string AppPath,
+    string User,
+    uint Protocol,
+    ushort Port,
+    string SourcePrefix,
+    ushort SourcePortStart,
+    ushort SourcePortEnd,
+    string DestinationPrefix,
+    ushort DestinationPortStart,
+    ushort DestinationPortEnd,
+    sbyte Dscp,
+    sbyte Priority8021,
+    ulong ThrottleBitsPerSecond,
+    byte MinimumBandwidthWeight,
+    uint Template,
+    string Uri,
+    bool UriRecursive,
+    string JobObject,
+    ushort NetworkDirectPort,
+    string Version)
+{
+    public string ProfileDisplay => NetworkProfile switch
+    {
+        1 => "Domain",
+        2 => "Public",
+        4 => "Private",
+        7 => "All",
+        _ => $"Flags 0x{NetworkProfile:X}"
+    };
+    public string ConditionsDisplay
+    {
+        get
+        {
+            var values = new List<string>();
+            Add(AppPath, "App");
+            Add(User, "User");
+            if (Protocol != 0) values.Add($"Protocol {ProtocolDisplay(Protocol)}");
+            if (Port != 0) values.Add($"Port {Port}");
+            Add(SourcePrefix, "Source");
+            AddRange(SourcePortStart, SourcePortEnd, "source ports");
+            Add(DestinationPrefix, "Destination");
+            AddRange(DestinationPortStart, DestinationPortEnd, "destination ports");
+            Add(Uri, UriRecursive ? "Recursive URI" : "URI");
+            Add(JobObject, "Job");
+            if (NetworkDirectPort != 0) values.Add($"Network Direct port {NetworkDirectPort}");
+            if (Template != 0) values.Add($"Template {Template}");
+            return values.Count == 0 ? "Any traffic" : string.Join("; ", values);
+
+            void Add(string value, string label)
+            {
+                if (!string.IsNullOrWhiteSpace(value)) values.Add($"{label} {value}");
+            }
+            void AddRange(ushort start, ushort end, string label)
+            {
+                if (start != 0 || end != 0) values.Add($"{label} {start}–{end}");
+            }
+        }
+    }
+    public string ActionsDisplay
+    {
+        get
+        {
+            var values = new List<string>();
+            if (Dscp >= 0) values.Add($"DSCP {Dscp}");
+            if (Priority8021 >= 0) values.Add($"802.1p {Priority8021}");
+            if (ThrottleBitsPerSecond > 0) values.Add($"Throttle {AdapterInfo.FormatSpeed(ThrottleBitsPerSecond > long.MaxValue ? long.MaxValue : (long)ThrottleBitsPerSecond)}");
+            if (MinimumBandwidthWeight > 0) values.Add($"Minimum bandwidth {MinimumBandwidthWeight}%");
+            return values.Count == 0 ? "No action" : string.Join("; ", values);
+        }
+    }
+
+    public static string ProtocolDisplay(uint value) => value switch
+    {
+        0 => "None",
+        1 => "TCP",
+        2 => "UDP",
+        3 => "TCP + UDP",
+        _ => $"Value {value}"
+    };
+}
+
 public sealed record TcpSettingInfo(
     string SettingName,
     byte? AutomaticUseCustom,
@@ -462,7 +548,9 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<AdapterOffloadInfo>? AdapterOffloads = null,
     string? OffloadInventoryError = null,
     IReadOnlyList<TcpSettingInfo>? TcpSettings = null,
-    string? TcpSettingInventoryError = null)
+    string? TcpSettingInventoryError = null,
+    IReadOnlyList<QosPolicyInfo>? QosPolicies = null,
+    string? QosPolicyInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up

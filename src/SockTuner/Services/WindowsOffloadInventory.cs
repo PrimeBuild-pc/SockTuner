@@ -79,6 +79,23 @@ internal static class WindowsOffloadInventory
                 $"TCP {FormatChecksum(ReadUInt32(item, "TcpIPv6Enabled"))}; UDP {FormatChecksum(ReadUInt32(item, "UdpIPv6Enabled"))}",
                 "Transmit/receive checksum direction"));
 
+        Query("USO", """
+            SELECT InstanceID, Name, InterfaceDescription, IPv4Enabled, IPv6Enabled
+            FROM MSFT_NetAdapterUsoSettingData
+            """, errors, item => AddAdapter(item, "USO", "Per protocol",
+                FormatBoolean(ReadBoolean(item, "IPv4Enabled")),
+                FormatBoolean(ReadBoolean(item, "IPv6Enabled")),
+                "UDP segmentation offload"));
+
+        Query("URO", """
+            SELECT InstanceID, Name, InterfaceDescription, Enabled, Operational, FailureReason
+            FROM MSFT_NetAdapterUroSettingData
+            """, errors, item => AddAdapter(item, "URO",
+                FormatBoolean(ReadBoolean(item, "Enabled")),
+                "—",
+                "—",
+                $"Operational {FormatBoolean(ReadBoolean(item, "Operational"))}; failure {FormatUroFailure(ReadUInt32(item, "FailureReason"))}"));
+
         return new(
             globals.OrderBy(item => item.Feature, StringComparer.Ordinal).ToArray(),
             adapters
@@ -134,6 +151,49 @@ internal static class WindowsOffloadInventory
         3 => "Transmit + receive",
         _ => $"Value {value}"
     };
+
+    internal static string FormatUroFailure(uint? value)
+    {
+        if (value is null)
+        {
+            return "Unavailable";
+        }
+
+        if (value == 0)
+        {
+            return "None";
+        }
+
+        var names = new List<string>();
+        Add(1, "NIC property disabled");
+        Add(2, "WFP compatibility");
+        Add(4, "NDIS compatibility");
+        Add(8, "Forwarding enabled");
+        Add(16, "Global offload disabled");
+        Add(32, "Capability");
+        Add(64, "Teredo compatibility");
+        Add(128, "IPsec compatibility");
+        Add(256, "IPSNPI compatibility");
+        Add(512, "Internal error");
+        Add(1024, "Interface shutting down");
+        Add(2048, "UDP unbound");
+        Add(4096, "Unknown");
+        var unknown = value.Value & ~8191u;
+        if (unknown != 0)
+        {
+            names.Add($"Flags 0x{unknown:X}");
+        }
+
+        return string.Join(", ", names);
+
+        void Add(uint flag, string name)
+        {
+            if ((value.Value & flag) != 0)
+            {
+                names.Add(name);
+            }
+        }
+    }
 
     internal static string FormatRssProfile(uint? value) => value switch
     {
