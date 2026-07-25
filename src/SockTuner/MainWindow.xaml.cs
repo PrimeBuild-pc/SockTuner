@@ -175,9 +175,10 @@ public partial class MainWindow : Window
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
+            var pathSummary = $"Boundary: {report.FirstPublicBoundary ?? "not identified"}\nMTU: {report.PathMtu?.Detail ?? "not measured"}";
             DnsResultText.Text = report.Connection is null
-                ? report.Dns.Summary
-                : $"{report.Dns.Summary}\n{report.Connection.Summary}";
+                ? $"{report.Dns.Summary}\n{pathSummary}"
+                : $"{report.Dns.Summary}\n{report.Connection.Summary}\n{pathSummary}";
             FindingsGrid.ItemsSource = report.Findings;
             DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).";
             StatusText.Text = $"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}";

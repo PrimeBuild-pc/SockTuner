@@ -159,6 +159,20 @@ public sealed record ProbeStatistics(
     }
 }
 
+public sealed record RouteHop(int TimeToLive, string Address, double? RoundTripTimeMs, string State);
+
+public sealed record RouteSample(DateTimeOffset Timestamp, IReadOnlyList<RouteHop> Hops, string? Error);
+
+public enum PathMtuState
+{
+    Discovered,
+    IcmpBlockedOrInconclusive,
+    UnsupportedAddressFamily,
+    Error
+}
+
+public sealed record PathMtuResult(PathMtuState State, int? Mtu, string Detail);
+
 public sealed record DnsMeasurement(string Host, TimeSpan Duration, IReadOnlyList<string> Addresses, string? Error)
 {
     public string Summary => Error is null
@@ -205,7 +219,10 @@ public sealed record GamingDiagnosticReport(
     ProbeStatistics GameTarget,
     DnsMeasurement Dns,
     ConnectionMeasurement? Connection,
-    IReadOnlyList<DiagnosticFinding> Findings);
+    IReadOnlyList<DiagnosticFinding> Findings,
+    IReadOnlyList<RouteSample>? RouteSamples = null,
+    string? FirstPublicBoundary = null,
+    PathMtuResult? PathMtu = null);
 
 internal static class DoubleArrayExtensions
 {

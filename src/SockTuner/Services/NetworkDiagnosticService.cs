@@ -10,6 +10,7 @@ public sealed class NetworkDiagnosticService
 {
     private const string ReferenceTarget = "1.1.1.1";
     private readonly GamingDiagnosisAnalyzer _analyzer = new();
+    private readonly PathDiagnosticService _pathDiagnostics = new();
 
     public Task<GamingDiagnosticReport> RunAsync(
         string target,
@@ -50,8 +51,9 @@ public sealed class NetworkDiagnosticService
         var connectionTask = tcpPort.HasValue
             ? MeasureConnectionAsync(target, tcpPort.Value, cancellationToken)
             : Task.FromResult<ConnectionMeasurement?>(null);
+        var pathTask = _pathDiagnostics.RunAsync(resolvedTarget, cancellationToken);
 
-        await Task.WhenAll(gatewayTask, referenceTask, gameTask, connectionTask);
+        await Task.WhenAll(gatewayTask, referenceTask, gameTask, connectionTask, pathTask);
         var gatewayResult = await gatewayTask;
         var referenceResult = await referenceTask;
         var gameResult = await gameTask;
@@ -66,7 +68,10 @@ public sealed class NetworkDiagnosticService
             gameResult,
             dns,
             await connectionTask,
-            _analyzer.Analyze(gatewayResult, referenceResult, gameResult, dns));
+            _analyzer.Analyze(gatewayResult, referenceResult, gameResult, dns),
+            (await pathTask).Routes,
+            (await pathTask).FirstPublicBoundary,
+            (await pathTask).Mtu);
     }
 
     private static async Task<ProbeStatistics> ProbeAsync(
