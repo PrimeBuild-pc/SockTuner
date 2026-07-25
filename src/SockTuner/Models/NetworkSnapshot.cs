@@ -203,6 +203,54 @@ public sealed record IpInterfaceInfo(
     bool Connected,
     bool DefaultRoutesDisabled);
 
+public sealed record NetworkProfileInfo(
+    Guid NetworkId,
+    string Name,
+    string Category,
+    string DomainType,
+    uint Connectivity,
+    bool IsConnected,
+    bool IsInternetConnected,
+    Guid AdapterId,
+    string AdapterName)
+{
+    public string ConnectivityDisplay => FormatConnectivity(Connectivity);
+    public string StatusDisplay => IsInternetConnected ? "Internet" : IsConnected ? "Connected" : "Disconnected";
+
+    public static string FormatConnectivity(uint connectivity)
+    {
+        if (connectivity == 0)
+        {
+            return "Disconnected";
+        }
+
+        var values = new List<string>();
+        AddFlag(0x1, "IPv4 no traffic");
+        AddFlag(0x2, "IPv6 no traffic");
+        AddFlag(0x10, "IPv4 subnet");
+        AddFlag(0x20, "IPv4 local");
+        AddFlag(0x40, "IPv4 internet");
+        AddFlag(0x100, "IPv6 subnet");
+        AddFlag(0x200, "IPv6 local");
+        AddFlag(0x400, "IPv6 internet");
+        var unknown = connectivity & ~0x773u;
+        if (unknown != 0)
+        {
+            values.Add($"Flags 0x{unknown:X}");
+        }
+
+        return string.Join(", ", values);
+
+        void AddFlag(uint flag, string name)
+        {
+            if ((connectivity & flag) != 0)
+            {
+                values.Add(name);
+            }
+        }
+    }
+}
+
 public sealed record RouteInfo(
     string AddressFamily,
     string Destination,
@@ -218,7 +266,9 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<AdapterInfo> Adapters,
     IReadOnlyList<RouteInfo> Routes,
     string? RouteInventoryError,
-    string? IpInterfaceInventoryError = null)
+    string? IpInterfaceInventoryError = null,
+    IReadOnlyList<NetworkProfileInfo>? NetworkProfiles = null,
+    string? NetworkProfileInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up

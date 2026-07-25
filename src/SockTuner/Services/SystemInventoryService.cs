@@ -25,7 +25,15 @@ public sealed class SystemInventoryService
             DateTimeOffset.Now);
 
         var routes = WindowsRouteInventory.Read(adapters);
-        return new NetworkSnapshot(overview, adapters, routes.Routes, routes.Error, ipInterfaces.Error);
+        var profiles = WindowsNetworkProfileInventory.Read(adapters);
+        return new NetworkSnapshot(
+            overview,
+            adapters,
+            routes.Routes,
+            routes.Error,
+            ipInterfaces.Error,
+            profiles.Profiles,
+            profiles.Error);
     }
 
     private static AdapterInfo ReadAdapter(

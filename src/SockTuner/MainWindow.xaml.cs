@@ -42,7 +42,7 @@ public partial class MainWindow : Window
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
             StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
-            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
+            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
@@ -87,6 +87,10 @@ public partial class MainWindow : Window
         RouteSummaryText.Text = snapshot.RouteInventoryError is null
             ? $"{ipv4RouteCount} native IPv4 and {ipv6RouteCount} native IPv6 route(s)."
             : $"Route inventory partial: {snapshot.RouteInventoryError}";
+        NetworkProfilesGrid.ItemsSource = snapshot.NetworkProfiles ?? [];
+        NetworkProfileSummaryText.Text = snapshot.NetworkProfileInventoryError is null
+            ? $"{snapshot.NetworkProfiles?.Count ?? 0} profile connection(s) from Windows Network List Manager."
+            : $"Network profile inventory partial: {snapshot.NetworkProfileInventoryError}";
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
@@ -163,7 +167,7 @@ public partial class MainWindow : Window
         }
 
         if (MessageBox.Show(
-                "The snapshot contains machine, adapter, address, route, DNS, and driver identifiers. Export it anyway?",
+                "The snapshot contains machine, network profile names/IDs, adapter, address, route, DNS, and driver identifiers. Export it anyway?",
                 "Export diagnostic snapshot",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)

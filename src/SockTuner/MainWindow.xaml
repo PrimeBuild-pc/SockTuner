@@ -233,6 +233,29 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Network profiles">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Windows network profiles" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="NetworkProfileSummaryText" Text="Reading Network List Manager…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="NetworkProfilesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Profile" Binding="{Binding Name}" Width="180"/>
+                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="140"/>
+                            <DataGridTextColumn Header="Domain" Binding="{Binding DomainType}" Width="150"/>
+                            <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="110"/>
+                            <DataGridTextColumn Header="Connectivity" Binding="{Binding ConnectivityDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="180"/>
+                            <DataGridTextColumn Header="Adapter ID" Binding="{Binding AdapterId}" Width="260"/>
+                            <DataGridTextColumn Header="Network ID" Binding="{Binding NetworkId}" Width="260"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Gaming diagnostics">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
