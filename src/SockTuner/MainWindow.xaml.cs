@@ -169,9 +169,19 @@ public partial class MainWindow : Window
 
         try
         {
-            _snapshot ??= await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
-            var gateway = await _routeGatewayResolver.ResolveAsync(target, _snapshot, _diagnosticCancellation.Token);
+            var beforeSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
+            _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            var gateway = await _routeGatewayResolver.ResolveAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
+            var beforeCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
+            _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             var report = await _diagnostics.RunAsync(target, gateway, port, profile, _diagnosticCancellation.Token);
+            var afterCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
+            _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            var afterSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
+            _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            _snapshot = afterSnapshot;
+            ShowSnapshot(afterSnapshot);
+            report = report with { CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters) };
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -180,7 +190,10 @@ public partial class MainWindow : Window
                 ? $"{report.Dns.Summary}\n{pathSummary}"
                 : $"{report.Dns.Summary}\n{report.Connection.Summary}\n{pathSummary}";
             FindingsGrid.ItemsSource = report.Findings;
-            DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).";
+            var counterSummary = report.CounterDeltas is { Count: > 0 }
+                ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"
+                : " Counter deltas unavailable.";
+            DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).{counterSummary}";
             StatusText.Text = $"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}";
             WriteLog("diagnostic.completed", $"Target={report.RequestedTarget}; Duration={report.Duration.TotalSeconds:0.0}s; Findings={report.Findings.Count}.");
         }

@@ -159,6 +159,26 @@ public sealed record ProbeStatistics(
     }
 }
 
+public sealed record AdapterCounterSample(string AdapterId, string AdapterName, AdapterCounters Counters);
+
+public sealed record AdapterCounterDelta(
+    string AdapterId,
+    string AdapterName,
+    long? ReceivedBytes,
+    long? SentBytes,
+    long? ReceiveErrors,
+    long? ReceiveDiscards,
+    long? SendErrors,
+    long? SendDiscards)
+{
+    public string Summary => $"{AdapterName}: RX {Format(ReceivedBytes)}, TX {Format(SentBytes)}, " +
+        $"issues {Sum(ReceiveErrors, ReceiveDiscards, SendErrors, SendDiscards)}";
+    private static string Format(long? value) => value is null ? "reset/unavailable" : AdapterInfo.FormatByteCount(value.Value);
+    private static string Sum(params long?[] values) => values.Any(value => value is null)
+        ? "reset/unavailable"
+        : values.Sum(value => value!.Value).ToString();
+}
+
 public sealed record RouteHop(int TimeToLive, string Address, double? RoundTripTimeMs, string State);
 
 public sealed record RouteSample(DateTimeOffset Timestamp, IReadOnlyList<RouteHop> Hops, string? Error);
@@ -222,7 +242,8 @@ public sealed record GamingDiagnosticReport(
     IReadOnlyList<DiagnosticFinding> Findings,
     IReadOnlyList<RouteSample>? RouteSamples = null,
     string? FirstPublicBoundary = null,
-    PathMtuResult? PathMtu = null);
+    PathMtuResult? PathMtu = null,
+    IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null);
 
 internal static class DoubleArrayExtensions
 {

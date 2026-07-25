@@ -146,6 +146,32 @@ public sealed class SystemInventoryService
             adapterIpInterfaces);
     }
 
+    public IReadOnlyList<AdapterCounterSample> CaptureCounters() => NetworkInterface.GetAllNetworkInterfaces()
+        .Select(networkInterface =>
+        {
+            try
+            {
+                var counters = networkInterface.GetIPv4Statistics();
+                return new AdapterCounterSample(
+                    networkInterface.Id,
+                    networkInterface.Name,
+                    new AdapterCounters(
+                        counters.BytesReceived,
+                        counters.BytesSent,
+                        counters.IncomingPacketsDiscarded,
+                        counters.IncomingPacketsWithErrors,
+                        counters.OutgoingPacketsDiscarded,
+                        counters.OutgoingPacketsWithErrors));
+            }
+            catch (NetworkInformationException)
+            {
+                return null;
+            }
+        })
+        .Where(sample => sample is not null)
+        .Cast<AdapterCounterSample>()
+        .ToArray();
+
     internal static IReadOnlyList<IpInterfaceInfo> SelectIpInterfaces(
         IReadOnlyList<IpInterfaceInfo> interfaces,
         int ipv4Index,
