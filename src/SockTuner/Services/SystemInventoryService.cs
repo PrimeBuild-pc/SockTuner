@@ -9,8 +9,9 @@ public sealed class SystemInventoryService
 {
     public NetworkSnapshot Capture()
     {
+        var ipInterfaces = WindowsIpInterfaceInventory.Read();
         var adapters = NetworkInterface.GetAllNetworkInterfaces()
-            .Select(ReadAdapter)
+            .Select(networkInterface => ReadAdapter(networkInterface, ipInterfaces.Interfaces))
             .OrderByDescending(adapter => adapter.Status == OperationalStatus.Up)
             .ThenBy(adapter => adapter.Name, StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -24,10 +25,12 @@ public sealed class SystemInventoryService
             DateTimeOffset.Now);
 
         var routes = WindowsRouteInventory.Read(adapters);
-        return new NetworkSnapshot(overview, adapters, routes.Routes, routes.Error);
+        return new NetworkSnapshot(overview, adapters, routes.Routes, routes.Error, ipInterfaces.Error);
     }
 
-    private static AdapterInfo ReadAdapter(NetworkInterface networkInterface)
+    private static AdapterInfo ReadAdapter(
+        NetworkInterface networkInterface,
+        IReadOnlyList<IpInterfaceInfo> ipInterfaces)
     {
         IPInterfaceProperties? properties = null;
         IPv4InterfaceProperties? ipv4 = null;
@@ -89,6 +92,7 @@ public sealed class SystemInventoryService
         }
 
         var inventoryError = inventoryErrors.Count == 0 ? null : string.Join("; ", inventoryErrors);
+        var adapterIpInterfaces = SelectIpInterfaces(ipInterfaces, ipv4?.Index ?? 0, ipv6?.Index ?? 0);
 
         var ndis = WindowsNdisInventory.Read(networkInterface.Id);
 
@@ -114,8 +118,16 @@ public sealed class SystemInventoryService
             ndis.Properties,
             ndis.IsSupported,
             ndis.Error,
-            counters);
+            counters,
+            adapterIpInterfaces);
     }
+
+    internal static IReadOnlyList<IpInterfaceInfo> SelectIpInterfaces(
+        IReadOnlyList<IpInterfaceInfo> interfaces,
+        int ipv4Index,
+        int ipv6Index) => interfaces.Where(item =>
+            item.AddressFamily == "IPv4" && item.InterfaceIndex == ipv4Index
+            || item.AddressFamily == "IPv6" && item.InterfaceIndex == ipv6Index).ToArray();
 
     private static string FormatMacAddress(PhysicalAddress address)
     {

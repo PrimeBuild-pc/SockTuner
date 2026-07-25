@@ -79,6 +79,9 @@ public partial class MainWindow : Window
         NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
         RoutesGrid.ItemsSource = snapshot.Routes;
         DnsInterfacesGrid.ItemsSource = snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0);
+        InterfaceSummaryText.Text = snapshot.IpInterfaceInventoryError is null
+            ? $"{snapshot.Adapters.Sum(adapter => adapter.IpInterfaces?.Count ?? 0)} native IPv4/IPv6 interface row(s)."
+            : $"Interface metric inventory partial: {snapshot.IpInterfaceInventoryError}";
         var ipv4RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv4");
         var ipv6RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv6");
         RouteSummaryText.Text = snapshot.RouteInventoryError is null
@@ -245,6 +248,8 @@ public partial class MainWindow : Window
                 || Contains(adapter.InterfaceType.ToString(), search)
                 || Contains(adapter.SpeedDisplay, search)
                 || Contains(adapter.MtuDisplay, search)
+                || Contains(adapter.MetricDisplay, search)
+                || Contains(adapter.DefaultRoutePolicyDisplay, search)
                 || Contains(adapter.ReceivedDisplay, search)
                 || Contains(adapter.SentDisplay, search)
                 || Contains(adapter.ReceiveIssuesDisplay, search)
@@ -282,7 +287,7 @@ public partial class MainWindow : Window
         }
 
         CopyToClipboard(
-            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nReceived\t{adapter.ReceivedDisplay}\nSent\t{adapter.SentDisplay}\nReceive issues\t{adapter.ReceiveIssuesDisplay}\nSend issues\t{adapter.SendIssuesDisplay}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
+            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nIP metrics\t{adapter.MetricDisplay}\nDefault routes\t{adapter.DefaultRoutePolicyDisplay}\nReceived\t{adapter.ReceivedDisplay}\nSent\t{adapter.SentDisplay}\nReceive issues\t{adapter.ReceiveIssuesDisplay}\nSend issues\t{adapter.SendIssuesDisplay}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
             $"Copied adapter {adapter.Name}.");
     }
 

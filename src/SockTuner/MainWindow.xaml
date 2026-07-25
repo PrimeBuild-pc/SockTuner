@@ -210,12 +210,18 @@
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="120"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <TextBlock Grid.Row="4" Text="Interface addressing" FontSize="18" FontWeight="SemiBold"/>
+                    <StackPanel Grid.Row="4">
+                        <TextBlock Text="Interface addressing and metrics" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="InterfaceSummaryText" Text="Reading native interface metrics…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
                     <DataGrid x:Name="DnsInterfacesGrid" Grid.Row="6" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150"/>
                             <DataGridTextColumn Header="IPv4 index" Binding="{Binding Ipv4Index}" Width="100"/>
                             <DataGridTextColumn Header="MTU" Binding="{Binding MtuDisplay}" Width="150"/>
+                            <DataGridTextColumn Header="IP metrics" Binding="{Binding MetricDisplay}" Width="240"/>
+                            <DataGridTextColumn Header="Default routes" Binding="{Binding DefaultRoutePolicyDisplay}" Width="210"/>
                             <DataGridTextColumn Header="Received" Binding="{Binding ReceivedDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Sent" Binding="{Binding SentDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Receive issues" Binding="{Binding ReceiveIssuesDisplay}" Width="180"/>

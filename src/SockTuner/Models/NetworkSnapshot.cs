@@ -32,7 +32,8 @@ public sealed record AdapterInfo(
     IReadOnlyList<NdisAdvancedProperty> NdisProperties,
     bool NdisSupported,
     string? NdisInventoryError,
-    AdapterCounters? Counters = null)
+    AdapterCounters? Counters = null,
+    IReadOnlyList<IpInterfaceInfo>? IpInterfaces = null)
 {
     public string SpeedDisplay => FormatSpeed(SpeedBitsPerSecond);
     public string DriverDisplay => Driver is null ? "Unavailable" : $"{Driver.Provider} {Driver.Version}".Trim();
@@ -55,6 +56,12 @@ public sealed record AdapterInfo(
     public string SendIssuesDisplay => Counters is null
         ? "Unavailable"
         : $"{Counters.OutgoingPacketsWithErrors} errors / {Counters.OutgoingPacketsDiscarded} discarded";
+    public string MetricDisplay => IpInterfaces is { Count: > 0 }
+        ? string.Join(" / ", IpInterfaces.Select(item => $"{item.AddressFamily} {item.Metric} ({(item.AutomaticMetric ? "automatic" : "manual")})"))
+        : "Unavailable";
+    public string DefaultRoutePolicyDisplay => IpInterfaces is { Count: > 0 }
+        ? string.Join(" / ", IpInterfaces.Select(item => $"{item.AddressFamily} {(item.DefaultRoutesDisabled ? "disabled" : "allowed")}"))
+        : "Unavailable";
     public string MtuDisplay => (Ipv4Mtu, Ipv6Mtu) switch
     {
         ( > 0, > 0) when Ipv4Mtu == Ipv6Mtu => Ipv4Mtu.ToString(),
@@ -187,6 +194,15 @@ public sealed record AdapterCounters(
     long OutgoingPacketsDiscarded,
     long OutgoingPacketsWithErrors);
 
+public sealed record IpInterfaceInfo(
+    string AddressFamily,
+    int InterfaceIndex,
+    uint Metric,
+    uint Mtu,
+    bool AutomaticMetric,
+    bool Connected,
+    bool DefaultRoutesDisabled);
+
 public sealed record RouteInfo(
     string AddressFamily,
     string Destination,
@@ -201,7 +217,8 @@ public sealed record NetworkSnapshot(
     SystemOverview System,
     IReadOnlyList<AdapterInfo> Adapters,
     IReadOnlyList<RouteInfo> Routes,
-    string? RouteInventoryError)
+    string? RouteInventoryError,
+    string? IpInterfaceInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up
