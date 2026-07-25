@@ -40,6 +40,18 @@ public sealed class PathDiagnosticServiceTests
         Assert.Null(result.Mtu);
     }
 
+    [Fact]
+    public async Task TraceAsync_NoRespondingHops_IsClassifiedAsRouteFailure()
+    {
+        var service = new PathDiagnosticService((target, payload, fragment, ttl, timeout, token) =>
+            Task.FromResult(new PathPingResult(IPStatus.TimedOut, null, null)));
+
+        var result = await service.TraceAsync("198.51.100.10", CancellationToken.None);
+
+        Assert.Equal(DiagnosticFailureKind.RouteFailure, result.FailureKind);
+        Assert.Empty(result.Hops);
+    }
+
     [Theory]
     [InlineData("10.0.0.1", false)]
     [InlineData("100.64.0.1", false)]

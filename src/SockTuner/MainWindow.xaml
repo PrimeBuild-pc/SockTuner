@@ -457,6 +457,49 @@
 
                         <Border Style="{StaticResource Card}" Margin="0,18,0,0">
                             <StackPanel>
+                                <TextBlock Text="Probe statistics" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock Text="Jitter is the mean absolute difference between consecutive successful RTT samples." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12"/>
+                                <DataGrid x:Name="DiagnosticStatisticsGrid" AutoGenerateColumns="False" MinHeight="150">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Target" Binding="{Binding Label}" Width="150"/>
+                                        <DataGridTextColumn Header="Sent" Binding="{Binding Sent}" Width="60"/>
+                                        <DataGridTextColumn Header="Received" Binding="{Binding Received}" Width="75"/>
+                                        <DataGridTextColumn Header="Lost" Binding="{Binding Lost}" Width="60"/>
+                                        <DataGridTextColumn Header="Min" Binding="{Binding MinimumMs}" Width="70"/>
+                                        <DataGridTextColumn Header="Median" Binding="{Binding MedianMs}" Width="70"/>
+                                        <DataGridTextColumn Header="Average" Binding="{Binding AverageMs}" Width="75"/>
+                                        <DataGridTextColumn Header="P95" Binding="{Binding P95Ms}" Width="70"/>
+                                        <DataGridTextColumn Header="P99" Binding="{Binding P99Ms}" Width="70"/>
+                                        <DataGridTextColumn Header="Max" Binding="{Binding MaximumMs}" Width="70"/>
+                                        <DataGridTextColumn Header="Jitter" Binding="{Binding JitterMs}" Width="70"/>
+                                        <DataGridTextColumn Header="Spikes" Binding="{Binding SpikeSamples.Count}" Width="65"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="Probe and spike timeline" FontSize="18" FontWeight="SemiBold" Margin="0,16,0,8"/>
+                                <DataGrid x:Name="DiagnosticSamplesGrid" AutoGenerateColumns="False" MinHeight="160">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Target" Binding="{Binding Label}" Width="150"/>
+                                        <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="190"/>
+                                        <DataGridTextColumn Header="RTT ms" Binding="{Binding RoundTripTimeMs}" Width="90"/>
+                                        <DataGridCheckBoxColumn Header="Spike" Binding="{Binding IsSpike}" Width="65"/>
+                                        <DataGridTextColumn Header="State" Binding="{Binding FailureKind}" Width="140"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="Repeated route samples" FontSize="18" FontWeight="SemiBold" Margin="0,16,0,8"/>
+                                <DataGrid x:Name="RouteSamplesGrid" AutoGenerateColumns="False" MinHeight="120">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="190"/>
+                                        <DataGridTextColumn Header="Hops" Binding="{Binding HopsDisplay}" Width="3*"/>
+                                        <DataGridTextColumn Header="State" Binding="{Binding FailureKind}" Width="120"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
                                 <TextBlock Text="Evidence-ranked findings" FontSize="20" FontWeight="SemiBold"/>
                                 <TextBlock x:Name="DiagnosticRunSummaryText" Text="Run a diagnosis to populate findings." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,14" TextWrapping="Wrap"/>
                                 <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" MinHeight="190">

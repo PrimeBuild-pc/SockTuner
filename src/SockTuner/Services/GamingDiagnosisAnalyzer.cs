@@ -27,7 +27,7 @@ public sealed class GamingDiagnosisAnalyzer
                 DiagnosticScope.Lan,
                 DiagnosticConfidence.Low,
                 "Gateway did not answer ICMP",
-                "All gateway probes timed out. The router may block ICMP, so this alone does not prove LAN loss.",
+                $"No gateway ICMP replies ({string.Join(", ", gateway.Samples.Select(sample => sample.FailureKind).Where(kind => kind is not null).Distinct())}). Blocking or deprioritization may be involved, so this does not prove LAN loss.",
                 "Check local connectivity and router ICMP policy before drawing a conclusion."));
         }
         else if (!IsLocalStable(gateway))

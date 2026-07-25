@@ -63,7 +63,7 @@ Exit criteria:
 - Errors identify the failed surface and do not discard successful inventory from other surfaces.
 - English and Italian Windows validation finds no dependency on localized property labels.
 
-### Step 3 — Diagnostic and monitoring workbench (`0.3`) — **P0, current**
+### Step 3 — Diagnostic and monitoring workbench (`0.3`) — **P0, complete**
 
 **Goal:** turn the current short diagnostic into a complete, observable test workflow.
 
@@ -83,7 +83,7 @@ Exit criteria:
 - Intermediate-hop ICMP behavior is not mislabeled as end-to-end loss.
 - Monitoring can run and stop repeatedly without leaking tasks, sockets, or memory.
 
-### Step 4 — Reports, history, and comparison (`0.4`) — **P0**
+### Step 4 — Reports, history, and comparison (`0.4`) — **P0, current**
 
 **Goal:** make observations reproducible and useful for before/after analysis or support escalation.
 
@@ -214,9 +214,8 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P0 / Step 3:** expand diagnostics and continuous monitoring.
-2. **P0 / Step 4:** add offline HTML reports, history, and comparison.
-3. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
+1. **P0 / Step 4:** add offline HTML reports, history, and comparison.
+2. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
 
 Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 

@@ -49,6 +49,34 @@ public sealed class NetworkMonitorServiceTests
         Assert.Equal(0, calls);
     }
 
+    [Fact]
+    public async Task RunAsync_CanStartAndCancelRepeatedlyWithoutRetainingProbeTasks()
+    {
+        var active = 0;
+        var service = new NetworkMonitorService(async (target, timeout, token) =>
+        {
+            Interlocked.Increment(ref active);
+            try
+            {
+                await Task.Delay(Timeout.InfiniteTimeSpan, token);
+                throw new InvalidOperationException();
+            }
+            finally
+            {
+                Interlocked.Decrement(ref active);
+            }
+        });
+
+        for (var run = 0; run < 10; run++)
+        {
+            using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(15));
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => service.RunAsync(
+                [new("Game", "198.51.100.1")], TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(10),
+                TimeSpan.FromSeconds(1), 10, null, cancellation.Token));
+            Assert.Equal(0, active);
+        }
+    }
+
     [Theory]
     [InlineData(IPStatus.TimedOut, MonitorSampleKind.NoReply)]
     [InlineData(IPStatus.DestinationProhibited, MonitorSampleKind.Blocked)]

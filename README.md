@@ -57,7 +57,8 @@ The reference scripts in this private workspace are research inputs, not product
 - Step 1 is complete: the dark Metro shell, application icon, OS/adapter inventory, driver-advertised NDIS discovery, filtering/copy, and DPI validation pass.
 - Native IPv4/IPv6 routes and metrics, interface indexes/MTU/DNS, network profiles and bindings, NIC counters, TCP templates, QoS policies, global/RSS/RSC/LSO/checksum/USO/URO offload state, Winsock catalog, bounded structured logs, full/redacted snapshot export, retention preferences, and log export provide the Step 2 inventory.
 - Steps 1–2 now pass inventory, export, search/copy, dark-theme, and 100–200% WPF DPI validation.
-- Next: add the complete diagnostic and continuous-monitoring workflow, then reports, history, and comparison.
+- Step 3 adds explicit quick/standard/extended diagnostics, concurrent boundary probes, full statistics/timelines, route/MTU/counter evidence, and bounded continuous monitoring.
+- Next: add offline reports, history, and before/after comparison.
 - The typed transaction core is covered by in-memory failure tests, but writable UI remains locked until the preview and disposable-VM gates in Steps 5–6 pass.
 
 ## Important notice

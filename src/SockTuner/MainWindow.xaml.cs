@@ -189,6 +189,13 @@ public partial class MainWindow : Window
             DnsResultText.Text = report.Connection is null
                 ? $"{report.Dns.Summary}\n{pathSummary}"
                 : $"{report.Dns.Summary}\n{report.Connection.Summary}\n{pathSummary}";
+            var statistics = new[] { report.Gateway, report.Reference, report.GameTarget }
+                .Concat(report.FirstPublicBoundaryProbe is null ? [] : [report.FirstPublicBoundaryProbe])
+                .ToArray();
+            DiagnosticStatisticsGrid.ItemsSource = statistics;
+            DiagnosticSamplesGrid.ItemsSource = statistics.SelectMany(item => item.Samples.Select(sample => new DiagnosticTimelineSample(
+                item.Label, sample.Timestamp, sample.RoundTripTimeMs, item.SpikeSamples.Contains(sample), sample.FailureKind, sample.Error))).ToArray();
+            RouteSamplesGrid.ItemsSource = report.RouteSamples ?? [];
             FindingsGrid.ItemsSource = report.Findings;
             var counterSummary = report.CounterDeltas is { Count: > 0 }
                 ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"
@@ -583,6 +590,9 @@ public partial class MainWindow : Window
         GameResultText.Text = value;
         DnsResultText.Text = value;
         FindingsGrid.ItemsSource = null;
+        DiagnosticStatisticsGrid.ItemsSource = null;
+        DiagnosticSamplesGrid.ItemsSource = null;
+        RouteSamplesGrid.ItemsSource = null;
     }
 
     private void WriteLog(string eventName, string message)

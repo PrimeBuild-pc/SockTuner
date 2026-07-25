@@ -89,7 +89,30 @@ public sealed record MonitorReport(
         }).ToArray();
 }
 
-public sealed record ProbeSample(DateTimeOffset Timestamp, double? RoundTripTimeMs, string? Error = null);
+public enum DiagnosticFailureKind
+{
+    TimeoutOrNoReply,
+    IcmpBlocked,
+    Unreachable,
+    DnsFailure,
+    RouteFailure,
+    ConnectionRefused,
+    LocalApiFailure
+}
+
+public sealed record ProbeSample(
+    DateTimeOffset Timestamp,
+    double? RoundTripTimeMs,
+    string? Error = null,
+    DiagnosticFailureKind? FailureKind = null);
+
+public sealed record DiagnosticTimelineSample(
+    string Label,
+    DateTimeOffset Timestamp,
+    double? RoundTripTimeMs,
+    bool IsSpike,
+    DiagnosticFailureKind? FailureKind,
+    string? Detail);
 
 public sealed record ProbeStatistics(
     string Label,
@@ -107,6 +130,11 @@ public sealed record ProbeStatistics(
     IReadOnlyList<ProbeSample> Samples,
     string? Note = null)
 {
+    public int Lost => Sent - Received;
+    public string JitterMethod => "Mean absolute consecutive RTT difference";
+    public IReadOnlyList<ProbeSample> SpikeSamples => MedianMs is not { } median
+        ? []
+        : Samples.Where(sample => sample.RoundTripTimeMs > median + Math.Max(10, (JitterMs ?? 0) * 3)).ToArray();
     public string Summary => Received == 0
         ? Note ?? "No replies"
         : $"{AverageMs:0.0} ms avg · {P95Ms:0.0} ms P95 · {(JitterMs.HasValue ? $"{JitterMs:0.0} ms jitter" : "jitter n/a")} · {LossPercent:0.#}% loss";
@@ -181,7 +209,14 @@ public sealed record AdapterCounterDelta(
 
 public sealed record RouteHop(int TimeToLive, string Address, double? RoundTripTimeMs, string State);
 
-public sealed record RouteSample(DateTimeOffset Timestamp, IReadOnlyList<RouteHop> Hops, string? Error);
+public sealed record RouteSample(
+    DateTimeOffset Timestamp,
+    IReadOnlyList<RouteHop> Hops,
+    string? Error,
+    DiagnosticFailureKind? FailureKind = null)
+{
+    public string HopsDisplay => Hops.Count == 0 ? "No responding hops" : string.Join(" → ", Hops.Select(hop => $"{hop.TimeToLive}:{hop.Address}"));
+}
 
 public enum PathMtuState
 {
@@ -193,16 +228,28 @@ public enum PathMtuState
 
 public sealed record PathMtuResult(PathMtuState State, int? Mtu, string Detail);
 
-public sealed record DnsMeasurement(string Host, TimeSpan Duration, IReadOnlyList<string> Addresses, string? Error)
+public sealed record DnsMeasurement(
+    string Host,
+    TimeSpan Duration,
+    IReadOnlyList<string> Addresses,
+    string? Error,
+    DiagnosticFailureKind? FailureKind = null)
 {
     public string Summary => Error is null
         ? $"{Duration.TotalMilliseconds:0.0} ms · {Addresses.Count} address(es)"
-        : $"Failed: {Error}";
+        : $"Failed [{FailureKind ?? DiagnosticFailureKind.LocalApiFailure}]: {Error}";
 }
 
-public sealed record ConnectionMeasurement(string Host, int Port, TimeSpan? Duration, string? Error)
+public sealed record ConnectionMeasurement(
+    string Host,
+    int Port,
+    TimeSpan? Duration,
+    string? Error,
+    DiagnosticFailureKind? FailureKind = null)
 {
-    public string Summary => Error is null ? $"Connected in {Duration?.TotalMilliseconds:0.0} ms" : $"Not verified: {Error}";
+    public string Summary => Error is null
+        ? $"Connected in {Duration?.TotalMilliseconds:0.0} ms"
+        : $"Not verified [{FailureKind ?? DiagnosticFailureKind.LocalApiFailure}]: {Error}";
 }
 
 public enum DiagnosticScope
@@ -243,7 +290,8 @@ public sealed record GamingDiagnosticReport(
     IReadOnlyList<RouteSample>? RouteSamples = null,
     string? FirstPublicBoundary = null,
     PathMtuResult? PathMtu = null,
-    IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null);
+    IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null,
+    ProbeStatistics? FirstPublicBoundaryProbe = null);
 
 internal static class DoubleArrayExtensions
 {

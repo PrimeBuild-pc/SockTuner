@@ -22,10 +22,7 @@ public sealed class PathDiagnosticService
             if (sample < 2) await Task.Delay(200, cancellationToken);
         }
 
-        var firstPublic = routes.SelectMany(route => route.Hops)
-            .Where(hop => hop.State == IPStatus.TtlExpired.ToString())
-            .Select(hop => hop.Address)
-            .FirstOrDefault(IsPublicAddress);
+        var firstPublic = FindFirstPublicBoundary(routes);
         return (routes, firstPublic, await DiscoverMtuAsync(target, cancellationToken));
     }
 
@@ -42,11 +39,13 @@ public sealed class PathDiagnosticService
                     hops.Add(new(ttl, reply.Address, reply.RoundTripTimeMs, reply.Status.ToString()));
                 if (reply.Status == IPStatus.Success) break;
             }
-            return new(DateTimeOffset.Now, hops, null);
+            return hops.Count == 0
+                ? new(DateTimeOffset.Now, hops, "No route hops replied; ICMP may be blocked.", DiagnosticFailureKind.RouteFailure)
+                : new(DateTimeOffset.Now, hops, null);
         }
         catch (PingException exception)
         {
-            return new(DateTimeOffset.Now, hops, exception.InnerException?.Message ?? exception.Message);
+            return new(DateTimeOffset.Now, hops, exception.InnerException?.Message ?? exception.Message, DiagnosticFailureKind.LocalApiFailure);
         }
     }
 
@@ -77,6 +76,12 @@ public sealed class PathDiagnosticService
             return new(PathMtuState.Error, null, exception.InnerException?.Message ?? exception.Message);
         }
     }
+
+    internal static string? FindFirstPublicBoundary(IEnumerable<RouteSample> routes) => routes
+        .SelectMany(route => route.Hops)
+        .Where(hop => hop.State == IPStatus.TtlExpired.ToString())
+        .Select(hop => hop.Address)
+        .FirstOrDefault(IsPublicAddress);
 
     internal static bool IsPublicAddress(string value)
     {
