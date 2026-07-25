@@ -27,6 +27,7 @@ public sealed class SystemInventoryService
         var routes = WindowsRouteInventory.Read(adapters);
         var profiles = WindowsNetworkProfileInventory.Read(adapters);
         var winsock = WindowsWinsockInventory.Read();
+        var bindings = WindowsBindingInventory.Read();
         return new NetworkSnapshot(
             overview,
             adapters,
@@ -36,7 +37,9 @@ public sealed class SystemInventoryService
             profiles.Profiles,
             profiles.Error,
             winsock.Providers,
-            winsock.Error);
+            winsock.Error,
+            bindings.Bindings,
+            bindings.Error);
     }
 
     private static AdapterInfo ReadAdapter(

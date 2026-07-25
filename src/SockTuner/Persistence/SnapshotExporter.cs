@@ -16,7 +16,7 @@ public static class SnapshotExporter
 
     public static string Serialize(NetworkSnapshot snapshot) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 6,
+        schemaVersion = 7,
         toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
         exportedAt = DateTimeOffset.Now,
         snapshot

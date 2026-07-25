@@ -203,6 +203,23 @@ public sealed record IpInterfaceInfo(
     bool Connected,
     bool DefaultRoutesDisabled);
 
+public sealed record NetworkBindingInfo(
+    Guid AdapterId,
+    string AdapterName,
+    string InterfaceDescription,
+    string ComponentId,
+    string DisplayName,
+    string BindName,
+    bool Enabled,
+    uint Characteristics,
+    string ComponentClassGuid,
+    string ComponentClassName,
+    uint Source)
+{
+    public string StateDisplay => Enabled ? "Enabled" : "Disabled";
+    public string CharacteristicsDisplay => $"0x{Characteristics:X8}";
+}
+
 public sealed record NetworkProfileInfo(
     Guid NetworkId,
     string Name,
@@ -319,7 +336,9 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<NetworkProfileInfo>? NetworkProfiles = null,
     string? NetworkProfileInventoryError = null,
     IReadOnlyList<WinsockProviderInfo>? WinsockProviders = null,
-    string? WinsockInventoryError = null)
+    string? WinsockInventoryError = null,
+    IReadOnlyList<NetworkBindingInfo>? NetworkBindings = null,
+    string? NetworkBindingInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up

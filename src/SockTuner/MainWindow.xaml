@@ -256,6 +256,32 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Network bindings">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Adapter protocol and filter bindings" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="BindingSummaryText" Text="Reading StandardCimv2 binding state…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="BindingsGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="150"/>
+                            <DataGridTextColumn Header="Interface description" Binding="{Binding InterfaceDescription}" Width="220"/>
+                            <DataGridTextColumn Header="Component" Binding="{Binding DisplayName}" Width="2*"/>
+                            <DataGridTextColumn Header="Component ID" Binding="{Binding ComponentId}" Width="150"/>
+                            <DataGridTextColumn Header="State" Binding="{Binding StateDisplay}" Width="90"/>
+                            <DataGridTextColumn Header="Class" Binding="{Binding ComponentClassName}" Width="120"/>
+                            <DataGridTextColumn Header="Bind name" Binding="{Binding BindName}" Width="150"/>
+                            <DataGridTextColumn Header="Adapter ID" Binding="{Binding AdapterId}" Width="260"/>
+                            <DataGridTextColumn Header="Class ID" Binding="{Binding ComponentClassGuid}" Width="260"/>
+                            <DataGridTextColumn Header="Characteristics" Binding="{Binding CharacteristicsDisplay}" Width="120"/>
+                            <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Winsock catalog">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
