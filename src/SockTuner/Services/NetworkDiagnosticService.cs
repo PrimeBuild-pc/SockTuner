@@ -80,6 +80,7 @@ public sealed class NetworkDiagnosticService
             target,
             startedAt,
             stopwatch.Elapsed,
+            profile,
             gatewayResult,
             referenceResult,
             gameResult,

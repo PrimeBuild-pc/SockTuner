@@ -281,6 +281,7 @@ public sealed record GamingDiagnosticReport(
     string RequestedTarget,
     DateTimeOffset StartedAt,
     TimeSpan Duration,
+    DiagnosticProfile Profile,
     ProbeStatistics Gateway,
     ProbeStatistics Reference,
     ProbeStatistics GameTarget,

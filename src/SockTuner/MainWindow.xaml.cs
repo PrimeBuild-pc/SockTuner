@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private NetworkSnapshot? _snapshot;
+    private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
     private CancellationTokenSource? _monitorCancellation;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
@@ -161,6 +162,7 @@ public partial class MainWindow : Window
 
         _diagnosticCancellation?.Dispose();
         _diagnosticCancellation = new CancellationTokenSource();
+        _lastReport = null;
         SetDiagnosticBusy(true);
         ClearDiagnosticResults("Running…");
         DiagnosticRunSummaryText.Text = $"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…";
@@ -182,6 +184,7 @@ public partial class MainWindow : Window
             _snapshot = afterSnapshot;
             ShowSnapshot(afterSnapshot);
             report = report with { CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters) };
+            _lastReport = report;
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -280,6 +283,52 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Snapshot export failed: {exception.Message}";
             WriteLog("snapshot.export_failed", exception.Message);
+        }
+    }
+
+    private void ExportReportJson_Click(object sender, RoutedEventArgs e) => SaveReport(html: false, redact: false);
+    private void ExportReportHtml_Click(object sender, RoutedEventArgs e) => SaveReport(html: true, redact: false);
+    private void ExportRedactedReportHtml_Click(object sender, RoutedEventArgs e) => SaveReport(html: true, redact: true);
+
+    private void SaveReport(bool html, bool redact)
+    {
+        if (_lastReport is null)
+        {
+            StatusText.Text = "Run a completed diagnosis before exporting a report.";
+            return;
+        }
+
+        if (!redact && MessageBox.Show(
+                "The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?",
+                "Export full diagnostic report",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var extension = html ? ".html" : ".json";
+        var dialog = new SaveFileDialog
+        {
+            Filter = html ? "Self-contained HTML report (*.html)|*.html" : "SockTuner JSON report (*.json)|*.json",
+            DefaultExt = extension,
+            AddExtension = true,
+            FileName = $"SockTuner-report-{DateTime.Now:yyyyMMdd-HHmmss}{extension}"
+        };
+        if (dialog.ShowDialog(this) != true) return;
+        try
+        {
+            var content = html
+                ? DiagnosticReportExporter.SerializeHtml(_lastReport, redact)
+                : DiagnosticReportExporter.SerializeJson(_lastReport, redact);
+            File.WriteAllText(dialog.FileName, content);
+            StatusText.Text = $"Report exported to {dialog.FileName}.";
+            WriteLog("report.exported", $"Format={(html ? "html" : "json")}; Redacted={redact}.");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Report export failed: {exception.Message}";
+            WriteLog("report.export_failed", exception.Message);
         }
     }
 

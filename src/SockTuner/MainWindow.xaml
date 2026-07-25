@@ -501,7 +501,12 @@
                         <Border Style="{StaticResource Card}" Margin="0,18,0,0">
                             <StackPanel>
                                 <TextBlock Text="Evidence-ranked findings" FontSize="20" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="DiagnosticRunSummaryText" Text="Run a diagnosis to populate findings." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,14" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="DiagnosticRunSummaryText" Text="Run a diagnosis to populate findings." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,10" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                    <Button Content="Export report JSON" Click="ExportReportJson_Click" Margin="0,0,8,0"/>
+                                    <Button Content="Export report HTML" Click="ExportReportHtml_Click" Margin="0,0,8,0"/>
+                                    <Button Content="Export redacted HTML" Click="ExportRedactedReportHtml_Click"/>
+                                </StackPanel>
                                 <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" MinHeight="190">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="120"/>
