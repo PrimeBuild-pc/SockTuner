@@ -22,6 +22,9 @@
                 <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox x:Name="InventoryFilterText" Width="170" Margin="0,0,8,0" VerticalContentAlignment="Center"
+                         TextChanged="InventoryFilter_TextChanged" AutomationProperties.Name="Search all inventory"/>
+                <Button Content="Copy selected" Click="CopyInventorySelected_Click" Margin="0,0,8,0"/>
                 <Button Content="Export snapshot" Click="ExportSnapshot_Click" Margin="0,0,8,0"/>
                 <Button Content="Export support snapshot" Click="ExportSupportSnapshot_Click" Margin="0,0,8,0"/>
                 <Button Content="Export logs" Click="ExportLogs_Click" Margin="0,0,12,0"/>
@@ -32,7 +35,7 @@
             </StackPanel>
         </Grid>
 
-        <TabControl Grid.Row="2">
+        <TabControl x:Name="InventoryTabs" Grid.Row="2" SelectionChanged="InventoryTabs_SelectionChanged">
             <TabItem Header="Dashboard">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
@@ -137,7 +140,7 @@
                         <Button Grid.Column="3" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Bottom"
                                 Style="{StaticResource PrimaryButton}" AutomationProperties.Name="Refresh network inventory"/>
                     </Grid>
-                    <DataGrid x:Name="AdaptersGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="AdaptersGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
                             <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
@@ -173,7 +176,7 @@
                         </StackPanel>
                         <Button Grid.Column="2" Content="Copy selected" Click="CopyNdisProperty_Click" VerticalAlignment="Bottom"/>
                     </Grid>
-                    <DataGrid x:Name="NdisPropertiesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="NdisPropertiesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding Adapter}" Width="140"/>
                             <DataGridTextColumn Header="Provider / version" Binding="{Binding Driver}" Width="180"/>
@@ -199,7 +202,7 @@
                         <TextBlock x:Name="RouteSummaryText" Text="Reading native route inventory…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="RoutesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="RoutesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Family" Binding="{Binding AddressFamily}" Width="75"/>
                             <DataGridTextColumn Header="Destination" Binding="{Binding Destination}" Width="190"/>
@@ -216,7 +219,7 @@
                         <TextBlock x:Name="InterfaceSummaryText" Text="Reading native interface metrics…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,4,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="DnsInterfacesGrid" Grid.Row="6" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="DnsInterfacesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="6" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150"/>
                             <DataGridTextColumn Header="IPv4 index" Binding="{Binding Ipv4Index}" Width="100"/>
@@ -242,7 +245,7 @@
                         <TextBlock x:Name="NetworkProfileSummaryText" Text="Reading Network List Manager…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="NetworkProfilesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="NetworkProfilesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Profile" Binding="{Binding Name}" Width="180"/>
                             <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="140"/>
@@ -265,7 +268,7 @@
                         <TextBlock x:Name="BindingSummaryText" Text="Reading StandardCimv2 binding state…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="BindingsGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="BindingsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="150"/>
                             <DataGridTextColumn Header="Interface description" Binding="{Binding InterfaceDescription}" Width="220"/>
@@ -291,14 +294,14 @@
                         <TextBlock x:Name="OffloadSummaryText" Text="Reading StandardCimv2 offload state…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="GlobalOffloadsGrid" Grid.Row="2" AutoGenerateColumns="False" MaxHeight="190" AlternationCount="2">
+                    <DataGrid x:Name="GlobalOffloadsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" MaxHeight="190" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Global feature" Binding="{Binding Feature}" Width="2*"/>
                             <DataGridTextColumn Header="State" Binding="{Binding State}" Width="160"/>
                             <DataGridTextColumn Header="Raw value" Binding="{Binding RawValue}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <DataGrid x:Name="AdapterOffloadsGrid" Grid.Row="4" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="AdapterOffloadsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="4" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="160"/>
                             <DataGridTextColumn Header="Feature" Binding="{Binding Feature}" Width="100"/>
@@ -321,7 +324,7 @@
                         <TextBlock x:Name="TcpSettingSummaryText" Text="Reading StandardCimv2 TCP settings…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="TcpSettingsGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="TcpSettingsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Template" Binding="{Binding SettingName}" Width="140"/>
                             <DataGridTextColumn Header="Auto-tuning" Binding="{Binding AutoTuningDisplay}" Width="260"/>
@@ -347,7 +350,7 @@
                         <TextBlock x:Name="QosPolicySummaryText" Text="Reading StandardCimv2 QoS policies…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="QosPoliciesGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="QosPoliciesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="180"/>
                             <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="150"/>
@@ -369,7 +372,7 @@
                         <TextBlock x:Name="WinsockSummaryText" Text="Reading native Winsock catalog…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="WinsockProvidersGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                    <DataGrid x:Name="WinsockProvidersGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Catalog ID" Binding="{Binding CatalogEntryId}" Width="90"/>
                             <DataGridTextColumn Header="Provider" Binding="{Binding Name}" Width="2*"/>

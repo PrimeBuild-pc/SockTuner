@@ -1,5 +1,6 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.Win32;
@@ -22,6 +23,8 @@ public partial class MainWindow : Window
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
     private UserPreferences _preferences = new();
+    private object? _selectedInventoryItem;
+    private System.Windows.Controls.DataGrid? _selectedInventoryGrid;
 
     public MainWindow()
     {
@@ -117,6 +120,7 @@ public partial class MainWindow : Window
         WinsockSummaryText.Text = snapshot.WinsockInventoryError is null
             ? $"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated."
             : $"Winsock inventory partial: {snapshot.WinsockInventoryError}";
+        ApplyInventoryFilter();
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
@@ -300,6 +304,73 @@ public partial class MainWindow : Window
         }
     }
 
+    private void InventoryFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyInventoryFilter();
+
+    private void InventoryTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (ReferenceEquals(e.OriginalSource, InventoryTabs))
+        {
+            _selectedInventoryItem = null;
+            _selectedInventoryGrid = null;
+        }
+    }
+
+    private void InventoryGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.DataGrid grid)
+        {
+            return;
+        }
+
+        if (grid.SelectedItem is { } item)
+        {
+            _selectedInventoryItem = item;
+            _selectedInventoryGrid = grid;
+        }
+        else if (ReferenceEquals(grid, _selectedInventoryGrid))
+        {
+            _selectedInventoryItem = null;
+            _selectedInventoryGrid = null;
+        }
+    }
+
+    private void CopyInventorySelected_Click(object sender, RoutedEventArgs e)
+    {
+        if (_selectedInventoryItem is null)
+        {
+            StatusText.Text = "Select an inventory row to copy.";
+            return;
+        }
+
+        CopyToClipboard(
+            JsonSerializer.Serialize(_selectedInventoryItem, _selectedInventoryItem.GetType(), new JsonSerializerOptions { WriteIndented = true }),
+            "Copied selected inventory row.");
+    }
+
+    private void ApplyInventoryFilter()
+    {
+        if (_snapshot is null)
+        {
+            return;
+        }
+
+        var query = InventoryFilterText.Text;
+        RoutesGrid.ItemsSource = Filter(_snapshot.Routes, query);
+        DnsInterfacesGrid.ItemsSource = Filter(_snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0), query);
+        NetworkProfilesGrid.ItemsSource = Filter(_snapshot.NetworkProfiles ?? [], query);
+        BindingsGrid.ItemsSource = Filter(_snapshot.NetworkBindings ?? [], query);
+        GlobalOffloadsGrid.ItemsSource = Filter(_snapshot.GlobalOffloads ?? [], query);
+        AdapterOffloadsGrid.ItemsSource = Filter(_snapshot.AdapterOffloads ?? [], query);
+        TcpSettingsGrid.ItemsSource = Filter(_snapshot.TcpSettings ?? [], query);
+        QosPoliciesGrid.ItemsSource = Filter(_snapshot.QosPolicies ?? [], query);
+        WinsockProvidersGrid.ItemsSource = Filter(_snapshot.WinsockProviders ?? [], query);
+        ApplyAdapterFilter();
+        ApplyNdisFilter();
+    }
+
+    private static IReadOnlyList<T> Filter<T>(IEnumerable<T> items, string query) =>
+        items.Where(item => item is not null && InventorySearch.Matches(item, query)).ToArray();
+
     private void AdapterFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyAdapterFilter();
 
     private void NdisFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyNdisFilter();
@@ -307,7 +378,7 @@ public partial class MainWindow : Window
     private void ApplyAdapterFilter()
     {
         var search = AdapterFilterText.Text.Trim();
-        AdaptersGrid.ItemsSource = string.IsNullOrEmpty(search)
+        var rows = string.IsNullOrEmpty(search)
             ? _adapterRows
             : _adapterRows.Where(adapter => Contains(adapter.Name, search)
                 || Contains(adapter.Description, search)
@@ -330,12 +401,13 @@ public partial class MainWindow : Window
                 || Contains(adapter.GatewaysDisplay, search)
                 || Contains(adapter.DnsDisplay, search)
                 || Contains(adapter.InventoryStatus, search));
+        AdaptersGrid.ItemsSource = Filter(rows, InventoryFilterText.Text);
     }
 
     private void ApplyNdisFilter()
     {
         var search = NdisFilterText.Text.Trim();
-        NdisPropertiesGrid.ItemsSource = string.IsNullOrEmpty(search)
+        var rows = string.IsNullOrEmpty(search)
             ? _ndisRows
             : _ndisRows.Where(row => Contains(row.Adapter, search)
                 || Contains(row.Driver, search)
@@ -345,6 +417,7 @@ public partial class MainWindow : Window
                 || Contains(row.Default, search)
                 || Contains(row.Type, search)
                 || Contains(row.ValidValues, search));
+        NdisPropertiesGrid.ItemsSource = Filter(rows, InventoryFilterText.Text);
     }
 
     private void CopyAdapter_Click(object sender, RoutedEventArgs e)
