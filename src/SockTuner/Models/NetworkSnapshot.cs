@@ -102,9 +102,9 @@ public sealed record AdapterInfo(
 
     public static string FormatSpeed(long bitsPerSecond) => bitsPerSecond switch
     {
-        >= 1_000_000_000 => $"{bitsPerSecond / 1_000_000_000d:0.##} Gbps",
-        >= 1_000_000 => $"{bitsPerSecond / 1_000_000d:0.##} Mbps",
-        >= 1_000 => $"{bitsPerSecond / 1_000d:0.##} Kbps",
+        >= 1_000_000_000 => FormattableString.Invariant($"{bitsPerSecond / 1_000_000_000d:0.##} Gbps"),
+        >= 1_000_000 => FormattableString.Invariant($"{bitsPerSecond / 1_000_000d:0.##} Mbps"),
+        >= 1_000 => FormattableString.Invariant($"{bitsPerSecond / 1_000d:0.##} Kbps"),
         > 0 => $"{bitsPerSecond} bps",
         _ => "Unknown"
     };
