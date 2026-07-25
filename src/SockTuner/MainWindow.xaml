@@ -394,6 +394,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -404,13 +405,18 @@
                                              AutomationProperties.Name="Game or regional endpoint"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="PROFILE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="DiagnosticProfileComboBox" Margin="0,6,0,0" DisplayMemberPath="DisplayName"
+                                              AutomationProperties.Name="Diagnostic profile"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,12,0">
                                     <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
                                     <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="2" Content="Run diagnosis" Click="RunDiagnostic_Click"
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="3" Content="Run diagnosis" Click="RunDiagnostic_Click"
                                         VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelDiagnosticButton" Grid.Column="3" Content="Cancel" Click="CancelDiagnostic_Click"
+                                <Button x:Name="CancelDiagnosticButton" Grid.Column="4" Content="Cancel" Click="CancelDiagnostic_Click"
                                         VerticalAlignment="Bottom" IsEnabled="False"/>
                             </Grid>
                         </Border>

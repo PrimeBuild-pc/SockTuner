@@ -1,5 +1,33 @@
 namespace SockTuner.Models;
 
+public sealed record DiagnosticProfile(
+    string Id,
+    string DisplayName,
+    int SampleCount,
+    TimeSpan Interval,
+    TimeSpan Timeout)
+{
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(Id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(DisplayName);
+        ArgumentOutOfRangeException.ThrowIfLessThan(SampleCount, 3);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(SampleCount, 300);
+        if (Interval < TimeSpan.Zero || Interval > TimeSpan.FromMinutes(1)) throw new ArgumentOutOfRangeException(nameof(Interval));
+        if (Timeout <= TimeSpan.Zero || Timeout > TimeSpan.FromMinutes(1)) throw new ArgumentOutOfRangeException(nameof(Timeout));
+    }
+}
+
+public static class DiagnosticProfiles
+{
+    public static IReadOnlyList<DiagnosticProfile> All { get; } =
+    [
+        new("quick", "Quick", 12, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
+        new("standard", "Standard", 30, TimeSpan.FromMilliseconds(250), TimeSpan.FromSeconds(1)),
+        new("extended", "Extended", 60, TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(2))
+    ];
+}
+
 public sealed record ProbeSample(DateTimeOffset Timestamp, double? RoundTripTimeMs, string? Error = null);
 
 public sealed record ProbeStatistics(

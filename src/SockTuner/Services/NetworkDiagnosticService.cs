@@ -11,16 +11,27 @@ public sealed class NetworkDiagnosticService
     private const string ReferenceTarget = "1.1.1.1";
     private readonly GamingDiagnosisAnalyzer _analyzer = new();
 
-    public async Task<GamingDiagnosticReport> RunAsync(
+    public Task<GamingDiagnosticReport> RunAsync(
         string target,
         string? gateway,
         int? tcpPort,
         int sampleCount,
+        CancellationToken cancellationToken) => RunAsync(
+            target,
+            gateway,
+            tcpPort,
+            new DiagnosticProfile("custom", "Custom", sampleCount, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
+            cancellationToken);
+
+    public async Task<GamingDiagnosticReport> RunAsync(
+        string target,
+        string? gateway,
+        int? tcpPort,
+        DiagnosticProfile profile,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(target);
-        ArgumentOutOfRangeException.ThrowIfLessThan(sampleCount, 3);
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(sampleCount, 100);
+        profile.Validate();
         if (tcpPort is <= 0 or > 65535)
         {
             throw new ArgumentOutOfRangeException(nameof(tcpPort));
@@ -33,9 +44,9 @@ public sealed class NetworkDiagnosticService
 
         var gatewayTask = string.IsNullOrWhiteSpace(gateway)
             ? Task.FromResult(ProbeStatistics.Calculate("Gateway", "Not detected", [], "No active default gateway detected"))
-            : ProbeAsync("Gateway", gateway, sampleCount, cancellationToken);
-        var referenceTask = ProbeAsync("Reference", ReferenceTarget, sampleCount, cancellationToken);
-        var gameTask = ProbeAsync("Game endpoint", resolvedTarget, sampleCount, cancellationToken);
+            : ProbeAsync("Gateway", gateway, profile, cancellationToken);
+        var referenceTask = ProbeAsync("Reference", ReferenceTarget, profile, cancellationToken);
+        var gameTask = ProbeAsync("Game endpoint", resolvedTarget, profile, cancellationToken);
         var connectionTask = tcpPort.HasValue
             ? MeasureConnectionAsync(target, tcpPort.Value, cancellationToken)
             : Task.FromResult<ConnectionMeasurement?>(null);
@@ -61,20 +72,20 @@ public sealed class NetworkDiagnosticService
     private static async Task<ProbeStatistics> ProbeAsync(
         string label,
         string target,
-        int sampleCount,
+        DiagnosticProfile profile,
         CancellationToken cancellationToken)
     {
-        var samples = new List<ProbeSample>(sampleCount);
+        var samples = new List<ProbeSample>(profile.SampleCount);
         using var ping = new Ping();
         var payload = new byte[32];
 
-        for (var index = 0; index < sampleCount; index++)
+        for (var index = 0; index < profile.SampleCount; index++)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var timestamp = DateTimeOffset.Now;
             try
             {
-                var reply = await ping.SendPingAsync(target, TimeSpan.FromSeconds(1), payload, new PingOptions(64, false), cancellationToken);
+                var reply = await ping.SendPingAsync(target, profile.Timeout, payload, new PingOptions(64, false), cancellationToken);
                 samples.Add(reply.Status == IPStatus.Success
                     ? new ProbeSample(timestamp, reply.RoundtripTime)
                     : new ProbeSample(timestamp, null, reply.Status.ToString()));
@@ -84,9 +95,9 @@ public sealed class NetworkDiagnosticService
                 samples.Add(new ProbeSample(timestamp, null, exception.InnerException?.Message ?? exception.Message));
             }
 
-            if (index + 1 < sampleCount)
+            if (index + 1 < profile.SampleCount)
             {
-                await Task.Delay(100, cancellationToken);
+                await Task.Delay(profile.Interval, cancellationToken);
             }
         }
 

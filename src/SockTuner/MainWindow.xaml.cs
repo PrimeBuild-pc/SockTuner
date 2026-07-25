@@ -33,6 +33,8 @@ public partial class MainWindow : Window
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
         LogRetentionComboBox.ItemsSource = Enumerable.Range(1, 64);
         LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
+        DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
+        DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
@@ -144,19 +146,25 @@ public partial class MainWindow : Window
             port = parsedPort;
         }
 
+        if (DiagnosticProfileComboBox.SelectedItem is not DiagnosticProfile profile)
+        {
+            StatusText.Text = "Select a diagnostic profile.";
+            return;
+        }
+
         _diagnosticCancellation?.Dispose();
         _diagnosticCancellation = new CancellationTokenSource();
         SetDiagnosticBusy(true);
         ClearDiagnosticResults("Running…");
-        DiagnosticRunSummaryText.Text = $"Resolving {target}, then collecting concurrent gateway, reference, and endpoint samples…";
+        DiagnosticRunSummaryText.Text = $"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…";
         StatusText.Text = $"Diagnosing {target}…";
-        WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}.");
+        WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}; Profile={profile.Id}.");
 
         try
         {
             _snapshot ??= await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
             var gateway = await _routeGatewayResolver.ResolveAsync(target, _snapshot, _diagnosticCancellation.Token);
-            var report = await _diagnostics.RunAsync(target, gateway, port, 12, _diagnosticCancellation.Token);
+            var report = await _diagnostics.RunAsync(target, gateway, port, profile, _diagnosticCancellation.Token);
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -164,7 +172,7 @@ public partial class MainWindow : Window
                 ? report.Dns.Summary
                 : $"{report.Dns.Summary}\n{report.Connection.Summary}";
             FindingsGrid.ItemsSource = report.Findings;
-            DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from a {report.Duration.TotalSeconds:0.0}s short run. Confirm issues with a longer run before changing settings.";
+            DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).";
             StatusText.Text = $"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}";
             WriteLog("diagnostic.completed", $"Target={report.RequestedTarget}; Duration={report.Duration.TotalSeconds:0.0}s; Findings={report.Findings.Count}.");
         }
@@ -470,6 +478,7 @@ public partial class MainWindow : Window
         CancelDiagnosticButton.IsEnabled = isBusy;
         DiagnosticTargetText.IsEnabled = !isBusy;
         DiagnosticPortText.IsEnabled = !isBusy;
+        DiagnosticProfileComboBox.IsEnabled = !isBusy;
     }
 
     private void ClearDiagnosticResults(string value)
