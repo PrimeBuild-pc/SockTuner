@@ -256,6 +256,29 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="Winsock catalog">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
+                    <StackPanel>
+                        <TextBlock Text="Winsock protocol providers" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="WinsockSummaryText" Text="Reading native Winsock catalog…"
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                    </StackPanel>
+                    <DataGrid x:Name="WinsockProvidersGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Catalog ID" Binding="{Binding CatalogEntryId}" Width="90"/>
+                            <DataGridTextColumn Header="Provider" Binding="{Binding Name}" Width="2*"/>
+                            <DataGridTextColumn Header="Family" Binding="{Binding AddressFamilyDisplay}" Width="90"/>
+                            <DataGridTextColumn Header="Socket" Binding="{Binding SocketTypeDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Protocol" Binding="{Binding ProtocolDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Chain" Binding="{Binding ChainDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Provider ID" Binding="{Binding ProviderId}" Width="260"/>
+                            <DataGridTextColumn Header="Flags" Binding="{Binding FlagsDisplay}" Width="260"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+
             <TabItem Header="Gaming diagnostics">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>

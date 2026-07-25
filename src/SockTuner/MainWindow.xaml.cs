@@ -42,7 +42,7 @@ public partial class MainWindow : Window
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
             StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
-            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
+            WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, {_snapshot.WinsockProviders?.Count ?? 0} Winsock providers, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
@@ -91,6 +91,10 @@ public partial class MainWindow : Window
         NetworkProfileSummaryText.Text = snapshot.NetworkProfileInventoryError is null
             ? $"{snapshot.NetworkProfiles?.Count ?? 0} profile connection(s) from Windows Network List Manager."
             : $"Network profile inventory partial: {snapshot.NetworkProfileInventoryError}";
+        WinsockProvidersGrid.ItemsSource = snapshot.WinsockProviders ?? [];
+        WinsockSummaryText.Text = snapshot.WinsockInventoryError is null
+            ? $"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated."
+            : $"Winsock inventory partial: {snapshot.WinsockInventoryError}";
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
@@ -167,7 +171,7 @@ public partial class MainWindow : Window
         }
 
         if (MessageBox.Show(
-                "The snapshot contains machine, network profile names/IDs, adapter, address, route, DNS, and driver identifiers. Export it anyway?",
+                "The snapshot contains machine, network profile names/IDs, adapter, address, route, DNS, driver, and Winsock provider identifiers. Export it anyway?",
                 "Export diagnostic snapshot",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)

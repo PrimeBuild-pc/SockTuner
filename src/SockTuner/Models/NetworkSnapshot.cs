@@ -251,6 +251,55 @@ public sealed record NetworkProfileInfo(
     }
 }
 
+public sealed record WinsockProviderInfo(
+    uint CatalogEntryId,
+    Guid ProviderId,
+    string Name,
+    int AddressFamily,
+    int SocketType,
+    int Protocol,
+    int ChainLength,
+    IReadOnlyList<uint> ChainEntries,
+    uint ProviderFlags,
+    uint ServiceFlags1,
+    uint ServiceFlags2,
+    uint ServiceFlags3,
+    uint ServiceFlags4)
+{
+    public string AddressFamilyDisplay => AddressFamily switch
+    {
+        1 => "Unix",
+        2 => "IPv4",
+        23 => "IPv6",
+        32 => "Bluetooth",
+        34 => "Hyper-V",
+        _ => $"Family {AddressFamily}"
+    };
+    public string SocketTypeDisplay => SocketType switch
+    {
+        1 => "Stream",
+        2 => "Datagram",
+        3 => "Raw",
+        4 => "RDM",
+        5 => "SeqPacket",
+        _ => $"Type {SocketType}"
+    };
+    public string ProtocolDisplay => Protocol switch
+    {
+        6 => "TCP",
+        17 => "UDP",
+        _ => $"Protocol {Protocol}"
+    };
+    public string ChainDisplay => ChainLength switch
+    {
+        0 => "Layered",
+        1 => "Base",
+        _ => $"Chain ({ChainLength}): {string.Join(" → ", ChainEntries)}"
+    };
+    public string FlagsDisplay =>
+        $"Provider 0x{ProviderFlags:X8} / Services 0x{ServiceFlags1:X8}, 0x{ServiceFlags2:X8}, 0x{ServiceFlags3:X8}, 0x{ServiceFlags4:X8}";
+}
+
 public sealed record RouteInfo(
     string AddressFamily,
     string Destination,
@@ -268,7 +317,9 @@ public sealed record NetworkSnapshot(
     string? RouteInventoryError,
     string? IpInterfaceInventoryError = null,
     IReadOnlyList<NetworkProfileInfo>? NetworkProfiles = null,
-    string? NetworkProfileInventoryError = null)
+    string? NetworkProfileInventoryError = null,
+    IReadOnlyList<WinsockProviderInfo>? WinsockProviders = null,
+    string? WinsockInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up
