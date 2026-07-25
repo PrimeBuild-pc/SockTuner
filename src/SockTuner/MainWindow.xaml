@@ -23,6 +23,7 @@
             </StackPanel>
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="Export snapshot" Click="ExportSnapshot_Click" Margin="0,0,8,0"/>
+                <Button Content="Export support snapshot" Click="ExportSupportSnapshot_Click" Margin="0,0,8,0"/>
                 <Button Content="Export logs" Click="ExportLogs_Click" Margin="0,0,12,0"/>
                 <Border Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
                         BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
@@ -446,6 +447,21 @@
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Preferences">
+                <StackPanel Margin="0,20,0,0" MaxWidth="620" HorizontalAlignment="Left">
+                    <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
+                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Log file size" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="LogRetentionComboBox" Width="150" SelectionChanged="LogRetention_SelectionChanged"
+                                  AutomationProperties.Name="Maximum log file size"/>
+                        <TextBlock Text="MB per file" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource MutedTextBrush}"/>
+                    </StackPanel>
+                    <TextBlock x:Name="PreferenceStatusText" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0"/>
+                </StackPanel>
             </TabItem>
 
             <TabItem Header="Tuning plan">

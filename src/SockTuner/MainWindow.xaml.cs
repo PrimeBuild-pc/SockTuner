@@ -21,10 +21,15 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _diagnosticCancellation;
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
+    private UserPreferences _preferences = new();
 
     public MainWindow()
     {
         InitializeComponent();
+        _preferences = AppPreferences.Load();
+        AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
+        LogRetentionComboBox.ItemsSource = Enumerable.Range(1, 64);
+        LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
@@ -196,12 +201,29 @@ public partial class MainWindow : Window
             return;
         }
 
+        SaveSnapshot(redact: false);
+    }
+
+    private void ExportSupportSnapshot_Click(object sender, RoutedEventArgs e)
+    {
+        if (_snapshot is null)
+        {
+            StatusText.Text = "Refresh inventory before exporting a support snapshot.";
+            return;
+        }
+
+        SaveSnapshot(redact: true);
+    }
+
+    private void SaveSnapshot(bool redact)
+    {
+        var kind = redact ? "support" : "snapshot";
         var dialog = new SaveFileDialog
         {
             Filter = "SockTuner JSON snapshot (*.json)|*.json",
             DefaultExt = ".json",
             AddExtension = true,
-            FileName = $"SockTuner-snapshot-{DateTime.Now:yyyyMMdd-HHmmss}.json"
+            FileName = $"SockTuner-{kind}-{DateTime.Now:yyyyMMdd-HHmmss}.json"
         };
         if (dialog.ShowDialog(this) != true)
         {
@@ -210,9 +232,9 @@ public partial class MainWindow : Window
 
         try
         {
-            File.WriteAllText(dialog.FileName, SnapshotExporter.Serialize(_snapshot));
-            StatusText.Text = $"Snapshot exported to {dialog.FileName}.";
-            WriteLog("snapshot.exported", dialog.FileName);
+            File.WriteAllText(dialog.FileName, SnapshotExporter.Serialize(_snapshot!, redact));
+            StatusText.Text = $"{(redact ? "Redacted support snapshot" : "Snapshot")} exported to {dialog.FileName}.";
+            WriteLog(redact ? "support_snapshot.exported" : "snapshot.exported", dialog.FileName);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -253,6 +275,28 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusText.Text = $"Log export failed: {exception.Message}";
+        }
+    }
+
+    private void LogRetention_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (LogRetentionComboBox.SelectedItem is not int megabytes)
+        {
+            return;
+        }
+
+        try
+        {
+            _preferences = _preferences with { LogFileMegabytes = megabytes };
+            AppPreferences.Save(_preferences);
+            var error = AppLog.ConfigureRetention(megabytes);
+            PreferenceStatusText.Text = error is null
+                ? $"Retention saved: two files of up to {megabytes} MB each."
+                : $"Retention saved, but existing logs could not be trimmed: {error}";
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            PreferenceStatusText.Text = $"Preference save failed: {exception.Message}";
         }
     }
 

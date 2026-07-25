@@ -29,6 +29,25 @@ public sealed class AppLogTests
     }
 
     [Fact]
+    public void TrimToMaximum_KeepsNewestCompleteLines()
+    {
+        var path = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(path, "old-line\nnew-1\nnew-2\n");
+
+            AppLog.TrimToMaximum(path, 13);
+
+            Assert.Equal("new-1\nnew-2\n", File.ReadAllText(path).Replace("\r\n", "\n"));
+            Assert.True(new FileInfo(path).Length <= 13);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
     public void Export_CombinesPreviousAndCurrentHistory()
     {
         var directory = Path.Combine(Path.GetTempPath(), $"SockTuner.Tests-{Guid.NewGuid():N}");

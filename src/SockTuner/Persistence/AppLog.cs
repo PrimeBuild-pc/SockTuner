@@ -6,9 +6,9 @@ namespace SockTuner.Persistence;
 
 public static class AppLog
 {
-    private const long MaximumBytes = 2 * 1024 * 1024;
     private const int MaximumMessageCharacters = 32 * 1024;
     private static readonly object Sync = new();
+    private static long _maximumBytes = 2 * 1024 * 1024;
     private static readonly string LogDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
         "PrimeBuild",
@@ -16,6 +16,25 @@ public static class AppLog
         "Logs");
 
     public static string CurrentPath => Path.Combine(LogDirectory, "SockTuner.jsonl");
+
+    public static string? ConfigureRetention(int megabytes)
+    {
+        try
+        {
+            lock (Sync)
+            {
+                _maximumBytes = Math.Clamp(megabytes, 1, 64) * 1024L * 1024L;
+                TrimToMaximum(CurrentPath, _maximumBytes);
+                TrimToMaximum(PreviousPath, _maximumBytes);
+            }
+
+            return null;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return exception.Message;
+        }
+    }
     private static string PreviousPath => Path.Combine(LogDirectory, "SockTuner.previous.jsonl");
 
     public static string? Write(string eventName, string message)
@@ -35,7 +54,7 @@ public static class AppLog
             lock (Sync)
             {
                 Directory.CreateDirectory(LogDirectory);
-                RotateIfNeeded(CurrentPath, PreviousPath, MaximumBytes, Encoding.UTF8.GetByteCount(line));
+                RotateIfNeeded(CurrentPath, PreviousPath, _maximumBytes, Encoding.UTF8.GetByteCount(line));
                 File.AppendAllText(CurrentPath, line);
             }
 
@@ -86,5 +105,23 @@ public static class AppLog
         }
 
         File.Move(current, previous, true);
+        TrimToMaximum(previous, maximumBytes);
+    }
+
+    internal static void TrimToMaximum(string path, long maximumBytes)
+    {
+        var file = new FileInfo(path);
+        if (!file.Exists || file.Length <= maximumBytes)
+        {
+            return;
+        }
+
+        using var input = File.OpenRead(path);
+        input.Seek(-maximumBytes, SeekOrigin.End);
+        using var reader = new StreamReader(input, Encoding.UTF8);
+        reader.ReadLine();
+        var retained = reader.ReadToEnd();
+        input.Close();
+        File.WriteAllText(path, retained);
     }
 }

@@ -55,8 +55,8 @@ The reference scripts in this private workspace are research inputs, not product
 
 - Architecture and product scope approved.
 - Step 1 is in progress: dark Metro shell, application icon, OS/adapter inventory, driver-advertised NDIS discovery, filtering/copy, and short-run gaming diagnostics are implemented.
-- Native IPv4/IPv6 routes and metrics, interface indexes/MTU/DNS, network profiles and bindings, NIC counters, TCP templates, QoS policies, global/RSS/RSC/LSO/checksum/USO/URO offload state, Winsock catalog, bounded structured logs, snapshot export, and log export provide the Step 2 inventory.
-- Next: finish DPI checks and Step 2 redacted support export/preferences, then add monitoring, report, history, and comparison surfaces.
+- Native IPv4/IPv6 routes and metrics, interface indexes/MTU/DNS, network profiles and bindings, NIC counters, TCP templates, QoS policies, global/RSS/RSC/LSO/checksum/USO/URO offload state, Winsock catalog, bounded structured logs, full/redacted snapshot export, retention preferences, and log export provide the Step 2 inventory.
+- Next: finish DPI and cross-inventory search/copy checks, then add monitoring, report, history, and comparison surfaces.
 - The typed transaction core is covered by in-memory failure tests, but writable UI remains locked until the preview and disposable-VM gates in Steps 5–6 pass.
 
 ## Important notice
