@@ -25,6 +25,7 @@ public enum ChangeRisk
 
 public enum ChangeSource
 {
+    Unknown,
     Manual,
     Profile,
     Recovery

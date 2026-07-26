@@ -1,7 +1,6 @@
 <Application x:Class="SockTuner.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             StartupUri="MainWindow.xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Application.Resources>
         <!-- Windows 10 / Aero2-inspired dark palette. -->
         <SolidColorBrush x:Key="PageBrush" Color="#111111"/>

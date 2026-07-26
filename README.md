@@ -59,7 +59,7 @@ The reference scripts in this private workspace are research inputs, not product
 - Steps 1–2 now pass inventory, export, search/copy, dark-theme, and 100–200% WPF DPI validation.
 - Step 3 adds explicit quick/standard/extended diagnostics, concurrent boundary probes, full statistics/timelines, route/MTU/counter evidence, and bounded continuous monitoring.
 - Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
-- Step 5 now exposes an allowlisted, current-value-backed dry-run cart while all apply paths remain absent; next is elevated-worker and audit hardening.
+- Step 5 now exposes an allowlisted dry-run cart and a strict typed elevated-worker protocol; production apply remains locked pending the disposable-VM gate.
 - The typed transaction core is covered by in-memory failure tests, but writable UI remains locked until the preview and disposable-VM gates in Steps 5–6 pass.
 
 ## Important notice
