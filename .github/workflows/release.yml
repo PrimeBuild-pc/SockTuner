@@ -57,7 +57,7 @@ jobs:
           "value=$($env:TAG_NAME.Substring(1))" >> $env:GITHUB_OUTPUT
 
       - name: Checkout requested tag
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: refs/tags/${{ steps.version.outputs.tag }}
           fetch-depth: 0
