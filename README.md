@@ -61,6 +61,7 @@ The reference scripts in this private workspace are research inputs, not product
 - Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
 - Step 5 is complete with an allowlisted dry-run cart, exact rollback preview, bounded audit history, deterministic transactions, failure injection, and a strict typed elevated-worker protocol.
 - Step 6 is complete: the first two low-disruption MMCSS settings passed direct and published-worker apply/read/rollback/read gates on disposable Windows 10 22H2 and Windows 11 VMs. NIC/driver writes and the normal UI remain locked while Step 7 starts.
+- Step 7a adds a read-only `--probe` mode: it writes a redacted capability report (`socktuner-probe-<timestamp>.json` on the Desktop) that collaborators with real Intel/Realtek NICs can share. Personal data is masked; driver identity, NDIS keywords, defaults, and valid ranges/enums are preserved. The probe changes nothing on the machine.
 
 ## Important notice
 

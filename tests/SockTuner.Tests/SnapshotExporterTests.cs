@@ -58,4 +58,41 @@ public sealed class SnapshotExporterTests
             TcpSettings = [new TcpSettingInfo("Internet", null, null, null, null, 5, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)]
         }, redact: true), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Serialize_ProbeSnapshot_KeepsHardwareIdentityAndMasksPersonalValues()
+    {
+        var adapter = new AdapterInfo(
+            "GUID-1", "Secret NIC", "Intel(R) I226-V", NetworkInterfaceType.Ethernet,
+            OperationalStatus.Up, 2_500_000_000, "AA-BB-CC-DD-EE-FF",
+            ["10.0.0.2"], ["10.0.0.1"], ["1.1.1.1"], 1, 1500, 1, 1500,
+            true, true, null,
+            new DriverInfo("Intel", "1.2.3.4", "01/01/2025", "oem5.inf", "PCI\\VEN_8086", "6.85", "PCI\\VEN_8086&DEV_125C", 0x84),
+            [new NdisAdvancedProperty("*RSS", "Receive Side Scaling", "1", "1", "enum", "0: Disabled, 1: Enabled"),
+             new NdisAdvancedProperty("NetworkAddress", "Network Address", "DEADBEEF0001", "", "edit", "")],
+            true, null);
+        var snapshot = new NetworkSnapshot(
+            new SystemOverview("Windows", "10", "SECRET-PC", 8, false, DateTimeOffset.UnixEpoch),
+            [adapter],
+            [],
+            null);
+
+        var json = SnapshotExporter.Serialize(snapshot, probe: true);
+        using var document = JsonDocument.Parse(json);
+        var probeAdapter = document.RootElement.GetProperty("snapshot").GetProperty("adapters")[0];
+
+        Assert.True(document.RootElement.GetProperty("probe").GetBoolean());
+        Assert.True(document.RootElement.GetProperty("redacted").GetBoolean());
+        Assert.Equal("PCI\\VEN_8086&DEV_125C", probeAdapter.GetProperty("driver").GetProperty("pnpInstanceId").GetString());
+        Assert.Equal("oem5.inf", probeAdapter.GetProperty("driver").GetProperty("infPath").GetString());
+        Assert.Equal("AA-BB-CC-00-00-00", probeAdapter.GetProperty("macAddress").GetString());
+        Assert.Equal("GUID-1", probeAdapter.GetProperty("id").GetString());
+        Assert.Equal("1", probeAdapter.GetProperty("ndisProperties")[0].GetProperty("currentValue").GetString());
+        Assert.Equal("[redacted]", probeAdapter.GetProperty("ndisProperties")[1].GetProperty("currentValue").GetString());
+        Assert.DoesNotContain("SECRET-PC", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("Secret", json, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DD-EE-FF", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("DEADBEEF0001", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("10.0.0.2", json, StringComparison.Ordinal);
+    }
 }

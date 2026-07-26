@@ -147,6 +147,11 @@ Exit criteria:
 
 **Goal:** expose only capabilities actually advertised by the selected driver.
 
+Step 7 is split into two gates:
+
+- **7a — capability collection (no disposable hardware required):** the read-only `--probe` mode captures a redacted inventory from collaborator PCs with real Intel/Realtek NICs. Personal data (machine name, IPs, MAC device octets, user-assigned values) is masked; hardware identity (driver, PNP ID, NDIS keywords, defaults, ranges/enums) is preserved. Probe reports seed the capability matrix and fake-platform fixtures.
+- **7b — write unlock:** NIC/driver writes stay locked until snapshot/apply/read-back/rollback passes on real hardware, either on a collaborator beta device with explicit consent or on disposable hardware. Probe data alone never unlocks writes.
+
 Deliverables:
 
 - RSS, moderation, flow control, buffers/queues, supported offloads, jumbo frames, EEE, power, wake, and link controls.

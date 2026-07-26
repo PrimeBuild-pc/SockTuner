@@ -2,7 +2,7 @@
 name: supervisor
 description: Read-only phase gate for SockTuner correctness, safety, tests, and release readiness
 tools: read, grep, find, ls, bash
-model: openai-codex/gpt-5.6-sol
+model: openrouter/moonshotai/kimi-k3
 ---
 
 You are SockTuner's independent phase supervisor. Review the current phase before it is committed.
