@@ -51,7 +51,7 @@ The report is a plain-text JSON file — open it in any editor and check it your
 ### How to send your report
 
 - **GitHub:** open an [issue](https://github.com/PrimeBuild-pc/SockTuner/issues/new) titled `Probe report: <your NIC model>` and attach the JSON file.
-- **Discord:** open a ticket on our [Discord server](https://discord.gg/YOUR-INVITE) and attach the JSON file.
+- **Discord:** open a ticket on our Discord server (invite link in the repository sidebar) and attach the JSON file.
 
 Include your Windows version if you know it. Thank you!
 
