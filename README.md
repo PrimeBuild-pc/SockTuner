@@ -2,16 +2,10 @@
   <img src="docs/assets/banner.svg" alt="SockTuner banner" width="100%" />
 </p>
 
-<h1 align="center">SockTuner</h1>
-
-<p align="center">
-  <strong>Advanced, all-in-one network tuning and diagnostics for Windows 10 and Windows 11.</strong>
-</p>
-
 <p align="center">
   <a href="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml"><img src="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/v/release/PrimeBuild-pc/SockTuner?include_prereleases&label=release" alt="Latest release" /></a>
-  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/downloads/PrimeBuild-pc/SockTuner/total?label=downloads" alt="Total downloads" /></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/downloads-pre/PrimeBuild-pc/SockTuner/total?label=downloads" alt="Total downloads" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue" alt="Platform: Windows 10/11 x64" />
   <img src="https://img.shields.io/badge/.NET-10%20LTS-512BD4" alt=".NET 10 LTS" />
