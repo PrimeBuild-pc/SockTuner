@@ -582,34 +582,48 @@
             </TabItem>
 
             <TabItem Header="Tuning plan">
-                <Grid Margin="0,20,0,0">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
-                    <Border Style="{StaticResource Card}">
-                        <Grid>
-                            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="Evidence-gated setting catalog" FontSize="22" FontWeight="SemiBold"/>
-                                <TextBlock Text="Only typed, allowlisted settings can enter a future change plan. Experimental TCP controls are never silently recommended." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="{StaticResource WarningMutedBrush}" BorderBrush="#E6C15A"
-                                    BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
-                                <TextBlock Text="LIVE WRITES LOCKED" Foreground="{StaticResource WarningBrush}" FontSize="11" FontWeight="SemiBold"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-                    <DataGrid x:Name="TuningCatalogGrid" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Setting" Binding="{Binding Title}" Width="170"/>
-                            <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150"/>
-                            <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="110"/>
-                            <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="110"/>
-                            <DataGridTextColumn Header="Risk" Binding="{Binding Risk}" Width="80"/>
-                            <DataGridTextColumn Header="Restart" Binding="{Binding RestartRequirement}" Width="110"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
-                            <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Typed change-plan preview" FontSize="22" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Build a dry-run from allowlisted settings. Preview reads current values; this UI has no apply path." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
+                                </StackPanel>
+                                <Border Grid.Column="1" Background="{StaticResource WarningMutedBrush}" BorderBrush="#E6C15A" BorderThickness="1" Padding="12,6">
+                                    <TextBlock Text="LIVE WRITES LOCKED" Foreground="{StaticResource WarningBrush}" FontSize="11" FontWeight="SemiBold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <DataGrid x:Name="TuningCatalogGrid" AutoGenerateColumns="False" Height="230" Margin="0,14,0,0" IsReadOnly="True">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Setting" Binding="{Binding Title}" Width="160"/><DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="100"/>
+                                <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="100"/><DataGridTextColumn Header="Risk" Binding="{Binding Risk}" Width="75"/>
+                                <DataGridTextColumn Header="Restart" Binding="{Binding RestartRequirement}" Width="110"/><DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                                <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="220"/><ColumnDefinition Width="140"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <TextBlock Text="Select a catalog row, target adapter when required, and proposed DWORD value." TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="PlanAdapterComboBox" Grid.Column="1" Margin="10,0" DisplayMemberPath="Name" AutomationProperties.Name="Plan target adapter"/>
+                                <TextBox x:Name="PlanValueText" Grid.Column="2" AutomationProperties.Name="Proposed value"/>
+                                <Button Grid.Column="3" Content="Add to cart" Click="AddPlanItem_Click" Margin="8,0"/>
+                                <Button Grid.Column="4" Content="Clear" Click="ClearPlan_Click"/>
+                            </Grid>
+                        </Border>
+                        <DataGrid x:Name="PlanCartGrid" AutoGenerateColumns="False" Height="150" Margin="0,14,0,0" IsReadOnly="True" CanUserDeleteRows="False">
+                            <DataGrid.Columns><DataGridTextColumn Header="Setting" Binding="{Binding Definition.Title}" Width="180"/><DataGridTextColumn Header="Target" Binding="{Binding TargetName}" Width="160"/><DataGridTextColumn Header="Proposed" Binding="{Binding ProposedValue}" Width="100"/><DataGridTextColumn Header="Risk" Binding="{Binding Definition.Risk}" Width="80"/><DataGridTextColumn Header="Trade-off" Binding="{Binding Definition.TradeOff}" Width="2*"/></DataGrid.Columns>
+                        </DataGrid>
+                        <Button Content="Build read-only preview" Click="PreviewPlan_Click" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,12,0,0"/>
+                        <TextBlock x:Name="PlanStatusText" Text="No plan prepared." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,10,0,0" AutomationProperties.LiveSetting="Polite"/>
+                        <DataGrid x:Name="PlanPreviewGrid" AutoGenerateColumns="False" Height="180" Margin="0,10,0,0" IsReadOnly="True" CanUserDeleteRows="False">
+                            <DataGrid.Columns><DataGridTextColumn Header="Setting" Binding="{Binding Definition.Title}" Width="180"/><DataGridTextColumn Header="Current" Binding="{Binding BeforeDisplay}" Width="140"/><DataGridTextColumn Header="Proposed" Binding="{Binding AfterDisplay}" Width="140"/><DataGridTextColumn Header="Target" Binding="{Binding Address.TargetId}" Width="260"/><DataGridTextColumn Header="Restart" Binding="{Binding Definition.RestartRequirement}" Width="120"/></DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
         </TabControl>
 

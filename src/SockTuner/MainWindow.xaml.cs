@@ -23,12 +23,16 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private readonly DiagnosticHistoryStore _historyStore = new();
+    private readonly SettingTransactionService _transactions = new();
+    private readonly ISettingStore _readOnlySettingStore = WindowsRegistrySettingStore.CreateReadOnly();
     private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
     private CancellationTokenSource? _monitorCancellation;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
+    private readonly ObservableCollection<PlanCartRow> _planCart = [];
+    private ChangePlan? _preparedPlan;
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
     private UserPreferences _preferences = new();
@@ -49,6 +53,7 @@ public partial class MainWindow : Window
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
+        PlanCartGrid.ItemsSource = _planCart;
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
@@ -87,6 +92,7 @@ public partial class MainWindow : Window
         MachineText.Text = snapshot.System.MachineName;
         CapturedText.Text = snapshot.System.CapturedAt.ToString("yyyy-MM-dd HH:mm:ss zzz");
         _adapterRows = snapshot.Adapters;
+        PlanAdapterComboBox.ItemsSource = snapshot.Adapters.Where(adapter => Guid.TryParse(adapter.Id, out _)).ToArray();
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -386,6 +392,78 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Log export failed: {exception.Message}";
         }
+    }
+
+    private void AddPlanItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (TuningCatalogGrid.SelectedItem is not SettingDefinition definition
+            || !uint.TryParse(PlanValueText.Text.Trim(), out var value))
+        {
+            SetPlanStatus("Select a setting and enter a valid unsigned DWORD value.");
+            return;
+        }
+
+        try
+        {
+            definition.Validate(value);
+            AdapterInfo? adapter = null;
+            string? targetId = null;
+            if (definition.Scope == SettingScope.AdapterInterface)
+            {
+                adapter = PlanAdapterComboBox.SelectedItem as AdapterInfo
+                    ?? throw new InvalidOperationException("Select a target adapter for this interface setting.");
+                targetId = adapter.Id;
+                definition.ResolveAddress(targetId);
+            }
+            _planCart.Add(new PlanCartRow(definition, targetId, adapter?.Name ?? "System", value));
+            _preparedPlan = null;
+            PlanPreviewGrid.ItemsSource = null;
+            SetPlanStatus($"Added {definition.Title}. Preview must be rebuilt after every cart change.");
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
+        {
+            SetPlanStatus(exception.Message);
+        }
+    }
+
+    private void ClearPlan_Click(object sender, RoutedEventArgs e)
+    {
+        _planCart.Clear();
+        _preparedPlan = null;
+        PlanPreviewGrid.ItemsSource = null;
+        SetPlanStatus("Cart cleared.");
+    }
+
+    private async void PreviewPlan_Click(object sender, RoutedEventArgs e)
+    {
+        if (_planCart.Count == 0)
+        {
+            SetPlanStatus("Add at least one change.");
+            return;
+        }
+        try
+        {
+            _preparedPlan = await _transactions.PrepareAsync(
+                _planCart.Select(item => new ChangeRequest(item.Definition.Id, item.TargetId, item.ProposedValue)),
+                _readOnlySettingStore,
+                CancellationToken.None);
+            PlanPreviewGrid.ItemsSource = _preparedPlan.Changes;
+            SetPlanStatus($"Dry-run created at {_preparedPlan.CreatedAt:T}: {_preparedPlan.Changes.Count} effective change(s). Apply remains unavailable; rebuild to reject drift.");
+        }
+        catch (Exception exception)
+        {
+            _preparedPlan = null;
+            PlanPreviewGrid.ItemsSource = null;
+            SetPlanStatus($"Preview failed: {exception.Message}");
+        }
+    }
+
+    private void SetPlanStatus(string value)
+    {
+        PlanStatusText.Text = value;
+        var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(PlanStatusText)
+            ?? new System.Windows.Automation.Peers.FrameworkElementAutomationPeer(PlanStatusText);
+        peer.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
     }
 
     private void CompareHistory_Click(object sender, RoutedEventArgs e)
@@ -737,6 +815,12 @@ public partial class MainWindow : Window
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
+
+    private sealed record PlanCartRow(
+        SettingDefinition Definition,
+        string? TargetId,
+        string TargetName,
+        uint ProposedValue);
 
     private sealed record NdisPropertyRow(
         string Adapter,

@@ -94,7 +94,11 @@ public sealed record PlannedChange(
     SettingDefinition Definition,
     SettingAddress Address,
     StoredSettingValue Before,
-    StoredSettingValue After);
+    StoredSettingValue After)
+{
+    public string BeforeDisplay => Before.Exists ? Before.Value.ToString() : "Missing";
+    public string AfterDisplay => After.Exists ? After.Value.ToString() : "Remove value";
+}
 
 public sealed record ChangePlan(DateTimeOffset CreatedAt, IReadOnlyList<PlannedChange> Changes);
 

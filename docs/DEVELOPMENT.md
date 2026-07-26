@@ -23,7 +23,7 @@ The default tests are deterministic/in-memory and do not modify Windows network 
 dotnet run --project src/SockTuner/SockTuner.csproj
 ```
 
-The current UI exposes read-only inventory, read-only diagnostics, and a read-only setting catalog.
+The current UI exposes read-only inventory and diagnostics plus an allowlisted dry-run change cart. The UI has no apply path and uses a read-only registry store for preview.
 
 ## DPI validation
 
