@@ -119,7 +119,11 @@ public sealed class TransactionAuditStore
         {
             if (File.Exists(temporaryPath)) File.Delete(temporaryPath);
         }
-        foreach (var old in Load().Skip(maximumEntries)) File.Delete(PathFor(old.Id));
+        foreach (var old in Load().Skip(maximumEntries))
+        {
+            try { File.Delete(PathFor(old.Id)); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException) { }
+        }
         return entry;
     }
 

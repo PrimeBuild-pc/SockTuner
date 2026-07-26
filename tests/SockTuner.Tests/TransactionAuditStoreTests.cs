@@ -44,6 +44,25 @@ public sealed class TransactionAuditStoreTests : IDisposable
     }
 
     [Fact]
+    public void SaveApply_DoesNotReportFailureAfterCurrentEntryWasCommitted()
+    {
+        var store = new TransactionAuditStore(_directory);
+        var first = store.SaveApply(Result(success: true));
+        var firstPath = Path.Combine(_directory, $"{first.Id:N}.json");
+        File.SetAttributes(firstPath, FileAttributes.ReadOnly);
+        try
+        {
+            var second = store.SaveApply(Result(success: true), maximumEntries: 1);
+
+            Assert.True(File.Exists(Path.Combine(_directory, $"{second.Id:N}.json")));
+        }
+        finally
+        {
+            File.SetAttributes(firstPath, FileAttributes.Normal);
+        }
+    }
+
+    [Fact]
     public void Load_DeletesStructurallyUnknownAudit()
     {
         var store = new TransactionAuditStore(_directory);
@@ -81,7 +100,7 @@ public sealed class TransactionAuditStoreTests : IDisposable
             ChangeSource.Manual);
         var snapshot = new SettingSnapshot(
             Guid.NewGuid(), Guid.NewGuid(), "test", DateTimeOffset.Now, [change], success, success ? "signature" : string.Empty);
-        return new ApplyResult(success, snapshot, success ? null : "apply failed");
+        return new ApplyResult(success, snapshot, success ? null : "apply failed", []);
     }
 
     public void Dispose()

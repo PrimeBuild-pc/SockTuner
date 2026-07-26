@@ -124,4 +124,8 @@ public sealed record SettingSnapshot(
     bool AppliedSuccessfully,
     string Signature);
 
-public sealed record ApplyResult(bool Success, SettingSnapshot Snapshot, string? Error);
+public sealed record ApplyResult(
+    bool Success,
+    SettingSnapshot Snapshot,
+    string? Error,
+    IReadOnlyList<string> RollbackErrors);

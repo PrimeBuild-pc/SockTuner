@@ -39,7 +39,7 @@ SOCKTUNER_ISOLATED_VM_MUTATIONS=DISPOSABLE-VM-ONLY
 
 The variable is an operator confirmation, not proof of virtualization. Use it only inside a disposable Windows VM with a recovery path. CI never enables it.
 
-The writable store has a second, code-level allowlist. Its current Step 6 scope is limited to `SystemResponsiveness` and `NetworkThrottlingIndex`; every other catalog entry remains write-blocked. Both values passed three `read → apply → read → rollback → read` cycles on the disposable Windows 11 VM, with exact DWORD restoration and persisted apply/rollback audit entries. Evidence stays outside the repository under `C:\VmLab\Runs`. This does not unlock the UI or replace the remaining Windows 10 and recovery gates.
+The writable store has a second, code-level allowlist. Its current Step 6 scope is limited to `SystemResponsiveness` and `NetworkThrottlingIndex`; every other catalog entry remains write-blocked. Both values passed three `read → apply → read → rollback → read` cycles on disposable Windows 10 22H2 and Windows 11 VMs, with exact DWORD restoration and persisted apply/rollback audit entries. Evidence stays outside the repository under `C:\VmLab\Runs`. The typed worker can execute only this VM-gated scope; the normal UI remains read-only.
 
 ## CI
 

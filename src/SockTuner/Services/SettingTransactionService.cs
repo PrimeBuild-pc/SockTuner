@@ -106,7 +106,7 @@ public sealed class SettingTransactionService
 
             var successfulSnapshot = snapshot with { AppliedSuccessfully = true, Signature = string.Empty };
             successfulSnapshot = successfulSnapshot with { Signature = Sign(successfulSnapshot) };
-            return new ApplyResult(true, successfulSnapshot, null);
+            return new ApplyResult(true, successfulSnapshot, null, []);
         }
         catch (Exception exception)
         {
@@ -114,7 +114,7 @@ public sealed class SettingTransactionService
             var error = rollbackErrors.Count == 0
                 ? exception.Message
                 : $"{exception.Message} Rollback errors: {string.Join("; ", rollbackErrors)}";
-            return new ApplyResult(false, snapshot, error);
+            return new ApplyResult(false, snapshot, error, rollbackErrors);
         }
         finally
         {
