@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-label="SockTuner — advanced network tuning and diagnostics for Windows">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="0.55" stop-color="#101b2e"/>
+      <stop offset="1" stop-color="#0b2a3a"/>
+    </linearGradient>
+    <linearGradient id="wave" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2dd4bf" stop-opacity="0"/>
+      <stop offset="0.25" stop-color="#2dd4bf"/>
+      <stop offset="0.75" stop-color="#38bdf8"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e6edf3"/>
+      <stop offset="1" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="280" rx="16" fill="url(#bg)"/>
+  <rect width="1200" height="280" rx="16" fill="url(#grid)"/>
+
+  <!-- signal wave -->
+  <path d="M0 205 C 80 205 100 150 160 150 S 240 250 300 250 S 380 165 440 165 S 520 235 580 235 S 660 140 720 140 S 800 250 860 250 S 940 165 1000 165 S 1080 225 1140 215 L1200 205"
+        fill="none" stroke="url(#wave)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- network nodes -->
+  <g fill="#38bdf8">
+    <circle cx="160" cy="150" r="6"/>
+    <circle cx="440" cy="165" r="6"/>
+    <circle cx="720" cy="140" r="6"/>
+    <circle cx="1000" cy="165" r="6"/>
+  </g>
+  <g fill="none" stroke="#2dd4bf" stroke-opacity="0.5">
+    <circle cx="160" cy="150" r="12"/>
+    <circle cx="720" cy="140" r="12"/>
+  </g>
+
+  <!-- wordmark -->
+  <text x="600" y="118" text-anchor="middle"
+        font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="72" font-weight="700"
+        letter-spacing="2" fill="url(#title)">SockTuner</text>
+  <text x="600" y="158" text-anchor="middle"
+        font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="21" font-weight="400"
+        letter-spacing="4" fill="#8b98a9">ADVANCED NETWORK TUNING &amp; DIAGNOSTICS FOR WINDOWS</text>
+
+  <!-- pre-alpha tag -->
+  <g>
+    <rect x="1044" y="24" width="132" height="30" rx="15" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-opacity="0.6"/>
+    <text x="1110" y="44" text-anchor="middle"
+          font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="15" font-weight="600"
+          fill="#fbbf24">PRE-ALPHA</text>
+  </g>
+</svg>

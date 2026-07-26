@@ -1,6 +1,9 @@
-name: Private pre-release
+name: Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       release_tag:
@@ -9,7 +12,7 @@ on:
         type: string
 
 concurrency:
-  group: release-${{ inputs.release_tag }}
+  group: release-${{ inputs.release_tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -25,15 +28,11 @@ jobs:
       commit: ${{ steps.source.outputs.commit }}
 
     steps:
-      - name: Refuse release outside the private repository
+      - name: Refuse release outside the source repository
         shell: pwsh
         env:
-          REPOSITORY_VISIBILITY: ${{ github.event.repository.visibility }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          if ($env:REPOSITORY_VISIBILITY -ne 'private') {
-            throw "This workflow is restricted to private pre-releases."
-          }
           if ($env:REPOSITORY -ne 'PrimeBuild-pc/SockTuner') {
             throw "Unexpected repository."
           }
@@ -42,7 +41,7 @@ jobs:
         id: version
         shell: pwsh
         env:
-          TAG_NAME: ${{ inputs.release_tag }}
+          TAG_NAME: ${{ inputs.release_tag || github.ref_name }}
         run: |
           $match = [regex]::Match($env:TAG_NAME, '\Av(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?\z')
           if (-not $match.Success) { throw "Tag is not a supported semantic version" }
@@ -119,7 +118,6 @@ jobs:
     if: github.actor == github.repository_owner && github.triggering_actor == github.repository_owner
     runs-on: windows-latest
     timeout-minutes: 15
-    environment: private-release
     permissions:
       contents: write
 
@@ -133,8 +131,8 @@ jobs:
           BUILT_COMMIT: ${{ needs.build-release.outputs.commit }}
         run: |
           $repository = gh api "repos/$env:REPOSITORY" | ConvertFrom-Json
-          if ($repository.visibility -ne 'private' -or $repository.full_name -ne 'PrimeBuild-pc/SockTuner') {
-            throw "This workflow is restricted to the private PrimeBuild-pc/SockTuner repository."
+          if ($repository.full_name -ne 'PrimeBuild-pc/SockTuner') {
+            throw "This workflow is restricted to the PrimeBuild-pc/SockTuner repository."
           }
           $liveCommit = (gh api "repos/$env:REPOSITORY/commits/$env:TAG_NAME" --jq '.sha').Trim()
           if ($liveCommit -ne $env:BUILT_COMMIT) {
@@ -154,7 +152,7 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
-            "This is an unsigned private pre-release. Do not redistribute it." |
+            "This pre-release is unsigned: expect a SmartScreen prompt and verify the SHA256 checksum published next to this archive before running it." |
               Set-Content artifacts/SockTuner/UNSIGNED-PREVIEW.txt
             exit 0
           }

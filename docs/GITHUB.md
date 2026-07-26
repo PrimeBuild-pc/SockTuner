@@ -35,7 +35,7 @@ wpf
 ## Suggested About settings
 
 - **Website:** leave empty until an official project page exists.
-- **Releases:** private pre-releases use an owner-only manual workflow for an existing semantic-version tag; stable releases remain disabled until public-release gates pass.
+- **Releases:** pre-releases ship automatically when the owner pushes a semantic-version tag; stable releases remain disabled until public-release gates pass.
 - **Packages:** disabled unless a packaging workflow needs them.
 - **Discussions:** enable only when the repository becomes public and moderation is available.
 - **Issues:** keep private-team use during development; add templates before public beta.

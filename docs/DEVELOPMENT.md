@@ -51,21 +51,21 @@ The writable store has a second, code-level allowlist. Its current Step 6 scope 
 4. unit tests;
 5. test-result upload.
 
-## Private pre-releases
+## Pre-releases
 
-Create an existing semantic-version tag such as `v0.2.0-alpha.1`, then manually run `.github/workflows/release.yml` from the Actions tab and provide that tag. The owner-only workflow validates the tag, requires its commit to belong to `main`, builds and tests, publishes a self-contained `win-x64` single-file app (native libraries self-extract at runtime), creates a ZIP and SHA-256 file, and creates a GitHub pre-release.
+**Pushing a semantic-version tag such as `v0.7.0-alpha.2` ships a release automatically** — treat tag pushes as the release action. `.github/workflows/release.yml` validates the tag, requires its commit to belong to `main`, builds and tests, publishes a self-contained `win-x64` single-file app (native libraries self-extract at runtime), creates a ZIP and SHA-256 file, and creates a GitHub pre-release. Re-running for an existing tag from the Actions tab (workflow dispatch) is also supported.
 
 Release safety controls:
 
-- the repository must still be private and named `PrimeBuild-pc/SockTuner`;
-- only the repository owner can run the publishing jobs;
-- release execution is manual, so an untrusted tag push cannot expose signing secrets;
-- the `private-release` GitHub environment scopes signing secrets;
-- add environment required reviewers and tag rules if the repository billing plan later supports them.
+- the workflow only runs for the `PrimeBuild-pc/SockTuner` repository and only the repository owner can trigger the publishing jobs;
+- the tag must match strict semver, belong to `main`, and is revalidated for immutability before publishing;
+- signing secrets are repository secrets, never exposed to pull-request workflows (CI for PRs runs without secrets).
 
-Unsigned builds receive `UNSIGNED-PREVIEW.txt` and must not be redistributed. To sign the executable, configure these protected-environment secrets:
+Unsigned builds include `UNSIGNED-PREVIEW.txt` (SmartScreen warning + SHA-256 verification instructions). To sign the executable, configure these repository secrets:
 
 - `WINDOWS_CERTIFICATE`: Base64-encoded PFX;
 - `WINDOWS_CERTIFICATE_PASSWORD`: PFX password.
+
+Dependabot pull requests are squash-merged automatically by `.github/workflows/dependabot-auto-merge.yml` once the required `build-test` check passes (the workflow uses `pull_request_target` because Dependabot-triggered `pull_request` runs get a read-only token; it never checks out PR code).
 
 Stable/public release policy remains blocked until signing, installer, update verification, and the release checklist are complete.

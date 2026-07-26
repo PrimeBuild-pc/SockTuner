@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="SockTuner banner" width="100%" />
+</p>
+
 <h1 align="center">SockTuner</h1>
 
 <p align="center">
