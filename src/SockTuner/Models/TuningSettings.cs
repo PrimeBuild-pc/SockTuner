@@ -23,6 +23,13 @@ public enum ChangeRisk
     High
 }
 
+public enum ChangeSource
+{
+    Manual,
+    Profile,
+    Recovery
+}
+
 public sealed record SettingDefinition(
     string Id,
     string Title,
@@ -88,13 +95,18 @@ public readonly record struct StoredSettingValue(bool Exists, uint Value)
     public static StoredSettingValue Missing => new(false, 0);
 }
 
-public sealed record ChangeRequest(string SettingId, string? TargetId, uint? ProposedValue);
+public sealed record ChangeRequest(
+    string SettingId,
+    string? TargetId,
+    uint? ProposedValue,
+    ChangeSource Source = ChangeSource.Manual);
 
 public sealed record PlannedChange(
     SettingDefinition Definition,
     SettingAddress Address,
     StoredSettingValue Before,
-    StoredSettingValue After)
+    StoredSettingValue After,
+    ChangeSource Source = ChangeSource.Manual)
 {
     public string BeforeDisplay => Before.Exists ? Before.Value.ToString() : "Missing";
     public string AfterDisplay => After.Exists ? After.Value.ToString() : "Remove value";

@@ -21,10 +21,7 @@ public sealed class SettingTransactionService
         ISettingStore store,
         CancellationToken cancellationToken)
     {
-        var changes = new List<PlannedChange>();
-        var addresses = new HashSet<SettingAddress>();
-
-        foreach (var request in requests)
+        var candidates = requests.Select(request =>
         {
             cancellationToken.ThrowIfCancellationRequested();
             var definition = SettingCatalog.Get(request.SettingId);
@@ -38,32 +35,41 @@ public sealed class SettingTransactionService
                 definition.Validate(request.ProposedValue.Value);
             }
 
-            var address = definition.ResolveAddress(request.TargetId);
-            if (!addresses.Add(address))
+            return (Request: request, Definition: definition, Address: definition.ResolveAddress(request.TargetId));
+        }).OrderBy(candidate => candidate.Address.RegistryPath, StringComparer.OrdinalIgnoreCase)
+          .ThenBy(candidate => candidate.Address.ValueName, StringComparer.OrdinalIgnoreCase)
+          .ToArray();
+        var changes = new List<PlannedChange>();
+        var addresses = new HashSet<SettingAddress>();
+
+        foreach (var candidate in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (!addresses.Add(candidate.Address))
             {
-                throw new InvalidOperationException($"Duplicate change for {request.SettingId}.");
+                throw new InvalidOperationException($"Duplicate change for {candidate.Request.SettingId}.");
             }
 
-            var before = await store.ReadAsync(address, cancellationToken);
+            var before = await store.ReadAsync(candidate.Address, cancellationToken);
             if (before.Exists)
             {
                 try
                 {
-                    definition.Validate(before.Value);
+                    candidate.Definition.Validate(before.Value);
                 }
                 catch (ArgumentOutOfRangeException exception)
                 {
                     throw new InvalidOperationException(
-                        $"Current value {before.Value} for {definition.Title} is outside the supported catalog; change refused.", exception);
+                        $"Current value {before.Value} for {candidate.Definition.Title} is outside the supported catalog; change refused.", exception);
                 }
             }
 
-            var after = request.ProposedValue.HasValue
-                ? new StoredSettingValue(true, request.ProposedValue.Value)
+            var after = candidate.Request.ProposedValue.HasValue
+                ? new StoredSettingValue(true, candidate.Request.ProposedValue.Value)
                 : StoredSettingValue.Missing;
             if (before != after)
             {
-                changes.Add(new PlannedChange(definition, address, before, after));
+                changes.Add(new PlannedChange(candidate.Definition, candidate.Address, before, after, candidate.Request.Source));
             }
         }
 
@@ -172,7 +178,14 @@ public sealed class SettingTransactionService
             validated.Add(change with { Definition = definition, Address = expectedAddress });
         }
 
-        return validated;
+        if (validated.Count == 0)
+        {
+            throw new InvalidOperationException("An empty change plan cannot be applied.");
+        }
+
+        return validated.OrderBy(change => change.Address.RegistryPath, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(change => change.Address.ValueName, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
     }
 
     private string Sign(SettingSnapshot snapshot)
@@ -188,7 +201,8 @@ public sealed class SettingTransactionService
             payload.Append('|').Append(change.Address.SettingId)
                 .Append('|').Append(change.Address.TargetId)
                 .Append('|').Append(change.Before.Exists).Append(':').Append(change.Before.Value)
-                .Append('|').Append(change.After.Exists).Append(':').Append(change.After.Value);
+                .Append('|').Append(change.After.Exists).Append(':').Append(change.After.Value)
+                .Append('|').Append(change.Source);
         }
 
         return Convert.ToBase64String(HMACSHA256.HashData(_authorityKey, Encoding.UTF8.GetBytes(payload.ToString())));

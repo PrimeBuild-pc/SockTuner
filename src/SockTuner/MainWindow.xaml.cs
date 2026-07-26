@@ -820,7 +820,10 @@ public partial class MainWindow : Window
         SettingDefinition Definition,
         string? TargetId,
         string TargetName,
-        uint ProposedValue);
+        uint ProposedValue)
+    {
+        public ChangeSource Source => ChangeSource.Manual;
+    }
 
     private sealed record NdisPropertyRow(
         string Adapter,

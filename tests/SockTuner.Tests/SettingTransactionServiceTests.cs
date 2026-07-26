@@ -82,6 +82,88 @@ public sealed class SettingTransactionServiceTests
     }
 
     [Fact]
+    public async Task PrepareAndApply_UseDeterministicAddressOrder()
+    {
+        var store = new MemorySettingStore();
+        var first = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
+        var second = SettingCatalog.Get("mmcss.network-throttling-index").ResolveAddress(null);
+
+        var plan = await _transactions.PrepareAsync(
+            [new ChangeRequest(second.SettingId, null, 10), new ChangeRequest(first.SettingId, null, 20)],
+            store,
+            CancellationToken.None);
+
+        Assert.Equal([second, first], plan.Changes.Select(change => change.Address));
+    }
+
+    [Fact]
+    public async Task Apply_ReadBackVerificationFailure_RestoresOriginalState()
+    {
+        var store = new MemorySettingStore { IgnoreWriteNumber = 1 };
+        var address = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
+        store.Values[address] = new StoredSettingValue(true, 20);
+        var plan = await _transactions.PrepareAsync(
+            [new ChangeRequest(address.SettingId, null, 10)], store, CancellationToken.None);
+
+        var result = await _transactions.ApplyAsync(plan, store, CancellationToken.None);
+
+        Assert.False(result.Success);
+        Assert.Contains("Read-back verification failed", result.Error, StringComparison.Ordinal);
+        Assert.Equal(new StoredSettingValue(true, 20), store.Values[address]);
+    }
+
+    [Fact]
+    public async Task Apply_CancellationAfterWrite_RollsBackBeforeReturning()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var store = new MemorySettingStore { CancelAfterWrite = cancellation };
+        var first = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
+        var second = SettingCatalog.Get("mmcss.network-throttling-index").ResolveAddress(null);
+        store.Values[first] = new StoredSettingValue(true, 20);
+        store.Values[second] = new StoredSettingValue(true, 10);
+        var plan = await _transactions.PrepareAsync(
+            [new ChangeRequest(first.SettingId, null, 10), new ChangeRequest(second.SettingId, null, uint.MaxValue)],
+            store,
+            CancellationToken.None);
+
+        var result = await _transactions.ApplyAsync(plan, store, cancellation.Token);
+
+        Assert.False(result.Success);
+        Assert.Equal(new StoredSettingValue(true, 20), store.Values[first]);
+        Assert.Equal(new StoredSettingValue(true, 10), store.Values[second]);
+    }
+
+    [Fact]
+    public async Task Rollback_ReportsWriteFailureWithoutLosingOtherRestores()
+    {
+        var store = new MemorySettingStore();
+        var first = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
+        var second = SettingCatalog.Get("mmcss.network-throttling-index").ResolveAddress(null);
+        store.Values[first] = new StoredSettingValue(true, 20);
+        store.Values[second] = new StoredSettingValue(true, 10);
+        var plan = await _transactions.PrepareAsync(
+            [new ChangeRequest(first.SettingId, null, 10), new ChangeRequest(second.SettingId, null, uint.MaxValue)],
+            store,
+            CancellationToken.None);
+        var result = await _transactions.ApplyAsync(plan, store, CancellationToken.None);
+        store.FailWriteNumbers.Add(3);
+
+        var errors = await _transactions.RollbackAsync(result.Snapshot, store, CancellationToken.None);
+
+        Assert.Single(errors);
+        Assert.Contains("Injected numbered write failure", errors[0], StringComparison.Ordinal);
+        Assert.Equal(new StoredSettingValue(true, 10), store.Values[second]);
+        Assert.Equal(new StoredSettingValue(true, 10), store.Values[first]);
+    }
+
+    [Fact]
+    public async Task Apply_RejectsEmptyPlan()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _transactions.ApplyAsync(new ChangePlan(DateTimeOffset.Now, []), new MemorySettingStore(), CancellationToken.None));
+    }
+
+    [Fact]
     public async Task Rollback_RefusesToOverwriteExternalChanges()
     {
         var store = new MemorySettingStore();
@@ -172,6 +254,10 @@ public sealed class SettingTransactionServiceTests
         public Dictionary<SettingAddress, StoredSettingValue> Values { get; } = [];
         public SettingAddress? FailWriteFor { get; set; }
         public SettingAddress? FailAfterWriteFor { get; set; }
+        public int? IgnoreWriteNumber { get; set; }
+        public CancellationTokenSource? CancelAfterWrite { get; set; }
+        public HashSet<int> FailWriteNumbers { get; } = [];
+        private int WriteCount { get; set; }
 
         public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken)
         {
@@ -182,21 +268,32 @@ public sealed class SettingTransactionServiceTests
         public Task WriteAsync(SettingAddress address, StoredSettingValue value, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            WriteCount++;
+            if (FailWriteNumbers.Contains(WriteCount))
+            {
+                throw new InvalidOperationException("Injected numbered write failure");
+            }
+
             if (address == FailWriteFor)
             {
                 FailWriteFor = null;
                 throw new InvalidOperationException("Injected write failure");
             }
 
-            if (value.Exists)
+            if (WriteCount != IgnoreWriteNumber)
             {
-                Values[address] = value;
-            }
-            else
-            {
-                Values.Remove(address);
+                if (value.Exists)
+                {
+                    Values[address] = value;
+                }
+                else
+                {
+                    Values.Remove(address);
+                }
             }
 
+            CancelAfterWrite?.Cancel();
+            CancelAfterWrite = null;
             if (address == FailAfterWriteFor)
             {
                 FailAfterWriteFor = null;
