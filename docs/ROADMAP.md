@@ -101,7 +101,7 @@ Exit criteria:
 - Imported SockTuner reports are schema-validated and never execute content.
 - “Improvement” is shown only for valid comparable runs.
 
-### Step 5 — Transaction engine and write preview (`0.5`) — **P0, current**
+### Step 5 — Transaction engine and write preview (`0.5`) — **P0, complete**
 
 **Goal:** connect the existing typed transaction core to a safe plan UI without enabling uncontrolled writes.
 
@@ -125,7 +125,7 @@ read → plan → snapshot → apply → verify → rollback → verify original
 
 - The production write backend remains unavailable until Step 6 VM validation passes.
 
-### Step 6 — First writable settings in a disposable VM (`0.6`) — **P1**
+### Step 6 — First writable settings in a disposable VM (`0.6`) — **P1, current**
 
 **Goal:** prove a very small end-to-end writable surface before expanding coverage.
 
@@ -214,9 +214,9 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
+1. **P1 / Step 6:** validate the first low-risk reversible settings end to end in disposable Windows VMs.
 
-Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
+Production writes remain unavailable until each selected setting passes the Step 6 apply/read/rollback/read gate.
 
 ## Deferred until measured demand
 
