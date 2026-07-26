@@ -23,6 +23,7 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private readonly DiagnosticHistoryStore _historyStore = new();
+    private readonly TransactionAuditStore _transactionAuditStore = new();
     private readonly SettingTransactionService _transactions = new();
     private readonly ISettingStore _readOnlySettingStore = WindowsRegistrySettingStore.CreateReadOnly();
     private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
@@ -54,6 +55,7 @@ public partial class MainWindow : Window
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
         PlanCartGrid.ItemsSource = _planCart;
+        TransactionAuditGrid.ItemsSource = _transactionAuditStore.Load();
         TuningCatalogGrid.ItemsSource = SettingCatalog.All;
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
