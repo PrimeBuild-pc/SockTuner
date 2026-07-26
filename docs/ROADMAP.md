@@ -125,7 +125,7 @@ read → plan → snapshot → apply → verify → rollback → verify original
 
 - The production write backend remains unavailable until Step 6 VM validation passes.
 
-### Step 6 — First writable settings in a disposable VM (`0.6`) — **P1, current**
+### Step 6 — First writable settings in a disposable VM (`0.6`) — **P1, complete**
 
 **Goal:** prove a very small end-to-end writable surface before expanding coverage.
 
@@ -143,7 +143,7 @@ Exit criteria:
 - External drift is refused rather than overwritten.
 - No adapter restart, reboot, or connectivity interruption occurs without explicit preview and confirmation.
 
-### Step 7 — NIC and driver controls (`0.7`) — **P1**
+### Step 7 — NIC and driver controls (`0.7`) — **P1, current**
 
 **Goal:** expose only capabilities actually advertised by the selected driver.
 
@@ -214,9 +214,9 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P1 / Step 6:** validate the first low-risk reversible settings end to end in disposable Windows VMs.
+1. **P1 / Step 7:** add capability-advertised NIC and driver controls without guessing unsupported properties.
 
-Production writes remain unavailable until each selected setting passes the Step 6 apply/read/rollback/read gate.
+Only the two Step 6 MMCSS settings are writable; every NIC/driver setting remains locked until its own fake and disposable-hardware gates pass.
 
 ## Deferred until measured demand
 
