@@ -18,7 +18,7 @@ public static class DiagnosticReportExporter
 
     public static string SerializeJson(GamingDiagnosticReport report, bool redact = false) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 1,
+        schemaVersion = 2,
         toolVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             ?? "unknown",
@@ -40,7 +40,7 @@ public static class DiagnosticReportExporter
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{{title}}</title>
 <style>body{font:14px Segoe UI,Arial;background:#111;color:#f2f2f2;margin:32px}h1,h2{font-weight:500}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #444;padding:8px;text-align:left;vertical-align:top}th{background:#2b2b2b}pre{white-space:pre-wrap;background:#1f1f1f;border:1px solid #444;padding:16px}.muted{color:#b3b3b3}</style></head>
-<body><h1>{{title}}</h1><p class="muted">Started {{H(safe.StartedAt.ToString("O"))}} · Profile {{H(safe.Profile.DisplayName)}} · Duration {{safe.Duration.TotalSeconds:0.0}}s · Redacted {{redact}}</p>
+<body><h1>{{title}}</h1><p class="muted">Started {{H(safe.StartedAt.ToString("O"))}} · Profile {{H(safe.Profile.DisplayName)}} · Load {{H(safe.LoadCondition.ToString())}} · Duration {{safe.Duration.TotalSeconds:0.0}}s · Redacted {{redact}}</p>
 <h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>

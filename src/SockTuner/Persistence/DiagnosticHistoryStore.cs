@@ -31,6 +31,7 @@ public sealed class DiagnosticHistoryStore
     public DiagnosticHistoryEntry Save(GamingDiagnosticReport report, int maximumEntries = 20)
     {
         maximumEntries = Math.Clamp(maximumEntries, 1, 200);
+        if (!IsValidReport(report)) throw new ArgumentException("History report metadata is incomplete or invalid.", nameof(report));
         Directory.CreateDirectory(_directory);
         var entry = new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.Now, report);
         File.WriteAllText(PathFor(entry.Id), JsonSerializer.Serialize(entry, Options));
@@ -65,9 +66,7 @@ public sealed class DiagnosticHistoryStore
             var entry = JsonSerializer.Deserialize<DiagnosticHistoryEntry>(File.ReadAllText(path), Options);
             var fileIdValid = Guid.TryParseExact(Path.GetFileNameWithoutExtension(path), "N", out var fileId)
                 && entry is not null && entry.Id == fileId;
-            if (!fileIdValid || entry!.Id == Guid.Empty || string.IsNullOrWhiteSpace(entry.Report?.RequestedTarget)
-                || entry.Report.Profile is null || entry.Report.Gateway is null || entry.Report.Reference is null
-                || entry.Report.GameTarget is null || entry.Report.Dns is null || entry.Report.Findings is null)
+            if (!fileIdValid || entry!.Id == Guid.Empty || !IsValidReport(entry.Report))
             {
                 File.Delete(path);
                 return null;
@@ -80,6 +79,12 @@ public sealed class DiagnosticHistoryStore
             return null;
         }
     }
+
+    private static bool IsValidReport(GamingDiagnosticReport? report) => report is not null
+        && !string.IsNullOrWhiteSpace(report.RequestedTarget)
+        && report.Profile is not null && report.Gateway is not null && report.Reference is not null
+        && report.GameTarget is not null && report.Dns is not null && report.Findings is not null
+        && Enum.IsDefined(report.LoadCondition) && (int)report.LoadCondition != 0;
 
     public void Delete(Guid id) => File.Delete(PathFor(id));
     private string PathFor(Guid id) => Path.Combine(_directory, $"{id:N}.json");

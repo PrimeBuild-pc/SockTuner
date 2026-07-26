@@ -35,14 +35,23 @@ public sealed class NetworkDiagnosticService
             new DiagnosticProfile("custom", "Custom", sampleCount, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
             cancellationToken);
 
+    public Task<GamingDiagnosticReport> RunAsync(
+        string target,
+        string? gateway,
+        int? tcpPort,
+        DiagnosticProfile profile,
+        CancellationToken cancellationToken) => RunAsync(target, gateway, tcpPort, profile, DiagnosticLoadCondition.Unspecified, cancellationToken);
+
     public async Task<GamingDiagnosticReport> RunAsync(
         string target,
         string? gateway,
         int? tcpPort,
         DiagnosticProfile profile,
+        DiagnosticLoadCondition loadCondition,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(target);
+        if (!Enum.IsDefined(loadCondition) || (int)loadCondition == 0) throw new ArgumentOutOfRangeException(nameof(loadCondition));
         profile.Validate();
         if (tcpPort is <= 0 or > 65535)
         {
@@ -81,6 +90,7 @@ public sealed class NetworkDiagnosticService
             startedAt,
             stopwatch.Elapsed,
             profile,
+            loadCondition,
             gatewayResult,
             referenceResult,
             gameResult,

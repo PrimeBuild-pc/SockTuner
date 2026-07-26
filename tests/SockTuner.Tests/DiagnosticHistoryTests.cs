@@ -13,6 +13,7 @@ public sealed class DiagnosticHistoryTests
         try
         {
             var store = new DiagnosticHistoryStore(directory);
+            Assert.Throws<ArgumentException>(() => store.Save(Report("invalid", 1) with { LoadCondition = 0 }, 2));
             store.Save(Report("one", 10), 2);
             Thread.Sleep(2);
             store.Save(Report("two", 20), 2);
@@ -56,6 +57,22 @@ public sealed class DiagnosticHistoryTests
         Assert.Contains(comparison.Metrics, metric => metric.Metric == "Game average ms" && metric.Delta == -5);
         Assert.False(mismatch.Comparable);
         Assert.False(portMismatch.Comparable);
+
+        var trend = DiagnosticComparisonService.Trend([
+            new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.UnixEpoch.AddMinutes(1), after),
+            new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.UnixEpoch, baseline)
+        ]);
+        var tooFew = DiagnosticComparisonService.Trend([
+            new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.UnixEpoch, baseline)
+        ]);
+        var loadMismatch = DiagnosticComparisonService.Trend([
+            new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.UnixEpoch, baseline),
+            new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.UnixEpoch.AddMinutes(1), after with { LoadCondition = DiagnosticLoadCondition.UnderLoad })
+        ]);
+        Assert.True(trend.Comparable);
+        Assert.Equal([20d, 15d], trend.Points.Select(point => point.AverageMs));
+        Assert.False(tooFew.Comparable);
+        Assert.False(loadMismatch.Comparable);
     }
 
     private static GamingDiagnosticReport Report(string target, double rtt)
@@ -63,6 +80,7 @@ public sealed class DiagnosticHistoryTests
         var probe = ProbeStatistics.Calculate("Game", target, [new ProbeSample(DateTimeOffset.UnixEpoch, rtt)]);
         return new(target, DateTimeOffset.UnixEpoch, TimeSpan.FromSeconds(1),
             new DiagnosticProfile("quick", "Quick", 12, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
+            DiagnosticLoadCondition.Idle,
             probe with { Label = "Gateway" }, probe with { Label = "Reference" }, probe,
             new DnsMeasurement(target, TimeSpan.Zero, [], null), null, []);
     }

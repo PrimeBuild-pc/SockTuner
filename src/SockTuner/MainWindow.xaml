@@ -395,6 +395,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -410,13 +411,17 @@
                                               AutomationProperties.Name="Diagnostic profile"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                    <TextBlock Text="LOAD" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="DiagnosticLoadComboBox" Margin="0,6,0,0" AutomationProperties.Name="Load condition"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
                                     <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
                                     <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="3" Content="Run diagnosis" Click="RunDiagnostic_Click"
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="4" Content="Run diagnosis" Click="RunDiagnostic_Click"
                                         VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelDiagnosticButton" Grid.Column="4" Content="Cancel" Click="CancelDiagnostic_Click"
+                                <Button x:Name="CancelDiagnosticButton" Grid.Column="5" Content="Cancel" Click="CancelDiagnostic_Click"
                                         VerticalAlignment="Bottom" IsEnabled="False"/>
                             </Grid>
                         </Border>
@@ -542,11 +547,12 @@
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/></StackPanel>
                         <Button Grid.Column="1" Content="Compare selected" Click="CompareHistory_Click" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Content="Export selected redacted" Click="ExportHistory_Click" Margin="0,0,8,0"/>
-                        <Button Grid.Column="3" Content="Delete selected" Click="DeleteHistory_Click"/>
+                        <Button Grid.Column="2" Content="Trend selected" Click="TrendHistory_Click" Margin="0,0,8,0"/>
+                        <Button Grid.Column="3" Content="Export selected redacted" Click="ExportHistory_Click" Margin="0,0,8,0"/>
+                        <Button Grid.Column="4" Content="Delete selected" Click="DeleteHistory_Click"/>
                     </Grid>
                     <DataGrid x:Name="HistoryGrid" Grid.Row="2" AutoGenerateColumns="False" SelectionMode="Extended">
                         <DataGrid.Columns>

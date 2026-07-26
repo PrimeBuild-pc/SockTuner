@@ -44,6 +44,8 @@ public partial class MainWindow : Window
         LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
+        DiagnosticLoadComboBox.ItemsSource = Enum.GetValues<DiagnosticLoadCondition>();
+        DiagnosticLoadComboBox.SelectedIndex = 0;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
@@ -158,7 +160,8 @@ public partial class MainWindow : Window
             port = parsedPort;
         }
 
-        if (DiagnosticProfileComboBox.SelectedItem is not DiagnosticProfile profile)
+        if (DiagnosticProfileComboBox.SelectedItem is not DiagnosticProfile profile
+            || DiagnosticLoadComboBox.SelectedItem is not DiagnosticLoadCondition loadCondition)
         {
             StatusText.Text = "Select a diagnostic profile.";
             return;
@@ -171,7 +174,7 @@ public partial class MainWindow : Window
         ClearDiagnosticResults("Running…");
         DiagnosticRunSummaryText.Text = $"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…";
         StatusText.Text = $"Diagnosing {target}…";
-        WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}; Profile={profile.Id}.");
+        WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}; Profile={profile.Id}; Load={loadCondition}.");
 
         try
         {
@@ -180,7 +183,7 @@ public partial class MainWindow : Window
             var gateway = await _routeGatewayResolver.ResolveAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
             var beforeCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
-            var report = await _diagnostics.RunAsync(target, gateway, port, profile, _diagnosticCancellation.Token);
+            var report = await _diagnostics.RunAsync(target, gateway, port, profile, loadCondition, _diagnosticCancellation.Token);
             var afterCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             var afterSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
@@ -398,6 +401,15 @@ public partial class MainWindow : Window
         ComparisonText.Text = comparison.Comparable
             ? comparison.Reason + "\n" + string.Join("\n", comparison.Metrics.Select(metric => metric.Summary))
             : $"Not comparable: {comparison.Reason}";
+    }
+
+    private void TrendHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
+        var trend = DiagnosticComparisonService.Trend(selected);
+        ComparisonText.Text = trend.Comparable
+            ? trend.Reason + "\n" + string.Join("\n", trend.Points.Select(point => point.Summary))
+            : $"Not comparable: {trend.Reason}";
     }
 
     private void ExportHistory_Click(object sender, RoutedEventArgs e)
@@ -692,6 +704,7 @@ public partial class MainWindow : Window
         DiagnosticTargetText.IsEnabled = !isBusy;
         DiagnosticPortText.IsEnabled = !isBusy;
         DiagnosticProfileComboBox.IsEnabled = !isBusy;
+        DiagnosticLoadComboBox.IsEnabled = !isBusy;
     }
 
     private void ClearDiagnosticResults(string value)

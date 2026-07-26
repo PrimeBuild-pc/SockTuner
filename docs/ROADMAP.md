@@ -83,7 +83,7 @@ Exit criteria:
 - Intermediate-hop ICMP behavior is not mislabeled as end-to-end loss.
 - Monitoring can run and stop repeatedly without leaking tasks, sockets, or memory.
 
-### Step 4 — Reports, history, and comparison (`0.4`) — **P0, current**
+### Step 4 — Reports, history, and comparison (`0.4`) — **P0, complete**
 
 **Goal:** make observations reproducible and useful for before/after analysis or support escalation.
 
@@ -101,7 +101,7 @@ Exit criteria:
 - Imported SockTuner reports are schema-validated and never execute content.
 - “Improvement” is shown only for valid comparable runs.
 
-### Step 5 — Transaction engine and write preview (`0.5`) — **P0**
+### Step 5 — Transaction engine and write preview (`0.5`) — **P0, current**
 
 **Goal:** connect the existing typed transaction core to a safe plan UI without enabling uncontrolled writes.
 
@@ -214,8 +214,7 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P0 / Step 4:** add offline HTML reports, history, and comparison.
-2. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
+1. **P0 / Step 5:** connect the transaction core to write preview while production writes remain locked.
 
 Writable UI work starts only after Steps 1–4 are trustworthy and the Step 5 transaction gate passes.
 

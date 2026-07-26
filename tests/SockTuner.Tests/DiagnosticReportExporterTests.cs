@@ -11,7 +11,7 @@ public sealed class DiagnosticReportExporterTests
     {
         using var document = JsonDocument.Parse(DiagnosticReportExporter.SerializeJson(Report()));
 
-        Assert.Equal(1, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(2, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.False(document.RootElement.GetProperty("redacted").GetBoolean());
         Assert.Equal(10, document.RootElement.GetProperty("report").GetProperty("gameTarget").GetProperty("samples")[0].GetProperty("roundTripTimeMs").GetDouble());
     }
@@ -48,6 +48,7 @@ public sealed class DiagnosticReportExporterTests
         return new GamingDiagnosticReport(
             "secret.example", DateTimeOffset.UnixEpoch, TimeSpan.FromSeconds(1),
             new DiagnosticProfile("quick", "Quick", 12, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
+            DiagnosticLoadCondition.Idle,
             probe with { Label = "Gateway" }, probe with { Label = "Reference" }, probe,
             new DnsMeasurement("secret.example", TimeSpan.FromMilliseconds(2), ["203.0.113.8"], null),
             new ConnectionMeasurement("secret.example", 443, TimeSpan.FromMilliseconds(3), null),

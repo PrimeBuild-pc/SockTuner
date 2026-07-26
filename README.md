@@ -58,7 +58,8 @@ The reference scripts in this private workspace are research inputs, not product
 - Native IPv4/IPv6 routes and metrics, interface indexes/MTU/DNS, network profiles and bindings, NIC counters, TCP templates, QoS policies, global/RSS/RSC/LSO/checksum/USO/URO offload state, Winsock catalog, bounded structured logs, full/redacted snapshot export, retention preferences, and log export provide the Step 2 inventory.
 - Steps 1–2 now pass inventory, export, search/copy, dark-theme, and 100–200% WPF DPI validation.
 - Step 3 adds explicit quick/standard/extended diagnostics, concurrent boundary probes, full statistics/timelines, route/MTU/counter evidence, and bounded continuous monitoring.
-- Step 4 now includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, and identical-parameter before/after comparison; multi-run trends remain next.
+- Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
+- Next: connect the typed transaction core to a write-locked preview UI.
 - The typed transaction core is covered by in-memory failure tests, but writable UI remains locked until the preview and disposable-VM gates in Steps 5–6 pass.
 
 ## Important notice

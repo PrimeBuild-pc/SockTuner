@@ -277,11 +277,19 @@ public sealed record DiagnosticFinding(
     string Evidence,
     string Action);
 
+public enum DiagnosticLoadCondition
+{
+    Unspecified = 1,
+    Idle = 2,
+    UnderLoad = 3
+}
+
 public sealed record GamingDiagnosticReport(
     string RequestedTarget,
     DateTimeOffset StartedAt,
     TimeSpan Duration,
     DiagnosticProfile Profile,
+    DiagnosticLoadCondition LoadCondition,
     ProbeStatistics Gateway,
     ProbeStatistics Reference,
     ProbeStatistics GameTarget,
