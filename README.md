@@ -1,12 +1,59 @@
-# SockTuner
+<h1 align="center">SockTuner</h1>
 
-**Advanced, all-in-one network tuning and diagnostics for Windows 10 and Windows 11.**
+<p align="center">
+  <strong>Advanced, all-in-one network tuning and diagnostics for Windows 10 and Windows 11.</strong>
+</p>
 
-> **Status: pre-alpha development.** Read-only inventory and gaming diagnostics are implemented. The typed tuning catalog and transaction engine are under isolated test; UI-triggered mutations remain disabled.
+<p align="center">
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml"><img src="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/v/release/PrimeBuild-pc/SockTuner?include_prereleases&label=release" alt="Latest release" /></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/downloads/PrimeBuild-pc/SockTuner/total?label=downloads" alt="Total downloads" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue" alt="Platform: Windows 10/11 x64" />
+  <img src="https://img.shields.io/badge/.NET-10%20LTS-512BD4" alt=".NET 10 LTS" />
+</p>
+
+> [!WARNING]
+> **SockTuner is in active development (pre-alpha) and is NOT ready for production use.**
+> The project is currently at **Step 7 of 10: hardware capability collection**. The published build is a read-only inventory, diagnostics, and data-collection tool. NIC/driver tuning is still locked and no release can modify your network configuration. Do not rely on it as a finished product.
 
 SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
 
 It is not a generic “make my ping lower” button. SockTuner will show the current value, proposed value, scope, expected trade-off, restart requirement, and rollback data for every change.
+
+## Help wanted: hardware capability probe
+
+SockTuner exposes only settings that the NIC driver actually advertises. Virtual machines do not expose real driver properties, so we are collecting capability reports from real hardware — especially **Intel I219/I225/I226** and **Realtek RTL8111/RTL8125** adapters.
+
+If you have one of these NICs, you can contribute in two minutes with the built-in read-only probe. **The probe changes nothing on your PC** — it only reads the same inventory the app already displays.
+
+### How to run the probe
+
+1. Download the latest `SockTuner-*-win-x64.zip` from [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases) and extract it.
+2. The build is currently **unsigned**, so Windows SmartScreen will warn you: click **More info → Run anyway**. You can inspect the source and build it yourself with `dotnet publish` if you prefer.
+3. Open a terminal in the extracted folder (File Explorer address bar → type `cmd` → Enter) and run:
+   ```
+   SockTuner.exe --probe
+   ```
+4. A dialog confirms the report location: `socktuner-probe-<timestamp>.json` on your **Desktop**.
+
+### What the probe collects
+
+| Included (hardware identity) | Masked (personal data) |
+| --- | --- |
+| NIC description, driver provider/version/date, INF name | Machine name |
+| PCI vendor/device ID (`PCI\VEN_xxxx&DEV_xxxx`) | IP addresses, gateways, DNS servers, routes |
+| NDIS advanced properties: keyword, current value, default, type, valid ranges/enums | MAC address (only the vendor OUI prefix is kept) |
+| OS version, admin state, CPU count | User-assigned values (e.g. a custom `NetworkAddress` MAC) |
+
+The report is a plain-text JSON file — open it in any editor and check it yourself before sending.
+
+### How to send your report
+
+- **GitHub:** open an [issue](https://github.com/PrimeBuild-pc/SockTuner/issues/new) titled `Probe report: <your NIC model>` and attach the JSON file.
+- **Discord:** open a ticket on our [Discord server](https://discord.gg/YOUR-INVITE) and attach the JSON file.
+
+Include your Windows version if you know it. Thank you!
 
 ## Product goals
 
@@ -65,6 +112,6 @@ The reference scripts in this private workspace are research inputs, not product
 
 ## Important notice
 
-Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Future pre-release builds must be tested on disposable systems or with a known recovery path.
+Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Pre-release builds must be tested on disposable systems or with a known recovery path. The current release cannot apply any change: tuning writes are locked until they pass real-hardware validation gates.
 
-License and public contribution policy are not yet defined.
+SockTuner is released under the [MIT License](LICENSE). The public contribution policy is still being defined; probe reports via issues or Discord are the best way to help right now.
