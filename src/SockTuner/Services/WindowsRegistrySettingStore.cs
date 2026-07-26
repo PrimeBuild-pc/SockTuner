@@ -10,6 +10,11 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
 {
     private const string IsolatedVmEnvironmentVariable = "SOCKTUNER_ISOLATED_VM_MUTATIONS";
     private const string IsolatedVmConfirmation = "DISPOSABLE-VM-ONLY";
+    private static readonly HashSet<string> VmValidatedWritableSettingIds = new(StringComparer.Ordinal)
+    {
+        "mmcss.network-throttling-index",
+        "mmcss.system-responsiveness"
+    };
     private readonly bool _allowWrites;
 
     private WindowsRegistrySettingStore(bool allowWrites) => _allowWrites = allowWrites;
@@ -69,6 +74,7 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
             throw new InvalidOperationException("This registry store is read-only.");
         }
 
+        EnsureValidatedForIsolatedVm(address);
         using var key = Registry.LocalMachine.OpenSubKey(address.RegistryPath, writable: true)
             ?? throw new InvalidOperationException($"Registry key does not exist: HKLM\\{address.RegistryPath}");
         if (value.Exists)
@@ -81,6 +87,15 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
         }
 
         return Task.CompletedTask;
+    }
+
+    internal static void EnsureValidatedForIsolatedVm(SettingAddress address)
+    {
+        SettingCatalog.ValidateAddress(address);
+        if (!VmValidatedWritableSettingIds.Contains(address.SettingId))
+        {
+            throw new InvalidOperationException($"{address.SettingId} has not passed the isolated-VM write gate.");
+        }
     }
 
     private static void EnsureAllowed(SettingAddress address, StoredSettingValue? proposedValue)

@@ -60,7 +60,7 @@ The reference scripts in this private workspace are research inputs, not product
 - Step 3 adds explicit quick/standard/extended diagnostics, concurrent boundary probes, full statistics/timelines, route/MTU/counter evidence, and bounded continuous monitoring.
 - Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
 - Step 5 is complete with an allowlisted dry-run cart, exact rollback preview, bounded audit history, deterministic transactions, failure injection, and a strict typed elevated-worker protocol.
-- Production apply remains locked while the first low-risk settings enter the disposable-VM Step 6 gate.
+- The first two low-disruption MMCSS settings passed repeated apply/read/rollback/read checks on the disposable Windows 11 VM; the UI and every unvalidated setting remain write-locked pending the remaining Step 6 gates.
 
 ## Important notice
 

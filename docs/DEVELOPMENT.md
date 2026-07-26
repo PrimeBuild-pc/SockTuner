@@ -39,6 +39,8 @@ SOCKTUNER_ISOLATED_VM_MUTATIONS=DISPOSABLE-VM-ONLY
 
 The variable is an operator confirmation, not proof of virtualization. Use it only inside a disposable Windows VM with a recovery path. CI never enables it.
 
+The writable store has a second, code-level allowlist. Its current Step 6 scope is limited to `SystemResponsiveness` and `NetworkThrottlingIndex`; every other catalog entry remains write-blocked. Both values passed three `read → apply → read → rollback → read` cycles on the disposable Windows 11 VM, with exact DWORD restoration and persisted apply/rollback audit entries. Evidence stays outside the repository under `C:\VmLab\Runs`. This does not unlock the UI or replace the remaining Windows 10 and recovery gates.
+
 ## CI
 
 `.github/workflows/ci.yml` runs on pushes and pull requests to `main`:

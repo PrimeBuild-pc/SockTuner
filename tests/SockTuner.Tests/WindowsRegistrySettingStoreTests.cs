@@ -16,4 +16,19 @@ public sealed class WindowsRegistrySettingStoreTests
 
         Assert.Contains("read-only", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void IsolatedVmGate_AllowsOnlySettingsThatPassedLiveRollbackValidation()
+    {
+        WindowsRegistrySettingStore.EnsureValidatedForIsolatedVm(
+            SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null));
+        WindowsRegistrySettingStore.EnsureValidatedForIsolatedVm(
+            SettingCatalog.Get("mmcss.network-throttling-index").ResolveAddress(null));
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            WindowsRegistrySettingStore.EnsureValidatedForIsolatedVm(
+                SettingCatalog.Get("tcp.interface.no-delay").ResolveAddress(Guid.NewGuid().ToString())));
+
+        Assert.Contains("has not passed", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
