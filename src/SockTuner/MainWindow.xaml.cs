@@ -23,17 +23,12 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private readonly DiagnosticHistoryStore _historyStore = new();
-    private readonly TransactionAuditStore _transactionAuditStore = new();
-    private readonly SettingTransactionService _transactions = new();
-    private readonly ISettingStore _readOnlySettingStore = WindowsRegistrySettingStore.CreateReadOnly();
     private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
     private CancellationTokenSource? _monitorCancellation;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
-    private readonly ObservableCollection<PlanCartRow> _planCart = [];
-    private ChangePlan? _preparedPlan;
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
     private UserPreferences _preferences = new();
@@ -54,9 +49,7 @@ public partial class MainWindow : Window
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
-        PlanCartGrid.ItemsSource = _planCart;
-        TransactionAuditGrid.ItemsSource = _transactionAuditStore.Load();
-        TuningCatalogGrid.ItemsSource = SettingCatalog.All;
+        TuningPlan.Applied += async (_, _) => await RefreshInventoryAsync();
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
         WriteLog("app.started", "SockTuner UI started.");
@@ -94,7 +87,7 @@ public partial class MainWindow : Window
         MachineText.Text = snapshot.System.MachineName;
         CapturedText.Text = snapshot.System.CapturedAt.ToString("yyyy-MM-dd HH:mm:ss zzz");
         _adapterRows = snapshot.Adapters;
-        PlanAdapterComboBox.ItemsSource = snapshot.Adapters.Where(adapter => Guid.TryParse(adapter.Id, out _)).ToArray();
+        TuningPlan.SetAdapters(snapshot.Adapters);
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -396,78 +389,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void AddPlanItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (TuningCatalogGrid.SelectedItem is not SettingDefinition definition
-            || !uint.TryParse(PlanValueText.Text.Trim(), out var value))
-        {
-            SetPlanStatus("Select a setting and enter a valid unsigned DWORD value.");
-            return;
-        }
-
-        try
-        {
-            definition.Validate(value);
-            AdapterInfo? adapter = null;
-            string? targetId = null;
-            if (definition.Scope == SettingScope.AdapterInterface)
-            {
-                adapter = PlanAdapterComboBox.SelectedItem as AdapterInfo
-                    ?? throw new InvalidOperationException("Select a target adapter for this interface setting.");
-                targetId = adapter.Id;
-                definition.ResolveAddress(targetId);
-            }
-            _planCart.Add(new PlanCartRow(definition, targetId, adapter?.Name ?? "System", value));
-            _preparedPlan = null;
-            PlanPreviewGrid.ItemsSource = null;
-            SetPlanStatus($"Added {definition.Title}. Preview must be rebuilt after every cart change.");
-        }
-        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException)
-        {
-            SetPlanStatus(exception.Message);
-        }
-    }
-
-    private void ClearPlan_Click(object sender, RoutedEventArgs e)
-    {
-        _planCart.Clear();
-        _preparedPlan = null;
-        PlanPreviewGrid.ItemsSource = null;
-        SetPlanStatus("Cart cleared.");
-    }
-
-    private async void PreviewPlan_Click(object sender, RoutedEventArgs e)
-    {
-        if (_planCart.Count == 0)
-        {
-            SetPlanStatus("Add at least one change.");
-            return;
-        }
-        try
-        {
-            _preparedPlan = await _transactions.PrepareAsync(
-                _planCart.Select(item => new ChangeRequest(item.Definition.Id, item.TargetId, item.ProposedValue)),
-                _readOnlySettingStore,
-                CancellationToken.None);
-            PlanPreviewGrid.ItemsSource = _preparedPlan.Changes;
-            SetPlanStatus($"Dry-run created at {_preparedPlan.CreatedAt:T}: {_preparedPlan.Changes.Count} effective change(s). Apply remains unavailable; rebuild to reject drift.");
-        }
-        catch (Exception exception)
-        {
-            _preparedPlan = null;
-            PlanPreviewGrid.ItemsSource = null;
-            SetPlanStatus($"Preview failed: {exception.Message}");
-        }
-    }
-
-    private void SetPlanStatus(string value)
-    {
-        PlanStatusText.Text = value;
-        var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(PlanStatusText)
-            ?? new System.Windows.Automation.Peers.FrameworkElementAutomationPeer(PlanStatusText);
-        peer.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
-    }
-
     private void CompareHistory_Click(object sender, RoutedEventArgs e)
     {
         var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().OrderBy(entry => entry.SavedAt).ToArray();
@@ -614,50 +535,15 @@ public partial class MainWindow : Window
 
     private void NdisFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyNdisFilter();
 
-    private void ApplyAdapterFilter()
-    {
-        var search = AdapterFilterText.Text.Trim();
-        var rows = string.IsNullOrEmpty(search)
-            ? _adapterRows
-            : _adapterRows.Where(adapter => Contains(adapter.Name, search)
-                || Contains(adapter.Description, search)
-                || Contains(adapter.Id, search)
-                || Contains(adapter.Status.ToString(), search)
-                || Contains(adapter.AdapterKindDisplay, search)
-                || Contains(adapter.InterfaceType.ToString(), search)
-                || Contains(adapter.SpeedDisplay, search)
-                || Contains(adapter.MtuDisplay, search)
-                || Contains(adapter.MetricDisplay, search)
-                || Contains(adapter.DefaultRoutePolicyDisplay, search)
-                || Contains(adapter.ReceivedDisplay, search)
-                || Contains(adapter.SentDisplay, search)
-                || Contains(adapter.ReceiveIssuesDisplay, search)
-                || Contains(adapter.SendIssuesDisplay, search)
-                || Contains(adapter.DriverDisplay, search)
-                || Contains(adapter.NdisPropertyCountDisplay, search)
-                || Contains(adapter.ProtocolsDisplay, search)
-                || Contains(adapter.AddressesDisplay, search)
-                || Contains(adapter.GatewaysDisplay, search)
-                || Contains(adapter.DnsDisplay, search)
-                || Contains(adapter.InventoryStatus, search));
-        AdaptersGrid.ItemsSource = Filter(rows, InventoryFilterText.Text);
-    }
+    // Both per-grid boxes reuse InventorySearch, which already walks every public property
+    // (including the computed *Display ones) and so cannot fall behind when a field is added.
+    private void ApplyAdapterFilter() =>
+        AdaptersGrid.ItemsSource = Filter(
+            Filter(_adapterRows, AdapterFilterText.Text), InventoryFilterText.Text);
 
-    private void ApplyNdisFilter()
-    {
-        var search = NdisFilterText.Text.Trim();
-        var rows = string.IsNullOrEmpty(search)
-            ? _ndisRows
-            : _ndisRows.Where(row => Contains(row.Adapter, search)
-                || Contains(row.Driver, search)
-                || Contains(row.Property, search)
-                || Contains(row.Keyword, search)
-                || Contains(row.Current, search)
-                || Contains(row.Default, search)
-                || Contains(row.Type, search)
-                || Contains(row.ValidValues, search));
-        NdisPropertiesGrid.ItemsSource = Filter(rows, InventoryFilterText.Text);
-    }
+    private void ApplyNdisFilter() =>
+        NdisPropertiesGrid.ItemsSource = Filter(
+            Filter(_ndisRows, NdisFilterText.Text), InventoryFilterText.Text);
 
     private void CopyAdapter_Click(object sender, RoutedEventArgs e)
     {
@@ -697,9 +583,6 @@ public partial class MainWindow : Window
             StatusText.Text = $"Clipboard unavailable: {exception.Message}";
         }
     }
-
-    private static bool Contains(string value, string search) =>
-        value.Contains(search, StringComparison.CurrentCultureIgnoreCase);
 
     private async void StartMonitor_Click(object sender, RoutedEventArgs e)
     {
@@ -817,15 +700,6 @@ public partial class MainWindow : Window
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
-
-    private sealed record PlanCartRow(
-        SettingDefinition Definition,
-        string? TargetId,
-        string TargetName,
-        uint ProposedValue)
-    {
-        public ChangeSource Source => ChangeSource.Manual;
-    }
 
     private sealed record NdisPropertyRow(
         string Adapter,

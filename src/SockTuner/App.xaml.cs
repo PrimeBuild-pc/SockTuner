@@ -10,9 +10,11 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        if (e.Args.Length == 1 && string.Equals(e.Args[0], "--elevated-worker", StringComparison.Ordinal))
+        // Elevated worker mode: connects back to the launching process over the named pipe it
+        // was given and serves exactly one typed request.
+        if (e.Args.Length == 2 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
         {
-            Shutdown(ElevatedWorker.RunAsync(Console.In, Console.Out, CancellationToken.None).GetAwaiter().GetResult());
+            Shutdown(ElevatedWorkerHost.RunAsync(e.Args[1], CancellationToken.None).GetAwaiter().GetResult());
             return;
         }
 

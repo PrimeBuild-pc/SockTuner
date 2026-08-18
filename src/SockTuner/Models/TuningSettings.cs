@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.Win32;
 
 namespace SockTuner.Models;
@@ -31,6 +32,27 @@ public enum ChangeSource
     Recovery
 }
 
+/// <summary>
+/// What the transaction engine needs to know about a setting, regardless of whether it comes
+/// from the static registry catalog or from a driver's advertised capabilities.
+/// </summary>
+public interface ISettingSpecification
+{
+    string Id { get; }
+    string Title { get; }
+    string Category { get; }
+    EvidenceLevel Evidence { get; }
+    ChangeRisk Risk { get; }
+    string RestartRequirement { get; }
+    string TradeOff { get; }
+
+    /// <summary>Whether removing the value entirely is a meaningful, verifiable operation.</summary>
+    bool SupportsAbsentValue { get; }
+
+    void Validate(string value);
+    SettingAddress ResolveAddress(string? targetId);
+}
+
 public sealed record SettingDefinition(
     string Id,
     string Title,
@@ -46,8 +68,11 @@ public sealed record SettingDefinition(
     RegistryValueKind ValueKind,
     uint Minimum,
     uint Maximum,
-    IReadOnlySet<uint>? AllowedValues = null)
+    IReadOnlySet<uint>? AllowedValues = null) : ISettingSpecification
 {
+    // A registry value can legitimately be absent, which is how "Windows default" is expressed.
+    public bool SupportsAbsentValue => true;
+
     public SettingAddress ResolveAddress(string? targetId)
     {
         var path = RegistryPath;
@@ -70,17 +95,30 @@ public sealed record SettingDefinition(
         return new SettingAddress(Id, normalizedTarget, path, ValueName, ValueKind);
     }
 
-    public void Validate(uint value)
+    public void Validate(string value)
     {
         if (Evidence == EvidenceLevel.Blocked)
         {
             throw new InvalidOperationException($"{Id} is read-only because its evidence level is Blocked.");
         }
 
-        if (value < Minimum || value > Maximum || (AllowedValues is not null && !AllowedValues.Contains(value)))
+        if (!TryParseCanonical(value, out var parsed)
+            || parsed < Minimum || parsed > Maximum
+            || (AllowedValues is not null && !AllowedValues.Contains(parsed)))
         {
             throw new ArgumentOutOfRangeException(nameof(value), $"Value {value} is not valid for {Id}.");
         }
+    }
+
+    // Registry-backed catalog values round-trip through text, so only the canonical decimal
+    // form is accepted: a leading zero, sign, or space would read back differently and turn
+    // an exact read-back check into a confusing verification failure.
+    public static bool TryParseCanonical(string? value, out uint parsed)
+    {
+        parsed = 0;
+        return value is not null
+            && uint.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out parsed)
+            && parsed.ToString(CultureInfo.InvariantCulture) == value;
     }
 }
 
@@ -91,26 +129,37 @@ public sealed record SettingAddress(
     string ValueName,
     RegistryValueKind ValueKind);
 
-public readonly record struct StoredSettingValue(bool Exists, uint Value)
+public readonly record struct StoredSettingValue(bool Exists, string Value)
 {
-    public static StoredSettingValue Missing => new(false, 0);
+    // NDIS advanced properties are REG_SZ and MMCSS/TCP entries are DWORD; text is the one
+    // representation both stores can convert to exactly, so equality stays an exact match.
+    public string Value { get; } = Value ?? string.Empty;
+
+    public static StoredSettingValue Missing => new(false, string.Empty);
 }
 
 public sealed record ChangeRequest(
     string SettingId,
     string? TargetId,
-    uint? ProposedValue,
+    string? ProposedValue,
     ChangeSource Source = ChangeSource.Manual);
 
 public sealed record PlannedChange(
-    SettingDefinition Definition,
+    ISettingSpecification Definition,
     SettingAddress Address,
     StoredSettingValue Before,
     StoredSettingValue After,
     ChangeSource Source = ChangeSource.Manual)
 {
-    public string BeforeDisplay => Before.Exists ? Before.Value.ToString() : "Missing";
-    public string AfterDisplay => After.Exists ? After.Value.ToString() : "Remove value";
+    public string BeforeDisplay => Before.Exists ? Before.Value : "Missing";
+    public string AfterDisplay => After.Exists ? After.Value : "Remove value";
+
+    /// <summary>
+    /// High-risk or experimental changes need a deliberate, typed confirmation rather than a
+    /// single click: they can sever connectivity or rest on undocumented behaviour.
+    /// </summary>
+    public bool RequiresExplicitConfirmation =>
+        Definition.Risk == ChangeRisk.High || Definition.Evidence == EvidenceLevel.Experimental;
 }
 
 public sealed record ChangePlan(DateTimeOffset CreatedAt, IReadOnlyList<PlannedChange> Changes);

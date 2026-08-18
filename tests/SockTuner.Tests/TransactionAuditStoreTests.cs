@@ -23,8 +23,8 @@ public sealed class TransactionAuditStoreTests : IDisposable
         Assert.Equal(TransactionAuditOutcome.ApplySucceeded, loaded.Outcome);
         Assert.Equal(result.Snapshot.Id, loaded.SnapshotId);
         Assert.Equal("mmcss.system-responsiveness", change.SettingId);
-        Assert.Equal(new AuditStoredValue(true, 20), change.Before);
-        Assert.Equal(new AuditStoredValue(true, 10), change.After);
+        Assert.Equal(new AuditStoredValue(true, "20"), change.Before);
+        Assert.Equal(new AuditStoredValue(true, "10"), change.After);
         Assert.DoesNotContain("registryPath", File.ReadAllText(Directory.GetFiles(_directory).Single()), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -95,8 +95,8 @@ public sealed class TransactionAuditStoreTests : IDisposable
         var change = new PlannedChange(
             definition,
             definition.ResolveAddress(null),
-            new StoredSettingValue(true, 20),
-            new StoredSettingValue(true, 10),
+            new StoredSettingValue(true, "20"),
+            new StoredSettingValue(true, "10"),
             ChangeSource.Manual);
         var snapshot = new SettingSnapshot(
             Guid.NewGuid(), Guid.NewGuid(), "test", DateTimeOffset.Now, [change], success, success ? "signature" : string.Empty);

@@ -30,6 +30,35 @@ public sealed class AppPreferencesTests
     }
 
     [Fact]
+    public void WriteConsent_IsNotGrantedUntilAcceptedAndSurvivesARoundTrip()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"SockTuner-{Guid.NewGuid():N}", "preferences.json");
+        try
+        {
+            Assert.False(WriteConsent.IsAccepted(new UserPreferences()));
+
+            var accepted = WriteConsent.Accept(new UserPreferences());
+            Assert.True(WriteConsent.IsAccepted(accepted));
+            Assert.NotNull(accepted.WriteConsentAcceptedAt);
+
+            AppPreferences.Save(path, accepted);
+            Assert.True(WriteConsent.IsAccepted(AppPreferences.Load(path)));
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(path)!, true);
+        }
+    }
+
+    [Fact]
+    public void WriteConsent_FromAnEarlierVersionIsNotAccepted()
+    {
+        var stale = new UserPreferences(AcceptedWriteConsentVersion: "alpha-0");
+
+        Assert.False(WriteConsent.IsAccepted(stale));
+    }
+
+    [Fact]
     public void Load_InvalidJsonFallsBackToDefault()
     {
         var path = Path.GetTempFileName();

@@ -15,6 +15,11 @@ public sealed class SettingTransactionService
     private static readonly SemaphoreSlim ApplyLock = new(1, 1);
     private readonly Guid _authorityId = Guid.NewGuid();
     private readonly byte[] _authorityKey = RandomNumberGenerator.GetBytes(32);
+    private readonly SettingSpecificationResolver _resolve;
+
+    public SettingTransactionService() : this(SettingSpecifications.Live()) { }
+
+    public SettingTransactionService(SettingSpecificationResolver resolve) => _resolve = resolve;
 
     public async Task<ChangePlan> PrepareAsync(
         IEnumerable<ChangeRequest> requests,
@@ -24,15 +29,20 @@ public sealed class SettingTransactionService
         var candidates = requests.Select(request =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var definition = SettingCatalog.Get(request.SettingId);
+            var definition = _resolve(request.SettingId, request.TargetId);
             if (definition.Evidence == EvidenceLevel.Blocked)
             {
                 throw new InvalidOperationException($"{definition.Id} is blocked from change plans.");
             }
 
-            if (request.ProposedValue.HasValue)
+            if (request.ProposedValue is not null)
             {
-                definition.Validate(request.ProposedValue.Value);
+                definition.Validate(request.ProposedValue);
+            }
+            else if (!definition.SupportsAbsentValue)
+            {
+                throw new InvalidOperationException(
+                    $"{definition.Title} cannot be removed; propose its default value instead.");
             }
 
             return (Request: request, Definition: definition, Address: definition.ResolveAddress(request.TargetId));
@@ -64,8 +74,8 @@ public sealed class SettingTransactionService
                 }
             }
 
-            var after = candidate.Request.ProposedValue.HasValue
-                ? new StoredSettingValue(true, candidate.Request.ProposedValue.Value)
+            var after = candidate.Request.ProposedValue is { } proposed
+                ? new StoredSettingValue(true, proposed)
                 : StoredSettingValue.Missing;
             if (before != after)
             {
@@ -147,16 +157,22 @@ public sealed class SettingTransactionService
         }
     }
 
-    private static IReadOnlyList<PlannedChange> ValidateAndCanonicalize(ChangePlan plan)
+    private IReadOnlyList<PlannedChange> ValidateAndCanonicalize(ChangePlan plan)
     {
         var validated = new List<PlannedChange>(plan.Changes.Count);
         var addresses = new HashSet<SettingAddress>();
         foreach (var change in plan.Changes)
         {
-            var definition = SettingCatalog.Get(change.Address.SettingId);
+            var definition = _resolve(change.Address.SettingId, change.Address.TargetId);
             if (definition.Evidence == EvidenceLevel.Blocked)
             {
                 throw new InvalidOperationException($"{definition.Id} is blocked from writes.");
+            }
+
+            if (!change.After.Exists && !definition.SupportsAbsentValue)
+            {
+                throw new InvalidOperationException(
+                    $"{definition.Title} cannot be removed; propose its default value instead.");
             }
 
             var expectedAddress = definition.ResolveAddress(change.Address.TargetId);
@@ -193,19 +209,30 @@ public sealed class SettingTransactionService
         var payload = new StringBuilder()
             .Append(snapshot.Id).Append('|')
             .Append(snapshot.AuthorityId).Append('|')
-            .Append(snapshot.MachineName).Append('|')
             .Append(snapshot.CreatedAt.UtcTicks).Append('|')
             .Append(snapshot.AppliedSuccessfully);
+        Field(snapshot.MachineName);
         foreach (var change in snapshot.Changes)
         {
-            payload.Append('|').Append(change.Address.SettingId)
-                .Append('|').Append(change.Address.TargetId)
-                .Append('|').Append(change.Before.Exists).Append(':').Append(change.Before.Value)
-                .Append('|').Append(change.After.Exists).Append(':').Append(change.After.Value)
-                .Append('|').Append(change.Source);
+            Field(change.Address.SettingId);
+            Field(change.Address.TargetId);
+            payload.Append('|').Append(change.Before.Exists);
+            Field(change.Before.Value);
+            payload.Append('|').Append(change.After.Exists);
+            Field(change.After.Value);
+            payload.Append('|').Append(change.Source);
         }
 
         return Convert.ToBase64String(HMACSHA256.HashData(_authorityKey, Encoding.UTF8.GetBytes(payload.ToString())));
+
+        // Values are now free-form text, so every variable-length field carries its length:
+        // without it a value containing the separator could shift the following fields and
+        // let two different snapshots produce the same payload.
+        void Field(string? value) => payload
+            .Append('|')
+            .Append(value?.Length ?? -1)
+            .Append(':')
+            .Append(value);
     }
 
     private bool HasValidSignature(SettingSnapshot snapshot)

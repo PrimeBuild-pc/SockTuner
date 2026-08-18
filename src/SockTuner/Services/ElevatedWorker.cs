@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
@@ -16,7 +17,7 @@ public enum WorkerOperationKind
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record WorkerStoredValue(
     [property: JsonRequired] bool Exists,
-    [property: JsonRequired] uint Value);
+    [property: JsonRequired] string Value);
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record WorkerSettingOperation(
@@ -51,28 +52,30 @@ internal static class ElevatedWorker
         TextWriter output,
         CancellationToken cancellationToken,
         ISettingStore? store = null,
-        TransactionAuditStore? auditStore = null)
+        TransactionAuditStore? auditStore = null,
+        SettingSpecificationResolver? resolve = null)
     {
         ElevatedWorkerRequest? request = null;
         try
         {
-            var buffer = new char[MaximumRequestCharacters + 1];
-            var count = await input.ReadBlockAsync(buffer, cancellationToken);
-            if (count == buffer.Length)
-            {
-                throw new InvalidDataException("Worker request exceeds the size limit.");
-            }
-
-            request = JsonSerializer.Deserialize<ElevatedWorkerRequest>(buffer.AsSpan(0, count), Options)
+            // Capabilities are read here, inside the elevated process, immediately before the
+            // write: the caller's view of what the driver allows is never trusted.
+            resolve ??= SettingSpecifications.Live();
+            request = JsonSerializer.Deserialize<ElevatedWorkerRequest>(
+                await ReadRequestAsync(input, cancellationToken), Options)
                 ?? throw new InvalidDataException("Worker request is empty.");
-            Validate(request);
+            Validate(request, resolve);
+            var effectiveStore = store ?? CreateDefaultStore();
             var result = await ExecuteAsync(
                 request,
-                store ?? WindowsRegistrySettingStore.CreateForIsolatedVm(),
+                effectiveStore,
                 auditStore ?? new TransactionAuditStore(),
-                cancellationToken);
-            await WriteAsync(output, new(SchemaVersion, request.RequestId, result.Success,
-                result.Success ? "Typed operation applied and verified." : result.Error ?? "Typed operation failed."));
+                cancellationToken,
+                resolve);
+            var status = result.Success
+                ? "Typed operation applied and verified." + await RestartAsync(effectiveStore, cancellationToken)
+                : result.Error ?? "Typed operation failed.";
+            await WriteAsync(output, new(SchemaVersion, request.RequestId, result.Success, status));
             return result.Success ? 0 : 3;
         }
         catch (Exception exception) when (exception is JsonException or InvalidDataException
@@ -85,7 +88,50 @@ internal static class ElevatedWorker
         }
     }
 
-    private static void Validate(ElevatedWorkerRequest request)
+    private static ISettingStore CreateDefaultStore() =>
+        new CompositeSettingStore(WindowsRegistrySettingStore.CreateWritable(), new CimAdapterSettingStore());
+
+    // NIC properties only take effect once the miniport restarts, so the adapters that were
+    // written to are restarted here and checked back to the link state they had before.
+    private static async Task<string> RestartAsync(ISettingStore store, CancellationToken cancellationToken)
+    {
+        if (store is not CompositeSettingStore { Adapters.TouchedAdapters.Count: > 0 } composite)
+        {
+            return string.Empty;
+        }
+
+        var count = composite.Adapters.TouchedAdapters.Count;
+        var problems = await composite.Adapters.RestartTouchedAdaptersAsync(cancellationToken);
+        return problems.Count == 0
+            ? $" Restarted {count} adapter(s); each returned to its previous link state."
+            : $" Restart warnings: {string.Join("; ", problems)}";
+    }
+
+    // Requests are newline-delimited so a single connection carries exactly one message, and
+    // the cap is enforced while reading rather than after buffering an unbounded payload.
+    private static async Task<string> ReadRequestAsync(TextReader input, CancellationToken cancellationToken)
+    {
+        var builder = new StringBuilder();
+        var buffer = new char[1];
+        while (await input.ReadAsync(buffer, cancellationToken) == 1 && buffer[0] != '\n')
+        {
+            if (builder.Length == MaximumRequestCharacters)
+            {
+                throw new InvalidDataException("Worker request exceeds the size limit.");
+            }
+
+            if (buffer[0] != '\r')
+            {
+                builder.Append(buffer[0]);
+            }
+        }
+
+        return builder.Length == 0
+            ? throw new InvalidDataException("Worker request is empty.")
+            : builder.ToString();
+    }
+
+    private static void Validate(ElevatedWorkerRequest request, SettingSpecificationResolver resolve)
     {
         if (request.SchemaVersion != SchemaVersion || request.RequestId == Guid.Empty
             || request.Operation == WorkerOperationKind.Unknown || !Enum.IsDefined(request.Operation)
@@ -99,20 +145,27 @@ internal static class ElevatedWorker
         {
             if (change is null || change.Expected is null || change.Desired is null
                 || change.Source == ChangeSource.Unknown || !Enum.IsDefined(change.Source)
-                || (!change.Expected.Exists && change.Expected.Value != 0)
-                || (!change.Desired.Exists && change.Desired.Value != 0))
+                || change.Expected.Value is null || change.Desired.Value is null
+                || (!change.Expected.Exists && change.Expected.Value.Length != 0)
+                || (!change.Desired.Exists && change.Desired.Value.Length != 0))
             {
                 throw new InvalidDataException("Worker setting operation is invalid.");
             }
 
-            var definition = SettingCatalog.Get(change.SettingId);
+            // Resolving re-reads the driver: a keyword this adapter no longer advertises, or an
+            // unknown catalog ID, fails here before anything is written.
+            var definition = resolve(change.SettingId, change.TargetId);
             if (definition.Evidence == EvidenceLevel.Blocked)
             {
                 throw new InvalidOperationException($"{definition.Id} is blocked.");
             }
 
             var address = definition.ResolveAddress(change.TargetId);
-            WindowsRegistrySettingStore.EnsureValidatedForIsolatedVm(address);
+            if (definition is not NicSettingSpecification)
+            {
+                WindowsRegistrySettingStore.EnsureWritable(address);
+            }
+
             if (!addresses.Add(address))
             {
                 throw new InvalidDataException($"Duplicate operation for {definition.Id}.");
@@ -120,6 +173,10 @@ internal static class ElevatedWorker
 
             if (change.Expected.Exists) definition.Validate(change.Expected.Value);
             if (change.Desired.Exists) definition.Validate(change.Desired.Value);
+            else if (!definition.SupportsAbsentValue)
+            {
+                throw new InvalidDataException($"{definition.Id} cannot be removed.");
+            }
         }
     }
 
@@ -127,12 +184,14 @@ internal static class ElevatedWorker
         ElevatedWorkerRequest request,
         ISettingStore store,
         TransactionAuditStore auditStore,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        SettingSpecificationResolver? resolve = null)
     {
-        Validate(request);
+        resolve ??= SettingSpecifications.Live();
+        Validate(request, resolve);
         var plan = new ChangePlan(DateTimeOffset.Now, request.Changes.Select(change =>
         {
-            var definition = SettingCatalog.Get(change.SettingId);
+            var definition = resolve(change.SettingId, change.TargetId);
             return new PlannedChange(
                 definition,
                 definition.ResolveAddress(change.TargetId),
@@ -140,7 +199,7 @@ internal static class ElevatedWorker
                 new StoredSettingValue(change.Desired.Exists, change.Desired.Value),
                 change.Source);
         }).ToArray());
-        var transactions = new SettingTransactionService();
+        var transactions = new SettingTransactionService(resolve);
         var result = await transactions.ApplyAsync(plan, store, cancellationToken);
         try
         {
@@ -169,6 +228,8 @@ internal static class ElevatedWorker
         return result;
     }
 
+    // Newline-terminated to match the request framing, so the caller can read exactly one
+    // response from a pipe that stays open.
     private static Task WriteAsync(TextWriter output, ElevatedWorkerResponse response) =>
-        output.WriteAsync(JsonSerializer.Serialize(response, Options));
+        output.WriteLineAsync(JsonSerializer.Serialize(response, Options));
 }
