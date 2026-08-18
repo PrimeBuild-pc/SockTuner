@@ -123,16 +123,33 @@ Where the chain first degrades, not just that it does.
   (`Router`, with an exact 2.4 GHz channel — 1, 6 and 11 are legal everywhere, which is why an
   exact number is only given on that band).
 
-### W7 — Remediation engine
+### W7 — Remediation engine — **done**
 
-- `RemediationAction`: owner, target segment, the change requests it would emit, expected effect,
-  trade-off, and how to verify it worked.
-- Automatic tier: only reversible, low-risk, no-choice actions.
-- Preset tier: bandwidth / max ping / max jitter targets, plus use-case profiles (competitive
-  gaming, streaming and upload, calls and remote work) — these weight *different* objectives; for
-  streaming, upload capacity matters more than ping.
-- Research corpus integration (table below): every setting the research scripts touch becomes an
-  individually gated, evidence-labelled, reversible catalog entry.
+- `RemediationAction` carries owner, segment, the change requests it would emit, expected effect,
+  trade-off and verification. An action with no changes is guidance, not a failure: that is the
+  normal and honest shape past the router, and `RemediationPlanner` produces it rather than
+  inventing a lever.
+- `UseCaseProfiles`: competitive gaming, streaming and upload, calls and remote work. They weight
+  *different* objectives and say so — the streaming profile deliberately leaves on the receive
+  coalescing and large-send offloads the gaming profile switches off. A profile only proposes a
+  keyword the installed driver advertises, only a value it offers, and only for standardised NDIS
+  keywords: vendor keyword values are not standardised, so no profile can know what one means.
+- `RemediationTargets`: bandwidth / max ping / max jitter. A target with nothing measured against
+  it is reported unmet with the reason, never quietly counted as met.
+- Everything flows through `SettingTransactionService` unchanged — a test prepares a profile's own
+  change requests through the engine, so a profile that proposed something the engine would refuse
+  would fail the suite.
+- Research corpus: four new registry-backed catalog entries, individually gated — `tcp.interface.mtu`
+  (the exact PMTUD black-hole workaround), `tcp.interface.netbios-options` (one interface, never a
+  blanket disable), and the two DWORD `Tasks\Games` MMCSS priorities.
+
+**Deferred with the reason.** TCP global controls (`netsh int tcp set global`: autotuning, ECN,
+timestamps, heuristics, initial RTO, templates) are not registry-backed; the supported surface is
+`MSFT_NetTCPSetting` in `root/StandardCimv2`, so they need a CIM *write* path that belongs to
+roadmap step 8 rather than a guessed registry address. The `Tasks\Games` string values
+(`Scheduling Category`, `SFIO Priority`) need `SettingDefinition` to carry a non-numeric type.
+Teredo, ISATAP and 6to4 have no per-component registry lever — only the blanket
+`Tcpip6\Parameters\DisabledComponents`, which the architecture forbids.
 
 ### W8 — Router integration
 
@@ -166,19 +183,19 @@ these settings are actively harmful on some hardware.
 | Bufferbloat projects | idle versus loaded latency | W5, W8 | Fix is router-side SQM |
 | `GameNetAnalyzer` | jitter / burst / spike scoring, endpoint discovery | W5, W6 | tshark dependency dropped; native sockets and ETW instead |
 | `Auto MTU.bat` | MTU probing | W6 | Native path-MTU already present |
-| TCP global tweaks (`netsh int tcp ...`) | autotuning, ECN, timestamps, heuristics, RSS/RSC, initial RTO, templates | W7 | Per-setting catalog entries, evidence-labelled |
+| TCP global tweaks (`netsh int tcp ...`) | autotuning, ECN, timestamps, heuristics, RSS/RSC, initial RTO, templates | step 8 | Needs a CIM write path (`MSFT_NetTCPSetting`), not a registry address |
 | Offload scripts | checksum, LSO, RSC, RSS, USO, VMQ, RDMA | W7 | Already driver-advertised via CIM |
-| MMCSS and `Tasks\Games` | throttling index, responsiveness, task priorities | W7 | Two entries shipped; task priorities to add |
+| MMCSS and `Tasks\Games` | throttling index, responsiveness, task priorities | shipped | Four entries; the two `Tasks\Games` string values need a non-numeric setting type |
 | `TcpAckFrequency`, `TcpDelAckTicks`, `TCPNoDelay` | per-interface ACK behaviour | shipped | Experimental, typed confirmation |
 | NIC power scripts | power saving, interrupt moderation | shipped | Driver-advertised |
-| NetBT / NetBIOS, Teredo / ISATAP / 6to4 | legacy protocol disable | W7 | Individually gated, never blanket |
+| NetBT / NetBIOS, Teredo / ISATAP / 6to4 | legacy protocol disable | partly shipped | NetBIOS is per-interface and gated; Teredo/ISATAP/6to4 only have the blanket lever, which is forbidden |
 | AFD, Dnscache, NDIS parameters | socket and resolver buffers | W7 | Needs documentation review before exposure |
 
 ## Sequencing
 
 1. ~~**W1–W4** — diagnosis core and probe archive.~~ **Done.**
 2. ~~**W5, W6** — active measurement and topology facts.~~ **Done.**
-3. **W7** — remediation engine and research-derived catalog growth.
+3. ~~**W7** — remediation engine and research-derived catalog growth.~~ **Done.**
 4. **W8** — router guidance, then optional OpenWrt SSH.
 5. **W9** — baseline, watchdog, reporting.
 
