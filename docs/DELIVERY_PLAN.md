@@ -85,15 +85,23 @@ Where the chain first degrades, not just that it does.
   already used by the tuning path, so archive entries and the live tuning surface share one shape.
 - Wi-Fi adapters use the identical structure as Ethernet — no separate Wi-Fi format.
 
-### W5 — Active measurement suite
+### W5 — Active measurement suite — **done**
 
-- Throughput test (multi-stream HTTP against a chosen endpoint, user-initiated only).
-- Bufferbloat: idle versus loaded latency, per direction, reported as a latency-increase grade.
-- Loaded jitter and loss under controlled load.
-- Long-window stability run: minutes-to-hours sampling to catch the intermittent FTTC faults a
-  spot test misses. Bounded memory, explicit start and stop.
-- Local saturation detection: per-process and per-adapter throughput, so another device or process
-  saturating the link is not misread as an ISP fault.
+- `ThroughputProbe`: multi-stream HTTP against a chosen endpoint, user-initiated only, bounded
+  window. A run stopped early keeps its rate and is labelled incomplete rather than discarded.
+- `LoadedLatencyProbe`: the same latency probe measured idle and again while one direction is
+  saturated, with the load stopped as soon as the measurement window closes.
+- `LoadedLatencyAnalyzer`: latency-increase grade (A+ to F), plus loaded jitter and loss increase.
+  Bufferbloat is owned by the router — the queue is not on the endpoint — so it is never offered
+  as a local change.
+- Long-window stability: `NetworkMonitorService` already samples for minutes to hours with bounded
+  memory and explicit start and stop; `StabilityAnalyzer` finds the loss bursts and latency spikes
+  inside that window, judged against the run's own baseline. Two consecutive bad samples make an
+  episode; one is noise. A truncated window says so in its verdict.
+- Local saturation: `LinkUtilization` turns adapter counter deltas into a rate, and a baseline
+  taken while this machine was filling its own link is reported as such instead of being graded.
+  The NIC link speed is a poor capacity proxy, so saturation is claimed against a *measured*
+  capacity where one exists. Per-process attribution needs ETW and stays deferred.
 
 ### W6 — Topology and path facts
 
@@ -159,8 +167,8 @@ these settings are actively harmful on some hardware.
 ## Sequencing
 
 1. ~~**W1–W4** — diagnosis core and probe archive.~~ **Done.**
-2. **W5, W6** — active measurement and topology facts; these produce the inputs W2 needs to be
-   genuinely useful beyond ICMP.
+2. ~~**W5** — active measurement.~~ **Done.** **W6** — topology facts; these produce the inputs W2
+   needs to be genuinely useful beyond ICMP.
 3. **W7** — remediation engine and research-derived catalog growth.
 4. **W8** — router guidance, then optional OpenWrt SSH.
 5. **W9** — baseline, watchdog, reporting.
