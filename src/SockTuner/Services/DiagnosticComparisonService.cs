@@ -49,7 +49,7 @@ public static class DiagnosticComparisonService
             .ToArray());
     }
 
-    private static bool SameParameters(GamingDiagnosticReport baseline, GamingDiagnosticReport after) =>
+    internal static bool SameParameters(GamingDiagnosticReport baseline, GamingDiagnosticReport after) =>
         string.Equals(baseline.RequestedTarget, after.RequestedTarget, StringComparison.OrdinalIgnoreCase)
         && baseline.Profile == after.Profile
         && baseline.LoadCondition == after.LoadCondition

@@ -172,13 +172,23 @@ the roadmap's own rule that anything touching a privilege boundary gets a separa
 that is its own increment rather than a tail of this one. Nothing else in W8 depends on it: the
 guidance is complete and actionable without it.
 
-### W9 — Reporting, baseline, watchdog
+### W9 — Reporting, baseline, watchdog — **done**
 
-- Historical baseline and trend ("median ping degraded 20% in two weeks"); the history store and
-  comparison service already exist and extend to this.
-- Before/after report per applied fix, reusing the existing comparison path.
-- Exportable evidence report for ISP escalation (the redacted HTML exporter already exists).
-- Background watchdog with threshold alerts, so the user learns *when* a problem started.
+- `BaselineAnalyzer` compares recent runs against older ones over the existing history store. It
+  takes the median of each side, so one bad run in a week does not become the verdict, and it
+  requires both a percentage *and* an absolute move before calling anything significant — 2 ms to
+  3 ms is 50% and means nothing. Runs with different parameters are refused rather than compared.
+- Before/after report per applied fix: `DiagnosticReportExporter.SerializeComparisonHtml` renders
+  what was written next to what the identical re-run measured, reusing
+  `DiagnosticComparisonService`. When the two runs are not comparable it says so and shows no
+  metrics — an "improvement" between runs with different parameters is not an improvement.
+- ISP evidence export already existed as the redacted HTML/JSON exporter; the before/after report
+  takes the same `redact` flag and blanks the adapter target with it.
+- `Watchdog` judges a rolling window rather than single samples: one lost probe is not an outage,
+  and a user woken by every one of them stops reading the alerts. Alerts bracket the samples that
+  were actually bad, so "when did this start" is answered with a time earlier than the alert
+  itself. Bounded window per target and a bounded alert list, so it can run for hours behind
+  `NetworkMonitorService`.
 
 ---
 
@@ -210,6 +220,6 @@ these settings are actively harmful on some hardware.
 2. ~~**W5, W6** — active measurement and topology facts.~~ **Done.**
 3. ~~**W7** — remediation engine and research-derived catalog growth.~~ **Done.**
 4. ~~**W8** — router guidance.~~ **Done.** Optional OpenWrt SSH remains a separate increment.
-5. **W9** — baseline, watchdog, reporting.
+5. ~~**W9** — baseline, watchdog, reporting.~~ **Done.**
 
 Each workstream lands with its own tests and keeps the default suite host-independent.
