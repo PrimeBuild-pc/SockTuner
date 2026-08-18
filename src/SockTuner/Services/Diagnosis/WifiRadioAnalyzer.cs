@@ -156,25 +156,44 @@ public static class WifiRadioAnalyzer
     }
 
     /// <summary>
-    /// Names the exact channel to move to. 1, 6 and 11 are the only 2.4 GHz channels that do not
-    /// overlap each other, and they are legal in every regulatory domain, so an exact number is
-    /// safe to give here in a way it is not on 5 or 6 GHz.
+    /// Names the exact channel to move to, or null where no exact number can safely be given. 1, 6
+    /// and 11 are the only 2.4 GHz channels that do not overlap each other, and they are legal in
+    /// every regulatory domain — on 5 and 6 GHz the legal set depends on the domain and on DFS, so
+    /// this deliberately answers for 2.4 GHz only. Shared with the router guidance so the number the
+    /// report shows and the number the router is told to use cannot drift apart.
     /// </summary>
-    private static string Recommend24(WifiRadioInfo radio, WifiBssInfo bss)
+    public static (int Channel, bool AlreadyBest)? RecommendChannel(WifiRadioInfo radio)
     {
+        if (radio.ConnectedBss is not { Band: WifiBand.TwoPointFourGhz } bss)
+        {
+            return null;
+        }
+
         var others = radio.Neighbours
             .Where(neighbour => neighbour.Band == WifiBand.TwoPointFourGhz)
             .Where(neighbour => !string.Equals(neighbour.Bssid, bss.Bssid, StringComparison.OrdinalIgnoreCase))
             .Where(neighbour => neighbour.RssiDbm >= AudibleNeighbourRssiDbm)
             .ToArray();
 
+        // On a tie the current channel wins: telling someone to move between two equally clear
+        // channels is churn, and every reconnect costs more than it gains.
         var best = NonOverlapping24
             .Select(channel => (Channel: channel, Load: Load(others, channel)))
             .OrderBy(candidate => candidate.Load)
+            .ThenBy(candidate => candidate.Channel == bss.Channel ? 0 : 1)
             .ThenBy(candidate => candidate.Channel)
             .First();
+        return (best.Channel, best.Channel == bss.Channel);
+    }
 
-        return best.Channel == bss.Channel
+    private static string Recommend24(WifiRadioInfo radio, WifiBssInfo bss)
+    {
+        if (RecommendChannel(radio) is not { } best)
+        {
+            return "Move the access point to a channel with no overlapping neighbour in this band.";
+        }
+
+        return best.AlreadyBest
             ? $"Channel {bss.Channel} is already the least congested of 1, 6 and 11 here; the band itself is full. "
                 + "A 5 GHz or wired link is the only real improvement."
             : $"Set the 2.4 GHz channel to {best.Channel} on the router, at 20 MHz width. Channels 1, 6 and 11 are the only "

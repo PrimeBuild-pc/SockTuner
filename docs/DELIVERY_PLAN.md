@@ -151,13 +151,26 @@ roadmap step 8 rather than a guessed registry address. The `Tasks\Games` string 
 Teredo, ISATAP and 6to4 have no per-component registry lever — only the blanket
 `Tcpip6\Parameters\DisabledComponents`, which the architecture forbids.
 
-### W8 — Router integration
+### W8 — Router integration — **guidance done, SSH transport deferred**
 
-- Non-OpenWrt: specific guidance per finding — parameter, value, reason.
-- OpenWrt over SSH: **optional**, key-based authentication only, never stored credentials, and only
-  for settings the user explicitly enabled. Read-only inspection first; any write follows the same
-  snapshot / verify / rollback contract as local changes. Primary target is SQM/CAKE for
-  bufferbloat, which is genuinely router-side and cannot be fixed from the endpoint.
+- `RouterGuidance` emits `RouterInstruction`s, each a parameter, a value and the reason for that
+  value. The suite asserts all three on every instruction, so "check your QoS settings" cannot pass.
+- SQM/CAKE for bufferbloat: shaped limits computed at 90% of the rate actually *measured* in each
+  direction, only for a direction that measured C or worse, plus qdisc, script and the link-layer
+  caveat. The verification step says what to do when the grade does not move, because a
+  variable-rate line needs more headroom than a fixed one.
+- Wi-Fi channel and width, and the double-NAT way out. The channel handed to the router comes from
+  `WifiRadioAnalyzer.RecommendChannel`, the same call the report uses, so the two cannot drift. On
+  a tie the current channel wins — moving between two equally clear channels is churn.
+- Each instruction carries its OpenWrt UCI path where one exists, so it can be typed as-is today and
+  written by the same value once the transport lands. Double NAT deliberately carries none: bridge
+  mode is on the ISP's device, not on OpenWrt.
+
+**Deferred with the reason.** The OpenWrt SSH transport needs an SSH client library — the first
+third-party runtime dependency in the product — plus key handling and a credential policy. Under
+the roadmap's own rule that anything touching a privilege boundary gets a separate security review,
+that is its own increment rather than a tail of this one. Nothing else in W8 depends on it: the
+guidance is complete and actionable without it.
 
 ### W9 — Reporting, baseline, watchdog
 
@@ -196,7 +209,7 @@ these settings are actively harmful on some hardware.
 1. ~~**W1–W4** — diagnosis core and probe archive.~~ **Done.**
 2. ~~**W5, W6** — active measurement and topology facts.~~ **Done.**
 3. ~~**W7** — remediation engine and research-derived catalog growth.~~ **Done.**
-4. **W8** — router guidance, then optional OpenWrt SSH.
+4. ~~**W8** — router guidance.~~ **Done.** Optional OpenWrt SSH remains a separate increment.
 5. **W9** — baseline, watchdog, reporting.
 
 Each workstream lands with its own tests and keeps the default suite host-independent.
