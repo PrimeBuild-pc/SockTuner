@@ -103,15 +103,25 @@ Where the chain first degrades, not just that it does.
   The NIC link speed is a poor capacity proxy, so saturation is claimed against a *measured*
   capacity where one exists. Per-process attribution needs ETW and stays deferred.
 
-### W6 — Topology and path facts
+### W6 — Topology and path facts — **done**
 
-- Double NAT / CGNAT detection: compare the WAN address the router reports, the first public hop,
-  and the observed public address. The CGNAT range (100.64.0.0/10) is already classified by
-  `PathDiagnosticService.IsPublicAddress`. Report as `OutOfScope` with a clear explanation — it is
-  a frequent cause of gaming and P2P problems that users misattribute to their router.
-- Path MTU and ICMP black-hole detection (partly present).
-- Wi-Fi radio diagnosis: RSSI, band, channel width, co-channel and adjacent-channel overlap,
-  2.4 vs 5 vs 6 GHz congestion — to separate a network problem from placement and interference.
+- `TopologyAnalyzer`: CGNAT and double NAT from the route, the router-reported WAN address and the
+  observed public address — all three optional, and the verdict degrades to `Unknown` rather than
+  guessing. CGNAT is `OutOfScope` and stated not to cost latency; double NAT is `Router` with the
+  exact fix (bridge mode, or one device stops translating). Two private hops before the first
+  public one are only medium confidence: some ISPs number their own access equipment out of
+  private space. The router-reported WAN address arrives with W8; the observed public address
+  needs an external reflector and is only fetched on explicit request.
+- PMTUD black hole: a DF probe that times out is retried fragmentable. If the same packet gets
+  through, the path drops oversized packets silently — `PathMtuState.IcmpBlackHole` — and the
+  workaround is local and exact even though the cause is not.
+- Wi-Fi radio: `WindowsWifiInventory` reads RSSI, band, channel and occupied width through the
+  native WLAN API, taking the *cached* scan so the radio is never interrupted. Width comes from the
+  beacon's HT/VHT operation elements, so a 40 or 80 MHz neighbour is counted across the spectrum it
+  really occupies rather than the channel number it advertises. `WifiRadioAnalyzer` separates weak
+  signal (placement), wrong band (the same SSID reachable on 5/6 GHz) and channel congestion
+  (`Router`, with an exact 2.4 GHz channel — 1, 6 and 11 are legal everywhere, which is why an
+  exact number is only given on that band).
 
 ### W7 — Remediation engine
 
@@ -167,8 +177,7 @@ these settings are actively harmful on some hardware.
 ## Sequencing
 
 1. ~~**W1–W4** — diagnosis core and probe archive.~~ **Done.**
-2. ~~**W5** — active measurement.~~ **Done.** **W6** — topology facts; these produce the inputs W2
-   needs to be genuinely useful beyond ICMP.
+2. ~~**W5, W6** — active measurement and topology facts.~~ **Done.**
 3. **W7** — remediation engine and research-derived catalog growth.
 4. **W8** — router guidance, then optional OpenWrt SSH.
 5. **W9** — baseline, watchdog, reporting.

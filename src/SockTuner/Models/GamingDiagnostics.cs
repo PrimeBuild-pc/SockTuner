@@ -223,10 +223,20 @@ public enum PathMtuState
     Discovered,
     IcmpBlockedOrInconclusive,
     UnsupportedAddressFamily,
-    Error
+    Error,
+
+    /// <summary>
+    /// Oversized packets are dropped without the "fragmentation needed" reply that path MTU
+    /// discovery depends on. The size was still found, but only because the same packet was retried
+    /// fragmentable — the sender is left guessing, which is why connections hang rather than fail.
+    /// </summary>
+    IcmpBlackHole
 }
 
-public sealed record PathMtuResult(PathMtuState State, int? Mtu, string Detail);
+public sealed record PathMtuResult(PathMtuState State, int? Mtu, string Detail)
+{
+    public bool HasMtu => Mtu is > 0 && State is PathMtuState.Discovered or PathMtuState.IcmpBlackHole;
+}
 
 public sealed record DnsMeasurement(
     string Host,
