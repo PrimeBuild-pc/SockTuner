@@ -8,7 +8,7 @@ public sealed class PathDiagnosticService
 {
     private readonly Func<string, int, bool, int, TimeSpan, CancellationToken, Task<PathPingResult>> _ping;
 
-    public PathDiagnosticService() : this(PingAsync) { }
+    public PathDiagnosticService() : this(PingForRouteQualityAsync) { }
     internal PathDiagnosticService(Func<string, int, bool, int, TimeSpan, CancellationToken, Task<PathPingResult>> ping) => _ping = ping;
 
     public async Task<(IReadOnlyList<RouteSample> Routes, string? FirstPublicBoundary, PathMtuResult Mtu)> RunAsync(
@@ -94,7 +94,8 @@ public sealed class PathDiagnosticService
         return !address.IsIPv6LinkLocal && !address.IsIPv6SiteLocal && (bytes[0] & 0xFE) != 0xFC;
     }
 
-    private static async Task<PathPingResult> PingAsync(
+    // Shared with RouteQualityProbe so both traceroute paths use one ICMP implementation.
+    internal static async Task<PathPingResult> PingForRouteQualityAsync(
         string target, int payloadSize, bool dontFragment, int ttl, TimeSpan timeout, CancellationToken cancellationToken)
     {
         using var ping = new Ping();

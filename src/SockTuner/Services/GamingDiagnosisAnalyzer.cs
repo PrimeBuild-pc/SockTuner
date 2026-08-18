@@ -1,4 +1,5 @@
 using SockTuner.Models;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Services;
 
@@ -128,8 +129,21 @@ public sealed class GamingDiagnosisAnalyzer
                 "Run a longer test during the actual problem and add loaded-latency and route evidence."));
         }
 
-        return findings;
+        // Segment and owner are derived here rather than written into each finding, so two
+        // findings about the same part of the chain cannot disagree about who owns the fix.
+        return findings.Select(finding => ResponsibilityAssigner.Attribute(finding, ControlFor(finding.Scope))).ToArray();
     }
+
+    // How much of the lever SockTuner holds for each area it reports on.
+    private static LocalControl ControlFor(DiagnosticScope scope) => scope switch
+    {
+        // Resolver choice is a reversible local setting, but which resolver to trust is the
+        // user's call, so it is never applied without asking.
+        DiagnosticScope.Dns => LocalControl.RequiresChoice,
+        DiagnosticScope.LocalPc => LocalControl.RequiresChoice,
+        DiagnosticScope.Lan => LocalControl.RequiresChoice,
+        _ => LocalControl.None
+    };
 
     private static bool IsLocalStable(ProbeStatistics statistics) =>
         statistics.Received > 0 && statistics.LossPercent == 0 && statistics.P95Ms <= 10 && statistics.JitterMs <= 3;

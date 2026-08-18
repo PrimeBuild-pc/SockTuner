@@ -18,7 +18,7 @@ public sealed class SnapshotExporterTests
 
         using var document = JsonDocument.Parse(SnapshotExporter.Serialize(snapshot));
 
-        Assert.Equal(11, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(12, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.Equal("PC", document.RootElement.GetProperty("snapshot").GetProperty("system").GetProperty("machineName").GetString());
     }
 
@@ -95,4 +95,55 @@ public sealed class SnapshotExporterTests
         Assert.DoesNotContain("DEADBEEF0001", json, StringComparison.Ordinal);
         Assert.DoesNotContain("10.0.0.2", json, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Serialize_ProbeSnapshot_KeepsDriverAdvertisedConstraintsAndMasksUserAssignedValues()
+    {
+        var capabilities = new[]
+        {
+            Capability("*InterruptModeration", "0", [new CapabilityChoice("0", "Disabled"), new CapabilityChoice("1", "Enabled")]),
+            Capability("*JumboPacket", "1514", []) with { Minimum = 1514, Maximum = 9014, Step = 1 },
+            Capability("NetworkAddress", "DEADBEEF0002", [])
+        };
+        var snapshot = new NetworkSnapshot(
+            new SystemOverview("Windows", "10", "SECRET-PC", 8, false, DateTimeOffset.UnixEpoch),
+            [], [], null, AdapterCapabilities: capabilities);
+
+        var json = SnapshotExporter.Serialize(snapshot, probe: true);
+        using var document = JsonDocument.Parse(json);
+        var exported = document.RootElement.GetProperty("snapshot").GetProperty("adapterCapabilities");
+
+        // The constraints are the whole point of a capability report and must survive redaction.
+        Assert.Equal("0", exported[0].GetProperty("currentValue").GetString());
+        Assert.Equal(2, exported[0].GetProperty("choices").GetArrayLength());
+        Assert.Equal(1514, exported[1].GetProperty("minimum").GetInt64());
+        Assert.Equal(9014, exported[1].GetProperty("maximum").GetInt64());
+
+        // A user-assigned MAC override is personal data even inside a capability row.
+        Assert.Equal("[redacted]", exported[2].GetProperty("currentValue").GetString());
+        Assert.DoesNotContain("DEADBEEF0002", json, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Serialize_RedactedSupportSnapshot_StripsCapabilityIdentityToo()
+    {
+        var snapshot = new NetworkSnapshot(
+            new SystemOverview("Windows", "10", "PC", 8, false, DateTimeOffset.UnixEpoch),
+            [], [], null,
+            AdapterCapabilities: [Capability("*InterruptModeration", "1", [])]);
+
+        var json = SnapshotExporter.Serialize(snapshot, redact: true);
+
+        Assert.DoesNotContain("Intel(R) Ethernet Controller I226-V", json, StringComparison.Ordinal);
+        Assert.Contains("[redacted]", json, StringComparison.Ordinal);
+    }
+
+    private static AdapterSettingCapability Capability(
+        string keyword, string current, IReadOnlyList<CapabilityChoice> choices) => new(
+        Guid.Parse("DBE23C40-A216-4351-BC0F-CBF9519BC5CE"),
+        "Ethernet 2",
+        "Intel(R) Ethernet Controller I226-V",
+        keyword, keyword, current, null, choices, null, null, null,
+        AdapterSettingCapability.RegistrySz, false,
+        TuningArea.Latency, ChangeRisk.Medium, "trade-off");
 }

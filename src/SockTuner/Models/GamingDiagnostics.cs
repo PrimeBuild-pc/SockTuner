@@ -275,7 +275,20 @@ public sealed record DiagnosticFinding(
     DiagnosticConfidence Confidence,
     string Title,
     string Evidence,
-    string Action);
+    string Action,
+    NetworkSegment Segment = NetworkSegment.Unknown,
+    RemediationOwner Owner = RemediationOwner.PresetOrManual)
+{
+    public string OwnerDisplay => Owner switch
+    {
+        RemediationOwner.Automatic => "Automatic",
+        RemediationOwner.PresetOrManual => "Preset or manual",
+        RemediationOwner.Router => "Router",
+        RemediationOwner.OutOfScope => "Out of scope (ISP or infrastructure)",
+        _ => Owner.ToString()
+    };
+    public string SegmentDisplay => Segment.ToString();
+}
 
 public enum DiagnosticLoadCondition
 {
