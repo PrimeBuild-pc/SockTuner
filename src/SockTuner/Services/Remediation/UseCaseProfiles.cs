@@ -32,7 +32,9 @@ public static class UseCaseProfiles
     [
         new("competitive-gaming", "Competitive gaming",
             "Latency and jitter first. Costs CPU and some peak throughput, and none of it moves the base RTT set by "
-            + "distance and route.",
+            + "distance and route. No global TCP state is touched: on current Windows the stack defaults are already "
+            + "right, and the one setting worth moving — the receive window auto-tuning level — depends on the measured "
+            + "bandwidth-delay product, so it is derived per path instead of shipped as a value.",
             [
                 new KeywordTarget("*InterruptModeration", Off,
                     "Coalescing interrupts holds received packets back to batch them; off, each arrives as it lands."),

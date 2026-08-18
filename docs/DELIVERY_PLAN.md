@@ -92,8 +92,9 @@ Where the chain first degrades, not just that it does.
 - `LoadedLatencyProbe`: the same latency probe measured idle and again while one direction is
   saturated, with the load stopped as soon as the measurement window closes.
 - `LoadedLatencyAnalyzer`: latency-increase grade (A+ to F), plus loaded jitter and loss increase.
-  Bufferbloat is owned by the router — the queue is not on the endpoint — so it is never offered
-  as a local change.
+  The bufferbloat *finding* is owned by the router — the queue is not on the endpoint, and shaping
+  it there costs no throughput. W10 adds the endpoint-side **mitigation** beside it for the case
+  where the router is not the user's to configure; it is labelled a mitigation, never a fix.
 - Long-window stability: `NetworkMonitorService` already samples for minutes to hours with bounded
   memory and explicit start and stop; `StabilityAnalyzer` finds the loss bursts and latency spikes
   inside that window, judged against the run's own baseline. Two consecutive bad samples make an
@@ -143,10 +144,7 @@ Where the chain first degrades, not just that it does.
   (the exact PMTUD black-hole workaround), `tcp.interface.netbios-options` (one interface, never a
   blanket disable), and the two DWORD `Tasks\Games` MMCSS priorities.
 
-**Deferred with the reason.** TCP global controls (`netsh int tcp set global`: autotuning, ECN,
-timestamps, heuristics, initial RTO, templates) are not registry-backed; the supported surface is
-`MSFT_NetTCPSetting` in `root/StandardCimv2`, so they need a CIM *write* path that belongs to
-roadmap step 8 rather than a guessed registry address. The `Tasks\Games` string values
+**Deferred with the reason.** The `Tasks\Games` string values
 (`Scheduling Category`, `SFIO Priority`) need `SettingDefinition` to carry a non-numeric type.
 Teredo, ISATAP and 6to4 have no per-component registry lever — only the blanket
 `Tcpip6\Parameters\DisabledComponents`, which the architecture forbids.
@@ -190,6 +188,45 @@ guidance is complete and actionable without it.
   itself. Bounded window per target and a bounded alert list, so it can run for hours behind
   `NetworkMonitorService`.
 
+### W10 — TCP Optimizer parity — **done**
+
+SockTuner should be able to replace the SpeedGuide TCP Optimizer. That means parity of *coverage*,
+deliberately not parity of *values*.
+
+- **Write path.** `CimGlobalSettingStore` writes `MSFT_NetTCPSetting` (per template) and
+  `MSFT_NetOffloadGlobalSetting`. The provider is the allowlist exactly as the driver is for NIC
+  keywords: the accepted values of an enumerated property come from the class's own `ValueMap`
+  qualifier in the live namespace, so the constraint is whatever this build implements rather than a
+  table carried in source. There is no free-form tier — a property advertising neither an
+  enumeration nor a documented range is not exposed.
+- **Verified against the live provider:** 93 capabilities over five TCP templates plus the global
+  offload switches, all enumerated or ranged. The congestion providers on a current build run to
+  BBR2. A live test asserts every discovered current value fits the constraint declared for it —
+  it caught `DynamicPortRangeStartPort`, which ships at 1024 below a floor first written as 1025,
+  and would have made the property permanently unchangeable because the engine validates the
+  current value before planning.
+- **Write ≠ effect.** Group policy and the template a connection is mapped to both outrank a local
+  write, so the store compares against `AutoTuningLevelEffective` afterwards and records the write
+  as ineffective when the stack did not move. Reading back the address only proves the first.
+- **Registry additions:** `TcpTimedWaitDelay`, and the DNS client cache TTL caps. The writable
+  allowlist is now derived from the catalog instead of maintained beside it — the two had already
+  drifted, so `tcp.interface.mtu` could be planned and then refused at write time.
+- **`InertSettingCatalog`.** What other tools still write that modern Windows does not read, each
+  with the reason and an honest confidence level: `TcpWindowSize` and `GlobalMaxTcpWindowSize`
+  (superseded by auto-tuning in Vista), `Tcp1323Opts`, TCP Chimney and NetDMA (removed from the
+  OS), `MaxUserPort` (superseded by the dynamic port range), `DefaultTTL`, `SackOpts=0`,
+  `MaxConnectionsPerServer`, `IRPStackSize`. Three more are marked Medium or Low confidence and
+  stay cautions until the capability archive confirms them. The suite asserts nothing writable
+  names one of these. Writing a value Windows stopped reading years ago produces a placebo the
+  user then credits for every later improvement, and the real cause never gets found.
+- **`TcpTuningAdvisor` — the part a fixed preset cannot do.** A TCP connection's ceiling is
+  window ÷ round-trip time, so the auto-tuning level that costs nothing on a short fast path throws
+  most of a long one away. The level is therefore derived from the measured bandwidth-delay product
+  and the measured bufferbloat grade, in both directions: hold the window down when a download is
+  filling a bloated queue (stating the throughput it will cost), and *raise it back* when the
+  machine is throttling itself — the state a fixed optimizer preset leaves behind. No use-case
+  profile ships a global TCP value, and a test enforces that.
+
 ---
 
 ## Research corpus integration
@@ -206,7 +243,7 @@ these settings are actively harmful on some hardware.
 | Bufferbloat projects | idle versus loaded latency | W5, W8 | Fix is router-side SQM |
 | `GameNetAnalyzer` | jitter / burst / spike scoring, endpoint discovery | W5, W6 | tshark dependency dropped; native sockets and ETW instead |
 | `Auto MTU.bat` | MTU probing | W6 | Native path-MTU already present |
-| TCP global tweaks (`netsh int tcp ...`) | autotuning, ECN, timestamps, heuristics, RSS/RSC, initial RTO, templates | step 8 | Needs a CIM write path (`MSFT_NetTCPSetting`), not a registry address |
+| TCP global tweaks (`netsh int tcp ...`) | autotuning, ECN, timestamps, heuristics, RSS/RSC, initial RTO, templates | shipped | Written through `MSFT_NetTCPSetting` and `MSFT_NetOffloadGlobalSetting`; the provider's `ValueMap` is the allowlist |
 | Offload scripts | checksum, LSO, RSC, RSS, USO, VMQ, RDMA | W7 | Already driver-advertised via CIM |
 | MMCSS and `Tasks\Games` | throttling index, responsiveness, task priorities | shipped | Four entries; the two `Tasks\Games` string values need a non-numeric setting type |
 | `TcpAckFrequency`, `TcpDelAckTicks`, `TCPNoDelay` | per-interface ACK behaviour | shipped | Experimental, typed confirmation |
@@ -221,5 +258,6 @@ these settings are actively harmful on some hardware.
 3. ~~**W7** — remediation engine and research-derived catalog growth.~~ **Done.**
 4. ~~**W8** — router guidance.~~ **Done.** Optional OpenWrt SSH remains a separate increment.
 5. ~~**W9** — baseline, watchdog, reporting.~~ **Done.**
+6. ~~**W10** — global TCP and offload write path, and TCP Optimizer parity.~~ **Done.**
 
 Each workstream lands with its own tests and keeps the default suite host-independent.

@@ -11,9 +11,13 @@ namespace SockTuner.Services.Remediation;
 public sealed record RemediationContext(
     Guid? AdapterId = null,
     IReadOnlyList<AdapterSettingCapability>? Capabilities = null,
-    int? BlackHoledPathMtu = null)
+    int? BlackHoledPathMtu = null,
+    IReadOnlyList<GlobalSettingCapability>? GlobalCapabilities = null,
+    TcpPathMeasurement? Path = null,
+    string TcpTemplate = TcpTuningAdvisor.DefaultTcpTemplate)
 {
     public IReadOnlyList<AdapterSettingCapability> Advertised => Capabilities ?? [];
+    public IReadOnlyList<GlobalSettingCapability> Globals => GlobalCapabilities ?? [];
 }
 
 /// <summary>
@@ -33,6 +37,17 @@ public static class RemediationPlanner
         foreach (var finding in findings)
         {
             actions.Add(For(finding, context, index++));
+
+            // Bufferbloat stays router-owned: the queue is not on this machine and shaping it there
+            // costs nothing. But when the router is not the user's to configure, holding the receive
+            // window down is a real endpoint-side lever, so it is offered alongside — labelled a
+            // mitigation, with the throughput it costs computed from this path rather than guessed.
+            if (finding.Segment == NetworkSegment.RouterOrAccess
+                && context.Path is { } path
+                && TcpTuningAdvisor.Advise(path, context.Globals, context.TcpTemplate) is { } tuning)
+            {
+                actions.Add(tuning);
+            }
         }
 
         return actions;
