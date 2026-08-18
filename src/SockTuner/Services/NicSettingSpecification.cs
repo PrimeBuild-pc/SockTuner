@@ -75,29 +75,45 @@ public delegate ISettingSpecification SettingSpecificationResolver(string settin
 public static class SettingSpecifications
 {
     public const string NicPrefix = "nic.";
+    public const string CimPrefix = GlobalSettingCapability.Prefix;
 
     /// <summary>
-    /// Resolver backed by the live driver capabilities. Capabilities are read on first NIC lookup
-    /// and cached for the life of this resolver, so each transaction creates its own and reads the
-    /// driver afresh instead of trusting constraints captured earlier by the UI.
+    /// Resolver backed by live capabilities. Both the driver's NIC keywords and the CIM provider's
+    /// global properties are read on first lookup and cached for the life of this resolver, so each
+    /// transaction creates its own and re-reads what the system currently allows instead of trusting
+    /// constraints captured earlier by the UI.
     /// </summary>
     public static SettingSpecificationResolver Live()
     {
-        IReadOnlyList<AdapterSettingCapability>? capabilities = null;
+        IReadOnlyList<AdapterSettingCapability>? adapters = null;
+        IReadOnlyList<GlobalSettingCapability>? globals = null;
         return (settingId, targetId) =>
         {
-            if (!settingId.StartsWith(NicPrefix, StringComparison.Ordinal))
+            if (settingId.StartsWith(NicPrefix, StringComparison.Ordinal))
             {
-                return SettingCatalog.Get(settingId);
+                adapters ??= WindowsAdapterCapabilityInventory.Read().Capabilities;
+                return NicSettingSpecification.Resolve(settingId, targetId, adapters);
             }
 
-            capabilities ??= WindowsAdapterCapabilityInventory.Read().Capabilities;
-            return NicSettingSpecification.Resolve(settingId, targetId, capabilities);
+            if (settingId.StartsWith(CimPrefix, StringComparison.Ordinal))
+            {
+                globals ??= WindowsGlobalSettingInventory.Read().Capabilities;
+                return CimGlobalSettingSpecification.Resolve(settingId, targetId, globals);
+            }
+
+            return SettingCatalog.Get(settingId);
         };
     }
 
-    public static SettingSpecificationResolver From(IReadOnlyList<AdapterSettingCapability> capabilities) =>
-        (settingId, targetId) => settingId.StartsWith(NicPrefix, StringComparison.Ordinal)
-            ? NicSettingSpecification.Resolve(settingId, targetId, capabilities)
-            : SettingCatalog.Get(settingId);
+    public static SettingSpecificationResolver From(
+        IReadOnlyList<AdapterSettingCapability> capabilities,
+        IReadOnlyList<GlobalSettingCapability>? globals = null) =>
+        (settingId, targetId) => settingId switch
+        {
+            _ when settingId.StartsWith(NicPrefix, StringComparison.Ordinal) =>
+                NicSettingSpecification.Resolve(settingId, targetId, capabilities),
+            _ when settingId.StartsWith(CimPrefix, StringComparison.Ordinal) =>
+                CimGlobalSettingSpecification.Resolve(settingId, targetId, globals ?? []),
+            _ => SettingCatalog.Get(settingId)
+        };
 }

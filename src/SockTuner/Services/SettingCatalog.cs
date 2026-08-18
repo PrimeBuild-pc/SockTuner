@@ -8,6 +8,8 @@ public static class SettingCatalog
     private const string TcpInterfaces = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces";
     private const string MultimediaProfile = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile";
     private const string GamesTask = MultimediaProfile + @"\Tasks\Games";
+    private const string TcpParameters = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters";
+    private const string DnsCacheParameters = @"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters";
 
     public static IReadOnlyList<SettingDefinition> All { get; } =
     [
@@ -155,7 +157,58 @@ public static class SettingCatalog
             "Priority",
             RegistryValueKind.DWord,
             1,
-            8)
+            8),
+        new(
+            "tcp.global.timed-wait-delay",
+            "TIME_WAIT delay (seconds)",
+            "TCP resources",
+            SettingScope.System,
+            EvidenceLevel.Documented,
+            ChangeRisk.Medium,
+            "System reboot",
+            "How long a closed connection's port pair stays reserved before it can be reused.",
+            "Shortening it frees ports sooner on a machine opening thousands of short-lived connections. The reservation "
+                + "exists so a late packet from the old connection cannot be delivered to a new one on the same port pair; "
+                + "below the path's round-trip time that stops being theoretical.",
+            TcpParameters,
+            "TcpTimedWaitDelay",
+            RegistryValueKind.DWord,
+            30,
+            300),
+        new(
+            "dns.cache.max-ttl",
+            "DNS cache maximum TTL (seconds)",
+            "Name resolution",
+            SettingScope.System,
+            EvidenceLevel.Documented,
+            ChangeRisk.Low,
+            "Service restart",
+            "Caps how long the client caches a successful lookup, whatever TTL the record carried.",
+            "A longer cap saves lookups; it also keeps a stale address after a service moves, which is exactly what "
+                + "short TTLs on load-balanced endpoints exist to prevent. Affects lookup time, never the latency of an "
+                + "established session.",
+            DnsCacheParameters,
+            "MaxCacheTtl",
+            RegistryValueKind.DWord,
+            0,
+            86400),
+        new(
+            "dns.cache.max-negative-ttl",
+            "DNS negative cache maximum TTL (seconds)",
+            "Name resolution",
+            SettingScope.System,
+            EvidenceLevel.Documented,
+            ChangeRisk.Low,
+            "Service restart",
+            "Caps how long a failed lookup is remembered as failed. Zero disables negative caching.",
+            "Zero makes a name work the moment it starts resolving, at the cost of re-querying every failure. The "
+                + "default caches failures for five minutes, which is why a newly created record can appear unreachable "
+                + "long after it exists.",
+            DnsCacheParameters,
+            "MaxNegativeCacheTtl",
+            RegistryValueKind.DWord,
+            0,
+            86400)
     ];
 
     private static readonly IReadOnlyDictionary<string, SettingDefinition> ById =

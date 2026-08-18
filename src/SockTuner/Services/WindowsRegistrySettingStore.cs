@@ -9,16 +9,17 @@ namespace SockTuner.Services;
 
 public sealed class WindowsRegistrySettingStore : ISettingStore
 {
-    // Registry-backed catalog entries enabled for writing. NIC properties are not listed here:
-    // they are gated by what the driver advertises, not by a static allowlist.
-    private static readonly HashSet<string> WritableSettingIds = new(StringComparer.Ordinal)
-    {
-        "mmcss.network-throttling-index",
-        "mmcss.system-responsiveness",
-        "tcp.interface.no-delay",
-        "tcp.interface.ack-frequency",
-        "tcp.interface.delayed-ack-ticks"
-    };
+    // The catalog is the allowlist. It was a separately maintained list while the first five
+    // entries were being unlocked, which meant a new catalog entry could be planned and then
+    // refused at write time; deriving it removes that drift entirely. Every entry still carries its
+    // own evidence level, risk and restart requirement, and a Blocked one is never writable. NIC
+    // and CIM global properties are absent by design: they are gated by what the driver and the
+    // provider advertise, not by a static list.
+    internal static readonly HashSet<string> WritableSettingIds = new(
+        SettingCatalog.All
+            .Where(definition => definition.Evidence != EvidenceLevel.Blocked)
+            .Select(definition => definition.Id),
+        StringComparer.Ordinal);
     private readonly bool _allowWrites;
 
     private WindowsRegistrySettingStore(bool allowWrites) => _allowWrites = allowWrites;
