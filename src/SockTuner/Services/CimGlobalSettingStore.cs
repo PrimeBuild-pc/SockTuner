@@ -53,22 +53,57 @@ public sealed class CimGlobalSettingStore : ISettingStore
         return Task.CompletedTask;
     }
 
-    // Windows keeps a separate "effective" reading for the settings it can override. Comparing
-    // against it is the difference between reporting a write and reporting a change.
+    /// <summary>
+    /// Two ways a write can succeed and still change nothing, checked after every write because
+    /// reading back the address only proves the provider stored the value.
+    /// </summary>
     private void RecordIfIneffective(SettingAddress address, string written)
     {
-        if (!CimGlobalPropertyCatalog.EffectiveCounterpart.TryGetValue(address.ValueName, out var counterpart))
+        RecordIfPolicyOverrides(address, written);
+        RecordIfTemplateCarriesNoTraffic(address);
+    }
+
+    // The "effective" property names the winning source, not the winning value: its ValueMap is
+    // {Local, GroupPolicy}. Comparing it against the level that was written would flag every write
+    // on a machine with no policy at all, because the selector reads Local — which is success.
+    private void RecordIfPolicyOverrides(SettingAddress address, string written)
+    {
+        if (!CimGlobalPropertyCatalog.PolicySources.TryGetValue(address.ValueName, out var source))
         {
             return;
         }
 
         using var reread = Find(address);
-        if (WindowsGlobalSettingInventory.TryRead(reread, counterpart, out var effective)
-            && !string.Equals(effective, written, StringComparison.Ordinal))
+        if (!WindowsGlobalSettingInventory.TryRead(reread, source.SelectorProperty, out var selector)
+            || selector != PolicySource.GroupPolicyWins)
+        {
+            return;
+        }
+
+        var policyValue = WindowsGlobalSettingInventory.TryRead(reread, source.PolicyValueProperty, out var value)
+            ? value
+            : "unreadable";
+        _ineffectiveWrites.Add(
+            $"{address.ValueName} was written as {written} on {address.TargetId ?? "System"}, but "
+            + $"{source.SelectorProperty} reports group policy as the winning source and "
+            + $"{source.PolicyValueProperty} holds {policyValue}. The local value is stored and ignored.");
+    }
+
+    // Writing a template no transport filter points at is the quietest failure available here.
+    private void RecordIfTemplateCarriesNoTraffic(SettingAddress address)
+    {
+        if (address.TargetId is not { Length: > 0 } template
+            || !string.Equals(address.RegistryPath, CimGlobalPropertyCatalog.TcpSettingClass, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var resolution = WindowsTcpTemplateResolver.Read(_scope);
+        if (resolution.FromFilter && !string.Equals(resolution.Template, template, StringComparison.OrdinalIgnoreCase))
         {
             _ineffectiveWrites.Add(
-                $"{address.ValueName} was written as {written} on {address.TargetId ?? "System"}, but {counterpart} "
-                + $"still reads {effective}. Group policy, or the template this traffic is mapped to, is overriding it.");
+                $"{address.ValueName} was written to the {template} template, but ordinary TCP traffic is mapped to "
+                + $"{resolution.Template}. {resolution.Reason}");
         }
     }
 

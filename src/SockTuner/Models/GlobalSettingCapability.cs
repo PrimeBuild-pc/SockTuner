@@ -89,3 +89,42 @@ public sealed record GlobalSettingCapability(
 public sealed record GlobalSettingInventoryResult(
     IReadOnlyList<GlobalSettingCapability> Capabilities,
     string? Error);
+
+/// <summary>
+/// One entry from <c>MSFT_NetTransportFilter</c>: the mapping that decides which TCP template a
+/// connection actually uses. Writing a template no filter points at is a silent no-op — the write
+/// succeeds, reads back correctly, and changes nothing.
+/// </summary>
+public sealed record TcpTransportFilter(
+    string SettingName,
+    uint Protocol,
+    uint LocalPortStart,
+    uint LocalPortEnd,
+    uint RemotePortStart,
+    uint RemotePortEnd,
+    string DestinationPrefix)
+{
+    /// <summary>IANA protocol number for TCP.</summary>
+    public const uint Tcp = 6;
+
+    public bool IsTcp => Protocol == Tcp;
+
+    /// <summary>Whether this filter covers a connection to an arbitrary host on an arbitrary port.</summary>
+    public bool CoversOrdinaryTraffic => IsTcp
+        && DestinationPrefix is "*" or "0.0.0.0/0" or "::/0"
+        && RemotePortStart == 0 && RemotePortEnd >= 65535;
+
+    /// <summary>How much of the port space the filter claims, used to pick the widest when several match.</summary>
+    public long Coverage => (long)(LocalPortEnd - LocalPortStart) + (RemotePortEnd - RemotePortStart);
+
+    public string Summary => $"{SettingName}: protocol {Protocol}, local {LocalPortStart}-{LocalPortEnd}, "
+        + $"remote {RemotePortStart}-{RemotePortEnd}, destination {DestinationPrefix}";
+}
+
+/// <summary>Which TCP template ordinary internet traffic is mapped to, and how that was decided.</summary>
+public sealed record TcpTemplateResolution(
+    string Template,
+    bool FromFilter,
+    IReadOnlyList<TcpTransportFilter> Filters,
+    string Reason,
+    string? Error = null);

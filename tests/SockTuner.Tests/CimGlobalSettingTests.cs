@@ -164,11 +164,16 @@ public sealed class CimGlobalSettingTests
     }
 
     [Fact]
-    public void AutoTuningIsCheckedAgainstWhatTheStackIsActuallyUsing()
+    public void TheEffectivePropertyNamesTheWinningSourceRatherThanTheWinningValue()
     {
-        // Writing the local value is not the same as changing behaviour: group policy and template
-        // mapping both outrank it, and only the effective reading shows that.
-        Assert.Equal("AutoTuningLevelEffective", CimGlobalPropertyCatalog.EffectiveCounterpart["AutoTuningLevelLocal"]);
+        // Read from the live class: ValueMap {Local, GroupPolicy}, two values, against five for the
+        // level itself. Treating it as a second copy of the level would flag every write on a
+        // machine with no policy at all, because the selector reads Local — which is success.
+        var source = CimGlobalPropertyCatalog.PolicySources["AutoTuningLevelLocal"];
+
+        Assert.Equal("AutoTuningLevelEffective", source.SelectorProperty);
+        Assert.Equal("AutoTuningLevelGroupPolicy", source.PolicyValueProperty);
+        Assert.Equal("1", PolicySource.GroupPolicyWins);
     }
 
     [Fact]

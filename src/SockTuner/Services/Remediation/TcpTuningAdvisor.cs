@@ -26,8 +26,13 @@ public static class TcpTuningAdvisor
     /// <summary>The largest window TCP can advertise without window scaling.</summary>
     public const int UnscaledWindowBytes = 65535;
 
-    /// <summary>The template Windows maps ordinary internet traffic to.</summary>
-    public const string DefaultTcpTemplate = "InternetCustom";
+    /// <summary>
+    /// Used only when the transport filters could not be read. Callers should pass the template
+    /// <see cref="WindowsTcpTemplateResolver"/> resolved from the live filters — on a stock machine
+    /// a single filter sends all TCP to <c>Internet</c> while <c>InternetCustom</c> carries nothing,
+    /// so assuming the Custom template writes into an empty room.
+    /// </summary>
+    public const string DefaultTcpTemplate = WindowsTcpTemplateResolver.FallbackTemplate;
 
     private const string AutoTuningProperty = "AutoTuningLevelLocal";
 

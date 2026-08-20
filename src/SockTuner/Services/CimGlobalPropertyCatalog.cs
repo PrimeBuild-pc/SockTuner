@@ -7,6 +7,17 @@ namespace SockTuner.Services;
 /// for the numeric ones — the documented range. It never supplies the accepted values of an
 /// enumerated property; those come from the provider's own <c>ValueMap</c>.
 /// </summary>
+/// <summary>
+/// The pair of properties that reveal a group-policy override: the selector naming the winning
+/// source, and the value that source holds.
+/// </summary>
+/// <param name="SelectorProperty">Reads 0 when the local value wins and 1 when group policy does.</param>
+public sealed record PolicySource(string SelectorProperty, string PolicyValueProperty)
+{
+    /// <summary>The selector value meaning group policy is in force.</summary>
+    public const string GroupPolicyWins = "1";
+}
+
 public sealed record CimGlobalProperty(
     string ClassName,
     string Property,
@@ -41,14 +52,15 @@ public static class CimGlobalPropertyCatalog
         };
 
     /// <summary>
-    /// The property whose value proves a write actually took effect. Windows keeps a separate
-    /// "effective" reading for auto-tuning because group policy and the template a connection is
-    /// mapped to can both override what was written.
+    /// Properties Windows can source from group policy instead of the local value. The "effective"
+    /// property is not a second copy of the level — its ValueMap is {Local, GroupPolicy}, so it
+    /// names <em>which source wins</em>. Auto-tuning is the only property on the class with this
+    /// triplet, so the map has one entry rather than a general mechanism.
     /// </summary>
-    public static IReadOnlyDictionary<string, string> EffectiveCounterpart { get; } =
-        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    public static IReadOnlyDictionary<string, PolicySource> PolicySources { get; } =
+        new Dictionary<string, PolicySource>(StringComparer.OrdinalIgnoreCase)
         {
-            ["AutoTuningLevelLocal"] = "AutoTuningLevelEffective"
+            ["AutoTuningLevelLocal"] = new("AutoTuningLevelEffective", "AutoTuningLevelGroupPolicy")
         };
 
     private const string TcpRestart = "None (applies to connections opened after the change)";
