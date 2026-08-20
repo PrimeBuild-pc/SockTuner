@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
+using SockTuner.Services;
 
 namespace SockTuner.Persistence;
 
@@ -23,6 +24,19 @@ public static class SnapshotExporter
         redacted = redact || probe,
         probe,
         snapshot = redact || probe ? Redact(snapshot, probe) : snapshot
+    }, Options);
+
+    /// <summary>
+    /// The write-verification report. Nothing here identifies the machine — it is template names,
+    /// port ranges and accept/refuse outcomes — so there is nothing to redact.
+    /// </summary>
+    public static string SerializeTcpWriteVerification(TcpWriteVerificationReport report) => JsonSerializer.Serialize(new
+    {
+        schemaVersion = 1,
+        toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
+        exportedAt = DateTimeOffset.Now,
+        windowsBuild = Environment.OSVersion.Version.ToString(),
+        report
     }, Options);
 
     internal static NetworkSnapshot Redact(NetworkSnapshot snapshot, bool probe = false)
