@@ -3,12 +3,18 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml"><img src="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/v/release/PrimeBuild-pc/SockTuner?include_prereleases&label=release" alt="Latest release" /></a>
-  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img src="https://img.shields.io/github/downloads-pre/PrimeBuild-pc/SockTuner/total?label=downloads" alt="Total downloads" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License: MIT" /></a>
-  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11%20x64-blue" alt="Platform: Windows 10/11 x64" />
-  <img src="https://img.shields.io/badge/.NET-10%20LTS-512BD4" alt=".NET 10 LTS" />
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=git&amp;logoColor=white"></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/PrimeBuild-pc/SockTuner/ci.yml?branch=main&amp;style=plastic&amp;logo=githubactions&amp;label=CI"></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img alt="Latest release" src="https://img.shields.io/github/v/release/PrimeBuild-pc/SockTuner?include_prereleases&amp;style=plastic&amp;logo=github&amp;label=release"></a>
+  <a href="https://github.com/PrimeBuild-pc/SockTuner/releases"><img alt="Total downloads" src="https://img.shields.io/github/downloads-pre/PrimeBuild-pc/SockTuner/total?style=plastic&amp;logo=github&amp;label=downloads"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-2ea44f?style=plastic"></a>
+  <img alt="Windows 10 and 11 x64" src="https://img.shields.io/badge/Windows-10%20%7C%2011%20x64-0078D4?style=plastic&amp;logo=windows&amp;logoColor=white">
+  <img alt=".NET 10 LTS" src="https://img.shields.io/badge/.NET-10%20LTS-512BD4?style=plastic&amp;logo=dotnet&amp;logoColor=white">
 </p>
 
 > [!WARNING]
