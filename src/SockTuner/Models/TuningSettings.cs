@@ -46,7 +46,11 @@ public sealed record SettingDefinition(
     RegistryValueKind ValueKind,
     uint Minimum,
     uint Maximum,
-    IReadOnlySet<uint>? AllowedValues = null)
+    IReadOnlySet<uint>? AllowedValues = null,
+    // Why this entry carries its EvidenceLevel: the documentation or the Windows component that
+    // actually consumes the value. An EvidenceLevel on its own is an assertion; this makes it a
+    // citation the change cart can show and a reviewer can check. Enforced non-empty by tests.
+    string EvidenceNote = "")
 {
     public SettingAddress ResolveAddress(string? targetId)
     {

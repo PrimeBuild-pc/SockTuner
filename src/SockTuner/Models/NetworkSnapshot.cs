@@ -180,6 +180,50 @@ public sealed record NdisAdvancedProperty(
     string Type,
     string ValidValues);
 
+// Microsoft's standardized-keyword convention: a leading '*' marks a keyword defined by
+// Windows, so the driver publishes a documented default/enum for it. Anything else is a
+// private vendor keyword whose meaning is not publicly specified.
+public enum NicKeywordClass
+{
+    Standardized,
+    Vendor
+}
+
+// What SockTuner is willing to do with a keyword the driver advertises. Reading is always
+// allowed; this only governs whether the keyword may ever become a writable candidate.
+public enum NicKeywordDisposition
+{
+    // Standardized and documented: a legitimate candidate at the driver-advertised range.
+    DriverAdvertised,
+
+    // Documented, but carries a real trade-off or can regress; needs an explicit warning.
+    Situational,
+
+    // Vendor-private with no public meaning: recognised, never guessed at.
+    Uncharacterised,
+
+    // Research-flagged as unsafe; SockTuner will not offer it even when advertised.
+    Rejected
+}
+
+public sealed record NicKeywordInfo(
+    string Keyword,
+    NicKeywordClass Class,
+    NicKeywordDisposition Disposition,
+    string Note)
+{
+    public string ClassDisplay => Class == NicKeywordClass.Standardized ? "Standardized" : "Vendor";
+
+    public string DispositionDisplay => Disposition switch
+    {
+        NicKeywordDisposition.DriverAdvertised => "Driver-advertised",
+        NicKeywordDisposition.Situational => "Situational",
+        NicKeywordDisposition.Uncharacterised => "Uncharacterised",
+        NicKeywordDisposition.Rejected => "Rejected",
+        _ => "Unknown"
+    };
+}
+
 public sealed record NdisInventoryResult(
     DriverInfo? Driver,
     IReadOnlyList<NdisAdvancedProperty> Properties,

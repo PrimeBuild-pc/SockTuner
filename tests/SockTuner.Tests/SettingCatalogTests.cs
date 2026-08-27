@@ -48,6 +48,33 @@ public sealed class SettingCatalogTests
     }
 
     [Fact]
+    public void EveryWritableSettingCitesItsEvidence()
+    {
+        // An EvidenceLevel on its own is an assertion. Each entry must say which documentation
+        // or which Windows component backs it — including entries whose honest answer is that
+        // nothing has been verified yet.
+        foreach (var definition in SettingCatalog.All)
+        {
+            Assert.False(
+                string.IsNullOrWhiteSpace(definition.EvidenceNote),
+                $"{definition.Id} carries an evidence level with no supporting note.");
+        }
+    }
+
+    [Fact]
+    public void UnverifiedSettingsAreNotPresentedAsDocumented()
+    {
+        // TCPNoDelay and TcpDelAckTicks have no confirmed consuming binary and no Microsoft
+        // documentation, so neither may claim the Documented level.
+        foreach (var id in new[] { "tcp.interface.no-delay", "tcp.interface.delayed-ack-ticks" })
+        {
+            var definition = SettingCatalog.Get(id);
+            Assert.Equal(EvidenceLevel.Experimental, definition.Evidence);
+            Assert.Contains("Unverified", definition.EvidenceNote, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void AddressValidationRejectsArbitraryRegistryPath()
     {
         var definition = SettingCatalog.Get("mmcss.system-responsiveness");

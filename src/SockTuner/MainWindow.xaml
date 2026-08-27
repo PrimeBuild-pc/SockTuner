@@ -186,6 +186,9 @@
                             <DataGridTextColumn Header="Default" Binding="{Binding Default}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90"/>
                             <DataGridTextColumn Header="Driver-advertised values" Binding="{Binding ValidValues}" Width="2*"/>
+                            <DataGridTextColumn Header="Keyword class" Binding="{Binding KeywordClass}" Width="110"/>
+                            <DataGridTextColumn Header="Disposition" Binding="{Binding Disposition}" Width="130"/>
+                            <DataGridTextColumn Header="What is known" Binding="{Binding Note}" Width="3*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>

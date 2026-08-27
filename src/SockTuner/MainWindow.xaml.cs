@@ -96,19 +96,26 @@ public partial class MainWindow : Window
         _adapterRows = snapshot.Adapters;
         PlanAdapterComboBox.ItemsSource = snapshot.Adapters.Where(adapter => Guid.TryParse(adapter.Id, out _)).ToArray();
         _ndisRows = snapshot.Adapters
-            .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
-                adapter.Name,
-                adapter.DriverDisplay,
-                property.DisplayName,
-                property.Keyword,
-                property.CurrentValue,
-                property.DefaultValue,
-                property.Type,
-                property.ValidValues)))
+            .SelectMany(adapter => adapter.NdisProperties.Select(property =>
+            {
+                var known = NicKeywordCatalog.Describe(property.Keyword);
+                return new NdisPropertyRow(
+                    adapter.Name,
+                    adapter.DriverDisplay,
+                    property.DisplayName,
+                    property.Keyword,
+                    property.CurrentValue,
+                    property.DefaultValue,
+                    property.Type,
+                    property.ValidValues,
+                    known.ClassDisplay,
+                    known.DispositionDisplay,
+                    known.Note);
+            }))
             .ToArray();
         ApplyAdapterFilter();
         ApplyNdisFilter();
-        NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
+        NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s); {_ndisRows.Count(row => row.Disposition == "Uncharacterised")} uncharacterised, {_ndisRows.Count(row => row.Disposition == "Rejected")} rejected. Raw keywords remain visible, characterisation is advisory, and no values are changed.";
         RoutesGrid.ItemsSource = snapshot.Routes;
         DnsInterfacesGrid.ItemsSource = snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0);
         InterfaceSummaryText.Text = snapshot.IpInterfaceInventoryError is null
@@ -655,7 +662,10 @@ public partial class MainWindow : Window
                 || Contains(row.Current, search)
                 || Contains(row.Default, search)
                 || Contains(row.Type, search)
-                || Contains(row.ValidValues, search));
+                || Contains(row.ValidValues, search)
+                || Contains(row.KeywordClass, search)
+                || Contains(row.Disposition, search)
+                || Contains(row.Note, search));
         NdisPropertiesGrid.ItemsSource = Filter(rows, InventoryFilterText.Text);
     }
 
@@ -681,7 +691,7 @@ public partial class MainWindow : Window
         }
 
         CopyToClipboard(
-            $"Adapter\t{property.Adapter}\nDriver\t{property.Driver}\nProperty\t{property.Property}\nKeyword\t{property.Keyword}\nCurrent\t{property.Current}\nDefault\t{property.Default}\nType\t{property.Type}\nValid values\t{property.ValidValues}",
+            $"Adapter\t{property.Adapter}\nDriver\t{property.Driver}\nProperty\t{property.Property}\nKeyword\t{property.Keyword}\nCurrent\t{property.Current}\nDefault\t{property.Default}\nType\t{property.Type}\nValid values\t{property.ValidValues}\nKeyword class\t{property.KeywordClass}\nDisposition\t{property.Disposition}\nNote\t{property.Note}",
             $"Copied {property.Keyword}.");
     }
 
@@ -835,5 +845,8 @@ public partial class MainWindow : Window
         string Current,
         string Default,
         string Type,
-        string ValidValues);
+        string ValidValues,
+        string KeywordClass,
+        string Disposition,
+        string Note);
 }

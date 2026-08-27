@@ -154,6 +154,7 @@ Step 7 is split into two gates:
 
 Deliverables:
 
+- Read-only keyword characterisation (`NicKeywordCatalog`): every advertised keyword is labelled standardized/vendor and driver-advertised/situational/uncharacterised/rejected, with the reason shown next to it. Advisory only — it annotates the driver's list, never extends or unlocks it. **Landed.**
 - RSS, moderation, flow control, buffers/queues, supported offloads, jumbo frames, EEE, power, wake, and link controls.
 - Driver enum/range validation and absent/unsupported-state handling.
 - Adapter restart planning, reconnection verification, and exact rollback.
@@ -219,9 +220,11 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P1 / Step 7:** add capability-advertised NIC and driver controls without guessing unsupported properties.
+1. **P1 / Step 7:** add capability-advertised NIC and driver controls without guessing unsupported properties. Read-only keyword characterisation has landed; the write surface is untouched.
 
 Only the two Step 6 MMCSS settings are writable; every NIC/driver setting remains locked until its own fake and disposable-hardware gates pass.
+
+Every catalog entry now carries an `EvidenceNote` recording what actually backs its evidence level — the documentation or the Windows component that consumes the value — including the entries whose honest answer is that nothing has been verified yet. `TCPNoDelay` and `TcpDelAckTicks` are the two outstanding ones.
 
 ## Deferred until measured demand
 
@@ -229,4 +232,5 @@ Only the two Step 6 MMCSS settings are writable; every NIC/driver setting remain
 - Additional loaded-latency/throughput service integrations.
 - Wi-Fi radio/roaming controls and additional NIC validation packs.
 - CLI automation, signed profile exchange, ARM64, enterprise deployment.
+- Route-optimization / "gaming VPN" style hop scanning and best-path switching (LagoFast/ExitLag/Battleping-class), scoped in where a tunneled path measurably beats the direct route to the selected game server. Needs its own architecture and security review before entering the queue — see `research/notes/` for the mechanism and constraints; it is a distinct feature category from Step 9's passive route diagnosis, not an extension of it.
 - A custom capture driver, permanent service, plugin marketplace, or cloud platform; each requires a separate security and architecture review.

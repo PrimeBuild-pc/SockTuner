@@ -95,6 +95,10 @@ Implementation rules:
 4. Gate settings by OS build, adapter capability, driver version, and current topology.
 5. Do not invoke a command shell. If an inbox utility is temporarily required, call its absolute path with fixed argument construction, capture its exit code, and verify state independently.
 6. PowerShell is a development/reference tool, not an end-user prerequisite.
+7. Keyword characterisation is advisory metadata, never an allowlist. `NicKeywordCatalog`
+   annotates what a driver already advertises so the inventory can say what is known about a
+   keyword; it never adds, hides, or authorises one. The driver decides what exists, and
+   `SettingCatalog` alone decides what may be written.
 
 ## 6. Setting catalog
 
