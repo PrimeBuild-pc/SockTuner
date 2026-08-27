@@ -1,0 +1,1074 @@
+{
+  "archiveKey": "Intel-Dual-Band-Wireless-AC-3168-19.51.38.2",
+  "vendor": "Intel",
+  "model": "Intel(R) Dual Band Wireless-AC 3168",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Intel",
+    "version": "19.51.38.2",
+    "date": "8-9-2021",
+    "infPath": "oem6.inf",
+    "componentId": "PCI\\VEN_8086&DEV_24FB&SUBSYS_21108086",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 12,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260818-203056.json"
+  },
+  "adapter": {
+    "id": "{C8A8B1DA-89C6-40C0-850F-A7E26A80B466}",
+    "name": "Adapter 32",
+    "description": "Intel(R) Dual Band Wireless-AC 3168",
+    "interfaceType": "Wireless80211",
+    "status": "Up",
+    "speedBitsPerSecond": 130000000,
+    "macAddress": "18-CC-18-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [
+      "[IPv4 address redacted]"
+    ],
+    "dnsServers": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]",
+      "[IPv6 address redacted]"
+    ],
+    "ipv4Index": 17,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 17,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": {
+      "provider": "Intel",
+      "version": "19.51.38.2",
+      "date": "8-9-2021",
+      "infPath": "oem6.inf",
+      "componentId": "PCI\\VEN_8086&DEV_24FB&SUBSYS_21108086",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 132
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 588057,
+      "bytesSent": 109296,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 17,
+        "metric": 50,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 17,
+        "metric": 50,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "130 Mbps",
+    "driverDisplay": "Intel 19.51.38.2",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "19",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "[IPv4 address redacted]",
+    "dnsDisplay": "[IPv6 address redacted], [IPv4 address redacted], [IPv6 address redacted]",
+    "receivedDisplay": "588.06 KB",
+    "sentDisplay": "109.3 KB",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 50 (automatic) / IPv6 50 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "WirelessMode",
+      "displayName": "802.11a/b/g Wireless Mode",
+      "currentValue": "34",
+      "defaultValue": "34",
+      "type": "enum",
+      "validValues": "0: 2. 2.4GHz 802.11b, 16: 3. 2.4GHz 802.11g, 17: 1. 5GHz  802.11a, 18: 5. Dual Band 802.11a/g, 32: 4. 2.4GHz 802.11b/g, 34: 6. Dual Band 802.11a/b/g"
+    },
+    {
+      "keyword": "IEEE11nMode",
+      "displayName": "802.11n/ac Wireless Mode",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: 802.11n, 2: 802.11ac"
+    },
+    {
+      "keyword": "*PMARPOffload",
+      "displayName": "ARP offload for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "ChannelWidth24",
+      "displayName": "Channel Width for 2.4GHz",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: 20 MHz Only, 1: Auto"
+    },
+    {
+      "keyword": "ChannelWidth52",
+      "displayName": "Channel Width for 5GHz",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: 20 MHz Only, 1: Auto"
+    },
+    {
+      "keyword": "FatChannelIntolerant",
+      "displayName": "Fat Channel Intolerant",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*PMWiFiRekeyOffload",
+      "displayName": "GTK rekeying for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "MIMOPowerSaveMode",
+      "displayName": "MIMO Power Save Mode",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto SMPS, 1: Static SMPS, 2: Dynamic SMPS, 3: No SMPS"
+    },
+    {
+      "keyword": "CtsToItself",
+      "displayName": "Mixed Mode Protection",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: RTS/CTS Enabled, 1: CTS-to-self Enabled"
+    },
+    {
+      "keyword": "*PMNSOffload",
+      "displayName": "NS offload for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*PacketCoalescing",
+      "displayName": "Packet Coalescing",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "RoamingPreferredBandType",
+      "displayName": "Preferred Band",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. No Preference, 1: 2. Prefer 2.4GHz band, 2: 3. Prefer 5GHz band"
+    },
+    {
+      "keyword": "RoamAggressiveness",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: 1. Lowest, 1: 2. Medium-low, 2: 3. Medium, 3: 4. Medium-High, 4: 5. Highest"
+    },
+    {
+      "keyword": "*DeviceSleepOnDisconnect",
+      "displayName": "Sleep on WoWLAN Disconnect",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "ThroughputBoosterEnabled",
+      "displayName": "Throughput Booster",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "IbssTxPower",
+      "displayName": "Transmit Power",
+      "currentValue": "100",
+      "defaultValue": "100",
+      "type": "enum",
+      "validValues": "0: 1. Lowest, 100: 5. Highest, 25: 2. Medium-low, 50: 3. Medium, 75: 4. Medium-High"
+    },
+    {
+      "keyword": "uAPSDSupport",
+      "displayName": "U-APSD support",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "WirelessMode",
+      "displayName": "802.11a/b/g Wireless Mode",
+      "currentValue": "34",
+      "defaultValue": "34",
+      "choices": [
+        {
+          "registryValue": "17",
+          "displayValue": "1. 5GHz  802.11a",
+          "display": "1. 5GHz  802.11a (17)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "2. 2.4GHz 802.11b",
+          "display": "2. 2.4GHz 802.11b (0)"
+        },
+        {
+          "registryValue": "16",
+          "displayValue": "3. 2.4GHz 802.11g",
+          "display": "3. 2.4GHz 802.11g (16)"
+        },
+        {
+          "registryValue": "32",
+          "displayValue": "4. 2.4GHz 802.11b/g",
+          "display": "4. 2.4GHz 802.11b/g (32)"
+        },
+        {
+          "registryValue": "18",
+          "displayValue": "5. Dual Band 802.11a/g",
+          "display": "5. Dual Band 802.11a/g (18)"
+        },
+        {
+          "registryValue": "34",
+          "displayValue": "6. Dual Band 802.11a/b/g",
+          "display": "6. Dual Band 802.11a/b/g (34)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "settingId": "nic.WirelessMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "6. Dual Band 802.11a/b/g",
+      "defaultDisplay": "6. Dual Band 802.11a/b/g",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "1. 5GHz  802.11a (17), 2. 2.4GHz 802.11b (0), 3. 2.4GHz 802.11g (16), 4. 2.4GHz 802.11b/g (32), 5. Dual Band 802.11a/g (18), 6. Dual Band 802.11a/b/g (34)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "IEEE11nMode",
+      "displayName": "802.11n/ac Wireless Mode",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "802.11n",
+          "display": "802.11n (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "802.11ac",
+          "display": "802.11ac (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "settingId": "nic.IEEE11nMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "802.11ac",
+      "defaultDisplay": "802.11ac",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "Disabled (0), 802.11n (1), 802.11ac (2)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*PMARPOffload",
+      "displayName": "ARP offload for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "settingId": "nic.*PMARPOffload",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "ChannelWidth24",
+      "displayName": "Channel Width for 2.4GHz",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "20 MHz Only",
+          "display": "20 MHz Only (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Auto",
+          "display": "Auto (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "settingId": "nic.ChannelWidth24",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auto",
+      "defaultDisplay": "Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "constraintDisplay": "20 MHz Only (0), Auto (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "ChannelWidth52",
+      "displayName": "Channel Width for 5GHz",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "20 MHz Only",
+          "display": "20 MHz Only (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Auto",
+          "display": "Auto (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "settingId": "nic.ChannelWidth52",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auto",
+      "defaultDisplay": "Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "constraintDisplay": "20 MHz Only (0), Auto (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "FatChannelIntolerant",
+      "displayName": "Fat Channel Intolerant",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "settingId": "nic.FatChannelIntolerant",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*PMWiFiRekeyOffload",
+      "displayName": "GTK rekeying for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "settingId": "nic.*PMWiFiRekeyOffload",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "MIMOPowerSaveMode",
+      "displayName": "MIMO Power Save Mode",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Auto SMPS",
+          "display": "Auto SMPS (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Static SMPS",
+          "display": "Static SMPS (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Dynamic SMPS",
+          "display": "Dynamic SMPS (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "No SMPS",
+          "display": "No SMPS (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Radio power-save modes trade a little latency for battery life.",
+      "settingId": "nic.MIMOPowerSaveMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auto SMPS",
+      "defaultDisplay": "Auto SMPS",
+      "areasDisplay": "Power, WiFiRadio",
+      "constraintDisplay": "Auto SMPS (0), Static SMPS (1), Dynamic SMPS (2), No SMPS (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "CtsToItself",
+      "displayName": "Mixed Mode Protection",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "RTS/CTS Enabled",
+          "display": "RTS/CTS Enabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "CTS-to-self Enabled",
+          "display": "CTS-to-self Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "settingId": "nic.CtsToItself",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "RTS/CTS Enabled",
+      "defaultDisplay": "RTS/CTS Enabled",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "RTS/CTS Enabled (0), CTS-to-self Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*PMNSOffload",
+      "displayName": "NS offload for WoWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "settingId": "nic.*PMNSOffload",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*PacketCoalescing",
+      "displayName": "Packet Coalescing",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
+      "settingId": "nic.*PacketCoalescing",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Latency, Throughput",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "RoamingPreferredBandType",
+      "displayName": "Preferred Band",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. No Preference",
+          "display": "1. No Preference (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Prefer 2.4GHz band",
+          "display": "2. Prefer 2.4GHz band (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Prefer 5GHz band",
+          "display": "3. Prefer 5GHz band (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+      "settingId": "nic.RoamingPreferredBandType",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "1. No Preference",
+      "defaultDisplay": "1. No Preference",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "1. No Preference (0), 2. Prefer 2.4GHz band (1), 3. Prefer 5GHz band (2)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "RoamAggressiveness",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Lowest",
+          "display": "1. Lowest (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Medium-low",
+          "display": "2. Medium-low (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Medium",
+          "display": "3. Medium (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. Medium-High",
+          "display": "4. Medium-High (3)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "5. Highest",
+          "display": "5. Highest (4)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+      "settingId": "nic.RoamAggressiveness",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "3. Medium",
+      "defaultDisplay": "3. Medium",
+      "areasDisplay": "WiFiRadio",
+      "constraintDisplay": "1. Lowest (0), 2. Medium-low (1), 3. Medium (2), 4. Medium-High (3), 5. Highest (4)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*DeviceSleepOnDisconnect",
+      "displayName": "Sleep on WoWLAN Disconnect",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power",
+      "risk": "Medium",
+      "tradeOff": "Controls whether the device sleeps while the link is down.",
+      "settingId": "nic.*DeviceSleepOnDisconnect",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "Power",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "ThroughputBoosterEnabled",
+      "displayName": "Throughput Booster",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Frame aggregation raises throughput and adds a little latency and retransmission cost.",
+      "settingId": "nic.ThroughputBoosterEnabled",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "IbssTxPower",
+      "displayName": "Transmit Power",
+      "currentValue": "100",
+      "defaultValue": "100",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Lowest",
+          "display": "1. Lowest (0)"
+        },
+        {
+          "registryValue": "25",
+          "displayValue": "2. Medium-low",
+          "display": "2. Medium-low (25)"
+        },
+        {
+          "registryValue": "50",
+          "displayValue": "3. Medium",
+          "display": "3. Medium (50)"
+        },
+        {
+          "registryValue": "75",
+          "displayValue": "4. Medium-High",
+          "display": "4. Medium-High (75)"
+        },
+        {
+          "registryValue": "100",
+          "displayValue": "5. Highest",
+          "display": "5. Highest (100)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Transmit power is regulatory-constrained; raising it may be unlawful and increases interference and heat.",
+      "settingId": "nic.IbssTxPower",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "5. Highest",
+      "defaultDisplay": "5. Highest",
+      "areasDisplay": "Power, WiFiRadio",
+      "constraintDisplay": "1. Lowest (0), 2. Medium-low (25), 3. Medium (50), 4. Medium-High (75), 5. Highest (100)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "uAPSDSupport",
+      "displayName": "U-APSD support",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Radio power-save modes trade a little latency for battery life.",
+      "settingId": "nic.uAPSDSupport",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "Power, WiFiRadio",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "settingId": "nic.*WakeOnMagicPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "c8a8b1da-89c6-40c0-850f-a7e26a80b466",
+      "adapterName": "Adapter 32",
+      "interfaceDescription": "Intel(R) Dual Band Wireless-AC 3168",
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "settingId": "nic.*WakeOnPattern",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    }
+  ]
+}

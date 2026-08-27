@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Net.NetworkInformation;
 using System.Security.Principal;
@@ -8,33 +9,32 @@ namespace SockTuner.Services;
 
 public sealed class WindowsRegistrySettingStore : ISettingStore
 {
-    private const string IsolatedVmEnvironmentVariable = "SOCKTUNER_ISOLATED_VM_MUTATIONS";
-    private const string IsolatedVmConfirmation = "DISPOSABLE-VM-ONLY";
-    private static readonly HashSet<string> VmValidatedWritableSettingIds = new(StringComparer.Ordinal)
-    {
-        "mmcss.network-throttling-index",
-        "mmcss.system-responsiveness"
-    };
+    // The catalog is the allowlist. It was a separately maintained list while the first five
+    // entries were being unlocked, which meant a new catalog entry could be planned and then
+    // refused at write time; deriving it removes that drift entirely. Every entry still carries its
+    // own evidence level, risk and restart requirement, and a Blocked one is never writable. NIC
+    // and CIM global properties are absent by design: they are gated by what the driver and the
+    // provider advertise, not by a static list.
+    internal static readonly HashSet<string> WritableSettingIds = new(
+        SettingCatalog.All
+            .Where(definition => definition.Evidence != EvidenceLevel.Blocked)
+            .Select(definition => definition.Id),
+        StringComparer.Ordinal);
     private readonly bool _allowWrites;
 
     private WindowsRegistrySettingStore(bool allowWrites) => _allowWrites = allowWrites;
 
     public static WindowsRegistrySettingStore CreateReadOnly() => new(false);
 
-    public static WindowsRegistrySettingStore CreateForIsolatedVm()
+    /// <summary>
+    /// Creates the writable store. Elevation is the real boundary here; the user-facing alpha
+    /// consent is recorded in preferences and checked before the elevated worker is launched.
+    /// </summary>
+    public static WindowsRegistrySettingStore CreateWritable()
     {
         if (!OperatingSystem.IsWindows())
         {
             throw new PlatformNotSupportedException("Windows registry settings require Windows.");
-        }
-
-        if (!string.Equals(
-                Environment.GetEnvironmentVariable(IsolatedVmEnvironmentVariable),
-                IsolatedVmConfirmation,
-                StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                $"Live writes are locked. Set {IsolatedVmEnvironmentVariable}={IsolatedVmConfirmation} only inside a disposable VM.");
         }
 
         using var identity = WindowsIdentity.GetCurrent();
@@ -62,7 +62,9 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
             throw new InvalidDataException($"Unexpected registry type for {address.SettingId}.");
         }
 
-        return Task.FromResult(new StoredSettingValue(true, unchecked((uint)signed)));
+        return Task.FromResult(new StoredSettingValue(
+            true,
+            unchecked((uint)signed).ToString(CultureInfo.InvariantCulture)));
     }
 
     public Task WriteAsync(SettingAddress address, StoredSettingValue value, CancellationToken cancellationToken)
@@ -74,12 +76,17 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
             throw new InvalidOperationException("This registry store is read-only.");
         }
 
-        EnsureValidatedForIsolatedVm(address);
+        EnsureWritable(address);
         using var key = Registry.LocalMachine.OpenSubKey(address.RegistryPath, writable: true)
             ?? throw new InvalidOperationException($"Registry key does not exist: HKLM\\{address.RegistryPath}");
         if (value.Exists)
         {
-            key.SetValue(address.ValueName, unchecked((int)value.Value), address.ValueKind);
+            if (!SettingDefinition.TryParseCanonical(value.Value, out var number))
+            {
+                throw new InvalidDataException($"{address.SettingId} requires a canonical DWORD value.");
+            }
+
+            key.SetValue(address.ValueName, unchecked((int)number), address.ValueKind);
         }
         else
         {
@@ -89,12 +96,12 @@ public sealed class WindowsRegistrySettingStore : ISettingStore
         return Task.CompletedTask;
     }
 
-    internal static void EnsureValidatedForIsolatedVm(SettingAddress address)
+    internal static void EnsureWritable(SettingAddress address)
     {
         SettingCatalog.ValidateAddress(address);
-        if (!VmValidatedWritableSettingIds.Contains(address.SettingId))
+        if (!WritableSettingIds.Contains(address.SettingId))
         {
-            throw new InvalidOperationException($"{address.SettingId} has not passed the isolated-VM write gate.");
+            throw new InvalidOperationException($"{address.SettingId} is not enabled for writing.");
         }
     }
 

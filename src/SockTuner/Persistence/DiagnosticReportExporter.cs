@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
+using SockTuner.Services;
 
 namespace SockTuner.Persistence;
 
@@ -44,6 +45,41 @@ public static class DiagnosticReportExporter
 <h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>
+""";
+    }
+
+    /// <summary>
+    /// A before/after report for one applied change set: what was written, and what the identical
+    /// re-run measured. The comparison result decides whether the two runs may be compared at all —
+    /// an "improvement" between runs with different parameters is not an improvement.
+    /// </summary>
+    public static string SerializeComparisonHtml(
+        GamingDiagnosticReport baseline,
+        GamingDiagnosticReport after,
+        DiagnosticComparisonResult comparison,
+        IReadOnlyList<PlannedChange> applied,
+        bool redact = false)
+    {
+        var safeBaseline = redact ? Redact(baseline) : baseline;
+        var safeAfter = redact ? Redact(after) : after;
+        var title = HtmlEncoder.Default.Encode($"SockTuner before and after — {safeAfter.RequestedTarget}");
+        var changes = applied.Select(change => $"<tr><td>{H(change.Definition.Title)}</td>"
+            + $"<td>{H(redact ? "[redacted]" : change.Address.TargetId ?? "System")}</td>"
+            + $"<td>{H(change.BeforeDisplay)}</td><td>{H(change.AfterDisplay)}</td>"
+            + $"<td>{H(change.Source.ToString())}</td><td>{H(change.Definition.RestartRequirement)}</td></tr>");
+        var metrics = comparison.Metrics.Select(metric =>
+            $"<tr><td>{H(metric.Metric)}</td><td>{F(metric.Baseline)}</td><td>{F(metric.After)}</td><td>{F(metric.Delta)}</td></tr>");
+
+        return $$"""
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{{title}}</title>
+<style>body{font:14px Segoe UI,Arial;background:#111;color:#f2f2f2;margin:32px}h1,h2{font-weight:500}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #444;padding:8px;text-align:left;vertical-align:top}th{background:#2b2b2b}.muted{color:#b3b3b3}</style></head>
+<body><h1>{{title}}</h1>
+<p class="muted">Baseline {{H(safeBaseline.StartedAt.ToString("O"))}} · After {{H(safeAfter.StartedAt.ToString("O"))}} · Profile {{H(safeAfter.Profile.DisplayName)}} · Load {{H(safeAfter.LoadCondition.ToString())}} · Redacted {{redact}}</p>
+<p><strong>{{(comparison.Comparable ? "Comparable" : "Not comparable")}}.</strong> {{H(comparison.Reason)}}</p>
+<h2>Applied changes</h2><table><thead><tr><th>Setting</th><th>Target</th><th>Before</th><th>After</th><th>Source</th><th>Restart</th></tr></thead><tbody>{{(applied.Count == 0 ? "<tr><td colspan=\"6\">No change was applied between these runs.</td></tr>" : string.Join("", changes))}}</tbody></table>
+<h2>Measured difference</h2><table><thead><tr><th>Metric</th><th>Baseline</th><th>After</th><th>Change</th></tr></thead><tbody>{{(comparison.Comparable ? string.Join("", metrics) : "<tr><td colspan=\"4\">Not shown: the runs cannot be compared.</td></tr>")}}</tbody></table>
+</body></html>
 """;
     }
 

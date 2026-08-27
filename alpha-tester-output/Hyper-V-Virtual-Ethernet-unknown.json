@@ -1,0 +1,828 @@
+{
+  "archiveKey": "Hyper-V-Virtual-Ethernet-unknown",
+  "vendor": "Hyper-V",
+  "model": "Hyper-V Virtual Ethernet Adapter",
+  "isVirtual": true,
+  "driver": {},
+  "capturedFrom": {
+    "schemaVersion": 12,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260818-203056.json"
+  },
+  "adapter": {
+    "id": "{482A394B-035C-45D2-8D4A-9749330BB689}",
+    "name": "Adapter 24",
+    "description": "Hyper-V Virtual Ethernet Adapter",
+    "interfaceType": "Ethernet",
+    "status": "Up",
+    "speedBitsPerSecond": 10000000000,
+    "macAddress": "00-15-5D-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [],
+    "dnsServers": [
+      "[IPv6 address redacted]",
+      "[IPv6 address redacted]",
+      "[IPv6 address redacted]"
+    ],
+    "ipv4Index": 23,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 23,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": null,
+    "ndisSupported": false,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 0,
+      "bytesSent": 41264,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 23,
+        "metric": 5000,
+        "mtu": 1500,
+        "automaticMetric": false,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 23,
+        "metric": 5000,
+        "mtu": 1500,
+        "automaticMetric": false,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "10 Gbps",
+    "driverDisplay": "Unavailable",
+    "kind": "System",
+    "adapterKindDisplay": "System",
+    "ndisPropertyCountDisplay": "Unsupported",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "—",
+    "dnsDisplay": "[IPv6 address redacted], [IPv6 address redacted], [IPv6 address redacted]",
+    "receivedDisplay": "0 B",
+    "sentDisplay": "41.26 KB",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 5000 (manual) / IPv6 5000 (manual)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [],
+  "capabilities": [
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*IPsecOffloadV2",
+      "displayName": "IPSec Offload",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Auth Header Enabled",
+          "display": "Auth Header Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "ESP Enabled",
+          "display": "ESP Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Auth Header and ESP Enabled",
+          "display": "Auth Header and ESP Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*IPsecOffloadV2",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auth Header and ESP Enabled",
+      "defaultDisplay": "Auth Header and ESP Enabled",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Disabled (0), Auth Header Enabled (1), ESP Enabled (2), Auth Header and ESP Enabled (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*IPChecksumOffloadIPv4",
+      "displayName": "IPv4 Checksum Offload",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Enabled",
+          "display": "Tx Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Enabled",
+          "display": "Rx Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Enabled",
+          "display": "Rx & Tx Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*IPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Enabled",
+      "defaultDisplay": "Rx & Tx Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Tx Enabled (1), Rx Enabled (2), Rx & Tx Enabled (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*JumboPacket",
+      "displayName": "Jumbo Packet",
+      "currentValue": "1514",
+      "defaultValue": "1514",
+      "choices": [
+        {
+          "registryValue": "1514",
+          "displayValue": "Disabled",
+          "display": "Disabled (1514)"
+        },
+        {
+          "registryValue": "4088",
+          "displayValue": "4088 Bytes",
+          "display": "4088 Bytes (4088)"
+        },
+        {
+          "registryValue": "9014",
+          "displayValue": "9014 Bytes",
+          "display": "9014 Bytes (9014)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "High",
+      "tradeOff": "Every device on the path must accept the same frame size; a mismatch silently discards large packets while small ones keep working.",
+      "settingId": "nic.*JumboPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (1514), 4088 Bytes (4088), 9014 Bytes (9014)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*LsoV2IPv4",
+      "displayName": "Large Send Offload Version 2 (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*LsoV2IPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*LsoV2IPv6",
+      "displayName": "Large Send Offload Version 2 (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*LsoV2IPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*MaxRssProcessors",
+      "displayName": "Maximum Number of RSS Processors",
+      "currentValue": "8",
+      "defaultValue": "8",
+      "choices": [],
+      "minimum": 1,
+      "maximum": 64,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*MaxRssProcessors",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "8",
+      "defaultDisplay": "8",
+      "areasDisplay": "Other",
+      "constraintDisplay": "1–64",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*NumRSSQueues",
+      "displayName": "Maximum Number of RSS Queues",
+      "currentValue": "8",
+      "defaultValue": "8",
+      "choices": [],
+      "minimum": 1,
+      "maximum": 64,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*NumRSSQueues",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "8",
+      "defaultDisplay": "8",
+      "areasDisplay": "Other",
+      "constraintDisplay": "1–64",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RssMaxProcNumber",
+      "displayName": "Maximum RSS Processor Number",
+      "currentValue": "63",
+      "defaultValue": "63",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 63,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*RssMaxProcNumber",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "63",
+      "defaultDisplay": "63",
+      "areasDisplay": "Other",
+      "constraintDisplay": "0–63",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*NetworkDirect",
+      "displayName": "Network Direct (RDMA)",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*NetworkDirect",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabled",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RSS",
+      "displayName": "Receive Side Scaling",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*RSS",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RscIPv4",
+      "displayName": "Recv Segment Coalescing (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
+      "settingId": "nic.*RscIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Latency, Throughput",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RscIPv6",
+      "displayName": "Recv Segment Coalescing (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
+      "settingId": "nic.*RscIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Latency, Throughput",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RssBaseProcNumber",
+      "displayName": "RSS Base Processor Number",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 63,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*RssBaseProcNumber",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "0",
+      "defaultDisplay": "0",
+      "areasDisplay": "Other",
+      "constraintDisplay": "0–63",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*RSSProfile",
+      "displayName": "RSS Profile",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Closest Processor",
+          "display": "Closest Processor (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Closest Processor Static",
+          "display": "Closest Processor Static (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "NUMA Scaling",
+          "display": "NUMA Scaling (3)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "NUMA Scaling Static",
+          "display": "NUMA Scaling Static (4)"
+        },
+        {
+          "registryValue": "5",
+          "displayValue": "Conservative Scaling",
+          "display": "Conservative Scaling (5)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.*RSSProfile",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Closest Processor Static",
+      "defaultDisplay": "Closest Processor Static",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Closest Processor (1), Closest Processor Static (2), NUMA Scaling (3), NUMA Scaling Static (4), Conservative Scaling (5)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*TCPChecksumOffloadIPv4",
+      "displayName": "TCP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Enabled",
+          "display": "Tx Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Enabled",
+          "display": "Rx Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Enabled",
+          "display": "Rx & Tx Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*TCPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Enabled",
+      "defaultDisplay": "Rx & Tx Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Tx Enabled (1), Rx Enabled (2), Rx & Tx Enabled (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*TCPChecksumOffloadIPv6",
+      "displayName": "TCP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Enabled",
+          "display": "Tx Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Enabled",
+          "display": "Rx Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Enabled",
+          "display": "Rx & Tx Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*TCPChecksumOffloadIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Enabled",
+      "defaultDisplay": "Rx & Tx Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Tx Enabled (1), Rx Enabled (2), Rx & Tx Enabled (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*UDPChecksumOffloadIPv4",
+      "displayName": "UDP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Enabled",
+          "display": "Tx Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Enabled",
+          "display": "Rx Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Enabled",
+          "display": "Rx & Tx Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*UDPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Enabled",
+      "defaultDisplay": "Rx & Tx Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Tx Enabled (1), Rx Enabled (2), Rx & Tx Enabled (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "482a394b-035c-45d2-8d4a-9749330bb689",
+      "adapterName": "Adapter 24",
+      "interfaceDescription": "Hyper-V Virtual Ethernet Adapter",
+      "keyword": "*UDPChecksumOffloadIPv6",
+      "displayName": "UDP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Enabled",
+          "display": "Tx Enabled (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Enabled",
+          "display": "Rx Enabled (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Enabled",
+          "display": "Rx & Tx Enabled (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "settingId": "nic.*UDPChecksumOffloadIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Enabled",
+      "defaultDisplay": "Rx & Tx Enabled",
+      "areasDisplay": "Throughput",
+      "constraintDisplay": "Disabled (0), Tx Enabled (1), Rx Enabled (2), Rx & Tx Enabled (3)",
+      "isModifiedFromDefault": false
+    }
+  ]
+}

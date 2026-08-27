@@ -22,7 +22,7 @@ public sealed class SettingCatalogTests
     {
         var definition = SettingCatalog.Get("tcp.interface.no-delay");
 
-        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate(2));
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate("2"));
         Assert.Throws<KeyNotFoundException>(() => SettingCatalog.Get("not.allowlisted"));
     }
 
@@ -31,10 +31,10 @@ public sealed class SettingCatalogTests
     {
         var definition = SettingCatalog.Get("mmcss.network-throttling-index");
 
-        definition.Validate(1);
-        definition.Validate(70);
-        definition.Validate(uint.MaxValue);
-        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate(71));
+        definition.Validate("1");
+        definition.Validate("70");
+        definition.Validate("4294967295");
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate("71"));
     }
 
     [Fact]
@@ -42,9 +42,37 @@ public sealed class SettingCatalogTests
     {
         var definition = SettingCatalog.Get("mmcss.system-responsiveness");
 
-        definition.Validate(10);
-        definition.Validate(100);
-        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate(15));
+        definition.Validate("10");
+        definition.Validate("100");
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate("15"));
+    }
+
+    [Theory]
+    [InlineData("010")]      // leading zero round-trips to "10"
+    [InlineData(" 10")]      // leading space
+    [InlineData("10 ")]      // trailing space
+    [InlineData("+10")]      // explicit sign
+    [InlineData("1,0")]      // group separator
+    [InlineData("0x10")]     // hexadecimal
+    [InlineData("ten")]
+    [InlineData("")]
+    public void Validate_RejectsNonCanonicalNumericText(string value)
+    {
+        var definition = SettingCatalog.Get("mmcss.system-responsiveness");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate(value));
+    }
+
+    [Fact]
+    public void TryParseCanonical_AcceptsOnlyExactRoundTrippableText()
+    {
+        Assert.True(SettingDefinition.TryParseCanonical("0", out var zero));
+        Assert.Equal(0u, zero);
+        Assert.True(SettingDefinition.TryParseCanonical("4294967295", out var maximum));
+        Assert.Equal(uint.MaxValue, maximum);
+        Assert.False(SettingDefinition.TryParseCanonical("4294967296", out _));
+        Assert.False(SettingDefinition.TryParseCanonical("-1", out _));
+        Assert.False(SettingDefinition.TryParseCanonical(null, out _));
     }
 
     [Fact]

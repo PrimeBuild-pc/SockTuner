@@ -23,7 +23,7 @@ The default tests are deterministic/in-memory and do not modify Windows network 
 dotnet run --project src/SockTuner/SockTuner.csproj
 ```
 
-The current UI exposes read-only inventory and diagnostics plus an allowlisted dry-run change cart. The UI has no apply path and uses a read-only registry store for preview.
+The UI exposes read-only inventory and diagnostics, plus the **Tuning plan** tab: driver-advertised adapter properties filtered by intent preset (latency, bandwidth, power and wake, Wi-Fi radio, VLAN and identity), with preview, apply and exact rollback. Preview always reads through a read-only store; only an explicit apply elevates.
 
 ## DPI validation
 
@@ -31,15 +31,20 @@ The disposable Italian Windows 11 VM validates the live application at its Hyper
 
 ## Mutation safety
 
-`WindowsRegistrySettingStore.CreateForIsolatedVm()` is not reachable from the UI. It requires administrator rights and this explicit environment confirmation:
+Live writes are enabled in the alpha. The `SOCKTUNER_ISOLATED_VM_MUTATIONS` environment gate has been retired; four independent controls replace it:
 
-```text
-SOCKTUNER_ISOLATED_VM_MUTATIONS=DISPOSABLE-VM-ONLY
+1. **Alpha consent.** The first apply shows a blocking risk notice covering adapter restarts, connectivity loss, and recovery. Acceptance is stored in preferences as a versioned record (`WriteConsent.CurrentVersion`), so changing the risk text re-prompts.
+2. **Elevation.** The UI stays unelevated. Applying launches the same executable as a short-lived elevated worker over a private named pipe and exchanges one typed JSON request. A dismissed UAC prompt is reported as a clean no-op.
+3. **Per-setting gating.** Registry-backed catalog settings must appear in `WindowsRegistrySettingStore.WritableSettingIds`. NIC properties have no static allowlist: **the driver is the allowlist**. A NIC change is legal only if the CIM provider still advertises that keyword for that adapter and the value satisfies the driver's own `ValidRegistryValues` or min/max/step — re-read inside the elevated process immediately before writing, never trusted from the caller.
+4. **Typed confirmation.** Any change that is `ChangeRisk.High` or `EvidenceLevel.Experimental` additionally requires typing `APPLY`.
+
+Every apply still runs `read → plan → snapshot → apply → read-back verify → audit`, refuses a stale plan, and rolls back in reverse order on failure. NIC writes go through `MSFT_NetAdapterAdvancedPropertySettingData`, so no registry path is ever composed from plan data; affected adapters are then restarted via `MSFT_NetAdapter.Restart()` and checked back to the link state they had beforehand.
+
+Default and CI tests never touch the host. Read-only checks against real drivers are opt-in:
+
+```powershell
+$env:SOCKTUNER_LIVE_INVENTORY = '1'; dotnet test SockTuner.sln -c Release
 ```
-
-The variable is an operator confirmation, not proof of virtualization. Use it only inside a disposable Windows VM with a recovery path. CI never enables it.
-
-The writable store has a second, code-level allowlist. Its current Step 6 scope is limited to `SystemResponsiveness` and `NetworkThrottlingIndex`; every other catalog entry remains write-blocked. Both values passed three `read → apply → read → rollback → read` cycles on disposable Windows 10 22H2 and Windows 11 VMs, with exact DWORD restoration and persisted apply/rollback audit entries. Evidence stays outside the repository under `C:\VmLab\Runs`. The typed worker can execute only this VM-gated scope; the normal UI remains read-only.
 
 ## CI
 

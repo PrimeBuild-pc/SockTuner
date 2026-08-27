@@ -1,0 +1,274 @@
+{
+  "archiveKey": "TAP-Windows-V9-9.27.0.0",
+  "vendor": "TAP-Windows",
+  "model": "TAP-Windows Adapter V9",
+  "isVirtual": true,
+  "driver": {
+    "provider": "TAP-Windows Provider V9",
+    "version": "9.27.0.0",
+    "date": "2-27-2024",
+    "infPath": "oem10.inf",
+    "componentId": "root\\tap0901",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 1
+  },
+  "capturedFrom": {
+    "schemaVersion": 12,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260818-203056.json"
+  },
+  "adapter": {
+    "id": "{E5717502-8CAC-48CB-84EA-FB90D4866355}",
+    "name": "Adapter 66",
+    "description": "TAP-Windows Adapter V9",
+    "interfaceType": 53,
+    "status": "Down",
+    "speedBitsPerSecond": 1000000000,
+    "macAddress": "00-FF-E5-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [],
+    "dnsServers": [
+      "[IPv4 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "ipv4Index": 21,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 21,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": {
+      "provider": "TAP-Windows Provider V9",
+      "version": "9.27.0.0",
+      "date": "2-27-2024",
+      "infPath": "oem10.inf",
+      "componentId": "root\\tap0901",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 1
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 0,
+      "bytesSent": 0,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 21,
+        "metric": 25,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 21,
+        "metric": 25,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "1 Gbps",
+    "driverDisplay": "TAP-Windows Provider V9 9.27.0.0",
+    "kind": "Virtual",
+    "adapterKindDisplay": "Virtual",
+    "ndisPropertyCountDisplay": "4",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "—",
+    "dnsDisplay": "[IPv4 address redacted], [IPv4 address redacted]",
+    "receivedDisplay": "0 B",
+    "sentDisplay": "0 B",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 25 (automatic) / IPv6 25 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "NetworkAddress",
+      "displayName": "MAC Address",
+      "currentValue": "[redacted]",
+      "defaultValue": "—",
+      "type": "edit",
+      "validValues": "—"
+    },
+    {
+      "keyword": "MediaStatus",
+      "displayName": "Media Status",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Application Controlled, 1: Always Connected"
+    },
+    {
+      "keyword": "MTU",
+      "displayName": "MTU",
+      "currentValue": "1500",
+      "defaultValue": "1500",
+      "type": "int",
+      "validValues": "100–1500 (step 1)"
+    },
+    {
+      "keyword": "AllowNonAdmin",
+      "displayName": "Non-Admin Access",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Not Allowed, 1: Allowed"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "e5717502-8cac-48cb-84ea-fb90d4866355",
+      "adapterName": "Adapter 66",
+      "interfaceDescription": "TAP-Windows Adapter V9",
+      "keyword": "NetworkAddress",
+      "displayName": "MAC Address",
+      "currentValue": "[redacted]",
+      "defaultValue": null,
+      "choices": [],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": true,
+      "areas": "Identity",
+      "risk": "High",
+      "tradeOff": "Overriding the hardware MAC address can break DHCP reservations, port security, and licence activation.",
+      "settingId": "nic.NetworkAddress",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Unavailable",
+      "areasDisplay": "Identity",
+      "constraintDisplay": "Free text (driver advertises no constraint)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "e5717502-8cac-48cb-84ea-fb90d4866355",
+      "adapterName": "Adapter 66",
+      "interfaceDescription": "TAP-Windows Adapter V9",
+      "keyword": "MediaStatus",
+      "displayName": "Media Status",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Application Controlled",
+          "display": "Application Controlled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Always Connected",
+          "display": "Always Connected (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.MediaStatus",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Application Controlled",
+      "defaultDisplay": "Application Controlled",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Application Controlled (0), Always Connected (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "e5717502-8cac-48cb-84ea-fb90d4866355",
+      "adapterName": "Adapter 66",
+      "interfaceDescription": "TAP-Windows Adapter V9",
+      "keyword": "MTU",
+      "displayName": "MTU",
+      "currentValue": "1500",
+      "defaultValue": "1500",
+      "choices": [],
+      "minimum": 100,
+      "maximum": 1500,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, Identity",
+      "risk": "High",
+      "tradeOff": "An MTU above the path minimum causes silent black-holing of large packets.",
+      "settingId": "nic.MTU",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "1500",
+      "defaultDisplay": "1500",
+      "areasDisplay": "Throughput, Identity",
+      "constraintDisplay": "100–1500",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "e5717502-8cac-48cb-84ea-fb90d4866355",
+      "adapterName": "Adapter 66",
+      "interfaceDescription": "TAP-Windows Adapter V9",
+      "keyword": "AllowNonAdmin",
+      "displayName": "Non-Admin Access",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Not Allowed",
+          "display": "Not Allowed (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Allowed",
+          "display": "Allowed (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Other",
+      "risk": "High",
+      "tradeOff": "Advertised by the driver but not yet characterised by SockTuner. Treat as experimental: change one value at a time, measure, and roll back if behaviour changes.",
+      "settingId": "nic.AllowNonAdmin",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Allowed",
+      "defaultDisplay": "Allowed",
+      "areasDisplay": "Other",
+      "constraintDisplay": "Not Allowed (0), Allowed (1)",
+      "isModifiedFromDefault": false
+    }
+  ]
+}

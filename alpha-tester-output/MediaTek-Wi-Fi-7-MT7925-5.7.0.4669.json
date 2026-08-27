@@ -1,0 +1,266 @@
+{
+  "archiveKey": "MediaTek-Wi-Fi-7-MT7925-5.7.0.4669",
+  "vendor": "MediaTek",
+  "model": "MediaTek Wi-Fi 7 MT7925 Wireless LAN Card",
+  "isVirtual": false,
+  "driver": {
+    "provider": "MediaTek, Inc.",
+    "version": "5.7.0.4669",
+    "date": "9-27-2025",
+    "infPath": "oem30.inf",
+    "componentId": "PCI\\VEN_14C3&DEV_7925&SUBSYS_60001A3B",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 11,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260726-164817.json"
+  },
+  "adapter": {
+    "id": "{C954C392-9E38-477F-820E-56BA4C4C4409}",
+    "name": "Adapter 23",
+    "description": "MediaTek Wi-Fi 7 MT7925 Wireless LAN Card",
+    "interfaceType": "Wireless80211",
+    "status": "Down",
+    "speedBitsPerSecond": -1,
+    "macAddress": "A8-E2-91-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [],
+    "dnsServers": [
+      "[IPv4 address redacted]"
+    ],
+    "ipv4Index": 17,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 17,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": {
+      "provider": "MediaTek, Inc.",
+      "version": "5.7.0.4669",
+      "date": "9-27-2025",
+      "infPath": "oem30.inf",
+      "componentId": "PCI\\VEN_14C3&DEV_7925&SUBSYS_60001A3B",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 132
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 0,
+      "bytesSent": 0,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 17,
+        "metric": 25,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 17,
+        "metric": 25,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "Unknown",
+    "driverDisplay": "MediaTek, Inc. 5.7.0.4669",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "20",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "—",
+    "dnsDisplay": "[IPv4 address redacted]",
+    "receivedDisplay": "0 B",
+    "sentDisplay": "0 B",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 25 (automatic) / IPv6 25 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "BWSelection24G",
+      "displayName": "2.4GHz channel bandwidth",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "BWSelection5G",
+      "displayName": "5GHz channel bandwidth",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "BWSelection6G",
+      "displayName": "6GHz channel bandwidth",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "CurrPhyMode",
+      "displayName": "802.11be/ax/ac/n/abg",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. 802.11be, 1: 2. 802.11ax, 2: 3. 802.11ac, 3: 4. 802.11n, 4: 5. 802.11a/b/g"
+    },
+    {
+      "keyword": "AMSDURx",
+      "displayName": "AMSDU Rx",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "AMSDUTx",
+      "displayName": "AMSDU Tx",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "PMARPOffload",
+      "displayName": "ARP Offload for WOWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "BandSelection",
+      "displayName": "Band Selection",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. All Band, 1: 2. 2.4G Only, 2: 3. 5G Only, 3: 4. 6G Only"
+    },
+    {
+      "keyword": "PreferredBand",
+      "displayName": "Banda preferita",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Nessuna preferenza, 1: 2. Preferenza a banda a 2,4 GHz, 2: 3. Banda a 5 GHz, 3: 4. Banda a 6 GHz"
+    },
+    {
+      "keyword": "WakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "RoamNeedIndicateTh",
+      "displayName": "Efficacia roaming",
+      "currentValue": "70",
+      "defaultValue": "70",
+      "type": "enum",
+      "validValues": "0: 1. Disattivata, 65: 6. Massimo, 70: 5. Medio-alto, 75: 4. Medio, 80: 3. Medio-basso, 85: 2. Minimo"
+    },
+    {
+      "keyword": "PMWiFiRekeyOffload",
+      "displayName": "GTK Rekey for WOWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "WfdGOOperatingChannel",
+      "displayName": "Miracast prefer band",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto, 11: 2.4G, 36: 5G"
+    },
+    {
+      "keyword": "PMNSOffload",
+      "displayName": "NS Offload for WOWLAN",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "LowPowerEnable",
+      "displayName": "Power Saving",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Auto"
+    },
+    {
+      "keyword": "*RscIPv4",
+      "displayName": "RSC IPv4",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "*RscIPv6",
+      "displayName": "RSC IPv6",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "TxPowerLevel",
+      "displayName": "Transmit Power Level",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Massimo, 1: 2. Medio, 2: 3. Minimo"
+    },
+    {
+      "keyword": "UAPSDSupport",
+      "displayName": "U-APSD Support",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    }
+  ],
+  "capabilities": []
+}

@@ -143,14 +143,14 @@ Exit criteria:
 - External drift is refused rather than overwritten.
 - No adapter restart, reboot, or connectivity interruption occurs without explicit preview and confirmation.
 
-### Step 7 — NIC and driver controls (`0.7`) — **P1, current**
+### Step 7 — NIC and driver controls (`0.7`) — **P1, current (7a complete, 7b in alpha)**
 
 **Goal:** expose only capabilities actually advertised by the selected driver.
 
 Step 7 is split into two gates:
 
 - **7a — capability collection (no disposable hardware required):** the read-only `--probe` mode captures a redacted inventory from collaborator PCs with real Intel/Realtek NICs. Personal data (machine name, IPs, MAC device octets, user-assigned values) is masked; hardware identity (driver, PNP ID, NDIS keywords, defaults, ranges/enums) is preserved. Probe reports seed the capability matrix and fake-platform fixtures.
-- **7b — write unlock:** NIC/driver writes stay locked until snapshot/apply/read-back/rollback passes on real hardware, either on a collaborator beta device with explicit consent or on disposable hardware. Probe data alone never unlocks writes.
+- **7b — write unlock (alpha):** NIC/driver writes are enabled behind versioned in-app consent, UAC elevation, driver-advertised validation re-read inside the elevated worker, and a typed confirmation for high-risk or experimental changes. The static per-setting allowlist is retained for registry-backed catalog entries only; for NIC properties the driver's own advertised constraints are the allowlist, so an unsupported keyword or value cannot be planned or written. Capability coverage is currently Intel I226-V and Wireless-AC 3168, Realtek RTL8125 and 8852CE, and MediaTek MT7925 — keywords outside that corpus are exposed but reported as high risk and uncharacterised.
 
 Deliverables:
 
@@ -219,9 +219,9 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P1 / Step 7:** add capability-advertised NIC and driver controls without guessing unsupported properties.
+1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more probe reports arrive.
 
-Only the two Step 6 MMCSS settings are writable; every NIC/driver setting remains locked until its own fake and disposable-hardware gates pass.
+Writable surfaces: the five registry-backed catalog entries (two MMCSS, three experimental TCP-ACK behind typed confirmation) and every property the selected driver advertises. Nothing is written that the driver does not currently advertise for that adapter.
 
 ## Deferred until measured demand
 

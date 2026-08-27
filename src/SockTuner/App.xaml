@@ -184,8 +184,19 @@
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-                            <ContentPresenter Margin="10,0,30,0" VerticalAlignment="Center" IsHitTestVisible="False"
-                                              Content="{TemplateBinding SelectionBoxItem}"/>
+                            <!-- Forwarding ItemTemplate is what makes DisplayMemberPath render; the
+                                 presenter otherwise falls back to ToString() on the bound object. -->
+                            <ContentPresenter x:Name="SelectionSite" Margin="10,0,30,0" VerticalAlignment="Center"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{Binding ItemTemplate, RelativeSource={RelativeSource TemplatedParent}}"/>
+                            <!-- An editable ComboBox is inert without this exact part name: WPF
+                                 locates PART_EditableTextBox to host and commit typed text. -->
+                            <TextBox x:Name="PART_EditableTextBox" Margin="6,0,28,0" Visibility="Collapsed"
+                                     Background="Transparent" BorderThickness="0" Padding="4,0" MinHeight="0"
+                                     VerticalContentAlignment="Center"
+                                     Foreground="{TemplateBinding Foreground}"
+                                     CaretBrush="{StaticResource TextBrush}"/>
                             <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}"
                                    AllowsTransparency="True" Focusable="False">
                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource ControlBorderBrush}"
@@ -197,6 +208,10 @@
                             </Popup>
                         </Grid>
                         <ControlTemplate.Triggers>
+                            <Trigger Property="IsEditable" Value="True">
+                                <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="SelectionSite" Property="Visibility" Value="Collapsed"/>
+                            </Trigger>
                             <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                 <Setter TargetName="DropDownToggle" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
                                 <Setter TargetName="DropDownToggle" Property="BorderThickness" Value="2"/>

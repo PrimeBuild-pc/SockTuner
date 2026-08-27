@@ -31,6 +31,7 @@ public sealed class SystemInventoryService
         var offloads = WindowsOffloadInventory.Read();
         var tcpSettings = WindowsTcpSettingInventory.Read();
         var qosPolicies = WindowsQosPolicyInventory.Read();
+        var capabilities = WindowsAdapterCapabilityInventory.Read();
         return new NetworkSnapshot(
             overview,
             adapters,
@@ -49,7 +50,9 @@ public sealed class SystemInventoryService
             tcpSettings.Settings,
             tcpSettings.Error,
             qosPolicies.Policies,
-            qosPolicies.Error);
+            qosPolicies.Error,
+            capabilities.Capabilities,
+            capabilities.Error);
     }
 
     private static AdapterInfo ReadAdapter(

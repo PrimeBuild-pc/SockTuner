@@ -1,0 +1,333 @@
+{
+  "archiveKey": "Realtek-Gaming-2-5GbE-1125.28.20.1224",
+  "vendor": "Realtek",
+  "model": "Realtek Gaming 2.5GbE Family Controller",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Realtek",
+    "version": "1125.28.20.1224",
+    "date": "12-24-2025",
+    "infPath": "oem7.inf",
+    "componentId": "PCI\\VEN_10EC&DEV_8125&SUBSYS_E0001458&REV_05",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 4
+  },
+  "capturedFrom": {
+    "schemaVersion": 11,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260726-140827.json"
+  },
+  "adapter": {
+    "id": "{7384463D-C6A1-46C1-B7A3-1C3B8A05F87C}",
+    "name": "Adapter 27",
+    "description": "Realtek Gaming 2.5GbE Family Controller",
+    "interfaceType": "Ethernet",
+    "status": "Down",
+    "speedBitsPerSecond": -1,
+    "macAddress": "74-56-3C-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [],
+    "dnsServers": [
+      "[IPv6 address redacted]",
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "ipv4Index": 10,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 10,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": {
+      "provider": "Realtek",
+      "version": "1125.28.20.1224",
+      "date": "12-24-2025",
+      "infPath": "oem7.inf",
+      "componentId": "PCI\\VEN_10EC&DEV_8125&SUBSYS_E0001458&REV_05",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 4
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 0,
+      "bytesSent": 0,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 10,
+        "metric": 5,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 10,
+        "metric": 5,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": false,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "Unknown",
+    "driverDisplay": "Realtek 1125.28.20.1224",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "28",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "—",
+    "dnsDisplay": "[IPv6 address redacted], [IPv6 address redacted], [IPv4 address redacted], [IPv4 address redacted]",
+    "receivedDisplay": "0 B",
+    "sentDisplay": "0 B",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 5 (automatic) / IPv6 5 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "AdvancedEEE",
+      "displayName": "Advanced EEE",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*FlowControl",
+      "displayName": "Controllo flusso",
+      "currentValue": "0",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "EEEMaxSupportSpeed",
+      "displayName": "EEE Max Support Speed",
+      "currentValue": "1000",
+      "defaultValue": "1000",
+      "type": "enum",
+      "validValues": "10: 10 Mbps Full Duplex, 100: 100 Mbps Full Duplex, 1000: 1.0 Gbps Full Duplex, 2500: 2.5 Gbps Full Duplex"
+    },
+    {
+      "keyword": "*EEE",
+      "displayName": "Ethernet a risparmio energetico",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "GigaLite",
+      "displayName": "Gigabit Lite",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "EnableGreenEthernet",
+      "displayName": "Green Ethernet",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "NetworkAddress",
+      "displayName": "Indirizzo di rete",
+      "currentValue": "[redacted]",
+      "defaultValue": "",
+      "type": "edit",
+      "validValues": "—"
+    },
+    {
+      "keyword": "*InterruptModeration",
+      "displayName": "Interrupt Moderation",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*IPChecksumOffloadIPv4",
+      "displayName": "IPv4 Checksum Offload",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*JumboPacket",
+      "displayName": "Jumbo Frame",
+      "currentValue": "1514",
+      "defaultValue": "1514",
+      "type": "enum",
+      "validValues": "1514: Disabilitato, 16128: 16128 Bytes, 4088: 4088 Bytes, 9014: 9014 Bytes"
+    },
+    {
+      "keyword": "*LsoV2IPv4",
+      "displayName": "Large Send Offload v2 (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*LsoV2IPv6",
+      "displayName": "Large Send Offload v2 (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PMARPOffload",
+      "displayName": "Offload ARP",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PMNSOffload",
+      "displayName": "Offload NS",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "PowerSavingMode",
+      "displayName": "Power Saving Mode",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PriorityVlanTag",
+      "displayName": "Priorità e VLAN",
+      "currentValue": "0",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Priorità e VLAN disabilitata, 1: Priorità abilitata, 2: VLAN abilitata, 3: Priorità e VLAN abilitata"
+    },
+    {
+      "keyword": "*ReceiveBuffers",
+      "displayName": "Ricevi buffer",
+      "currentValue": "1024",
+      "defaultValue": "1024",
+      "type": "int",
+      "validValues": "32–4096 (step 8)"
+    },
+    {
+      "keyword": "S5WakeOnLan",
+      "displayName": "Shutdown Wake-On-Lan",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv4",
+      "displayName": "TCP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv6",
+      "displayName": "TCP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*TransmitBuffers",
+      "displayName": "Trasmetti buffer",
+      "currentValue": "512",
+      "defaultValue": "512",
+      "type": "int",
+      "validValues": "64–4096 (step 8)"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv4",
+      "displayName": "UDP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv6",
+      "displayName": "UDP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*SpeedDuplex",
+      "displayName": "Velocità e duplex",
+      "currentValue": "—",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto Negotiation, 1: 10 Mbps Half Duplex, 2: 10 Mbps Full Duplex, 2500: 2.5 Gbps Full Duplex, 3: 100 Mbps Half Duplex, 4: 100 Mbps Full Duplex, 6: 1.0 Gbps Full Duplex"
+    },
+    {
+      "keyword": "RegVlanid",
+      "displayName": "VLAN ID",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "int",
+      "validValues": "0–4094 (step 1)"
+    },
+    {
+      "keyword": "WolShutdownLinkSpeed",
+      "displayName": "WOL & Shutdown velocità collegamento",
+      "currentValue": "2",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Prima 10 Mbps, 1: Prima 100 Mbps, 2: Non rallentamento"
+    }
+  ],
+  "capabilities": []
+}

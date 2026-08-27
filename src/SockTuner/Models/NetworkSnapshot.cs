@@ -550,7 +550,9 @@ public sealed record NetworkSnapshot(
     IReadOnlyList<TcpSettingInfo>? TcpSettings = null,
     string? TcpSettingInventoryError = null,
     IReadOnlyList<QosPolicyInfo>? QosPolicies = null,
-    string? QosPolicyInventoryError = null)
+    string? QosPolicyInventoryError = null,
+    IReadOnlyList<AdapterSettingCapability>? AdapterCapabilities = null,
+    string? AdapterCapabilityInventoryError = null)
 {
     public int ActiveAdapterCount => Adapters.Count(adapter =>
         adapter.Status == OperationalStatus.Up

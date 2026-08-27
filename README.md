@@ -18,8 +18,8 @@
 </p>
 
 > [!WARNING]
-> **SockTuner is in active development (pre-alpha) and is NOT ready for production use.**
-> The project is currently at **Step 7 of 10: hardware capability collection**. The published build is a read-only inventory, diagnostics, and data-collection tool. NIC/driver tuning is still locked and no release can modify your network configuration. Do not rely on it as a finished product.
+> **SockTuner is in active development (alpha) and is NOT ready for production use.**
+> The project is at **Step 7b of 10: NIC and driver controls**. This build **can change live network settings**. Applying a NIC property restarts that adapter and briefly drops its link — never apply over a remote session on the adapter you are changing, and be able to recover the machine's network without remote access. Every change is snapshotted, verified by read-back, and reversible from the audit history, but treat it as alpha software.
 
 SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
 
@@ -46,7 +46,7 @@ If you have one of these NICs, you can contribute in two minutes with the built-
 | Included (hardware identity) | Masked (personal data) |
 | --- | --- |
 | NIC description, driver provider/version/date, INF name | Machine name |
-| PCI vendor/device ID (`PCI\VEN_xxxx&DEV_xxxx`) | IP addresses, gateways, DNS servers, routes |
+| PCI vendor/device ID, reported as the driver's component ID (`PCI\VEN_xxxx&DEV_xxxx`) | IP addresses, gateways, DNS servers, routes |
 | NDIS advanced properties: keyword, current value, default, type, valid ranges/enums | MAC address (only the vendor OUI prefix is kept) |
 | OS version, admin state, CPU count | User-assigned values (e.g. a custom `NetworkAddress` MAC) |
 
@@ -112,10 +112,19 @@ The reference scripts in this private workspace are research inputs, not product
 - Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
 - Step 5 is complete with an allowlisted dry-run cart, exact rollback preview, bounded audit history, deterministic transactions, failure injection, and a strict typed elevated-worker protocol.
 - Step 6 is complete: the first two low-disruption MMCSS settings passed direct and published-worker apply/read/rollback/read gates on disposable Windows 10 22H2 and Windows 11 VMs. NIC/driver writes and the normal UI remain locked while Step 7 starts.
-- Step 7a adds a read-only `--probe` mode: it writes a redacted capability report (`socktuner-probe-<timestamp>.json` on the Desktop) that collaborators with real Intel/Realtek NICs can share. Personal data is masked; driver identity, NDIS keywords, defaults, and valid ranges/enums are preserved. The probe changes nothing on the machine.
+- Step 7a added a read-only `--probe` mode: it writes a redacted capability report (`socktuner-probe-<timestamp>.json` on the Desktop) that collaborators with real Intel/Realtek NICs can share. Personal data is masked; driver identity, NDIS keywords, defaults, and valid ranges/enums are preserved. The probe changes nothing on the machine.
+- Step 7b unlocks live writes. The **Tuning plan** tab lists the properties the selected driver actually advertises, filtered by intent preset — latency, bandwidth, power and wake, Wi-Fi radio, VLAN and identity — with preview, apply, and exact rollback from the audit history. Capability reports so far cover Intel I226-V and Wireless-AC 3168, Realtek RTL8125 and 8852CE, and MediaTek MT7925.
+
+## How a change is applied
+
+1. Pick an adapter and a focus preset; only driver-advertised properties are listed, each with its current value, the driver default, the accepted values, a risk level and the trade-off it costs.
+2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would restore, and the restart requirement.
+3. **Apply** asks for the one-time alpha consent, then elevates. High-risk or experimental changes need `APPLY` typed to confirm.
+4. The elevated worker re-reads the driver, refuses anything it no longer advertises or that drifted since the preview, writes, reads the value back to verify, records an audit entry, then restarts the adapter and confirms it returns to its previous link state.
+5. Any audit entry can be rolled back to exactly the values it captured.
 
 ## Important notice
 
-Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Pre-release builds must be tested on disposable systems or with a known recovery path. The current release cannot apply any change: tuning writes are locked until they pass real-hardware validation gates.
+Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Applying a NIC property restarts that adapter, which briefly drops the link — do not apply over a remote session on the adapter being changed. Test on a machine you can recover without remote access. SockTuner never invents a value or a range: it exposes only what the installed driver advertises, and treats any keyword it has not characterised as high risk.
 
 SockTuner is released under the [MIT License](LICENSE). The public contribution policy is still being defined; probe reports via issues or Discord are the best way to help right now.

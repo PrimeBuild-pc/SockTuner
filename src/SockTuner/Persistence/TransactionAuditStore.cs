@@ -2,7 +2,6 @@ using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
-using SockTuner.Services;
 
 namespace SockTuner.Persistence;
 
@@ -17,7 +16,7 @@ public enum TransactionAuditOutcome
 
 public sealed record AuditStoredValue(
     [property: JsonRequired] bool Exists,
-    [property: JsonRequired] uint Value);
+    [property: JsonRequired] string Value);
 
 public sealed record AuditedSettingChange(
     [property: JsonRequired] string SettingId,
@@ -37,7 +36,9 @@ public sealed record TransactionAuditEntry(
 
 public sealed class TransactionAuditStore
 {
-    private const int SchemaVersion = 1;
+    // 2: setting values became text so NDIS REG_SZ keywords can be audited exactly.
+    // Schema 1 entries are rejected by Validate and removed on the next Load.
+    private const int SchemaVersion = 2;
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
@@ -160,22 +161,22 @@ public sealed class TransactionAuditStore
             throw new InvalidDataException("Transaction audit envelope is invalid.");
         }
 
-        var addresses = new HashSet<SettingAddress>();
+        // Structural checks only. History records what happened, so it must stay readable after a
+        // driver update removes a keyword or the catalog changes; anything replayed from here goes
+        // back through the transaction service, which re-validates against the live system.
+        var targets = new HashSet<(string SettingId, string? TargetId)>();
         foreach (var change in entry.Changes)
         {
             if (change is null || change.Before is null || change.After is null
+                || string.IsNullOrWhiteSpace(change.SettingId)
                 || change.Source == ChangeSource.Unknown || !Enum.IsDefined(change.Source)
-                || (!change.Before.Exists && change.Before.Value != 0)
-                || (!change.After.Exists && change.After.Value != 0))
+                || change.Before.Value is null || change.After.Value is null
+                || (!change.Before.Exists && change.Before.Value.Length != 0)
+                || (!change.After.Exists && change.After.Value.Length != 0)
+                || !targets.Add((change.SettingId, change.TargetId)))
             {
                 throw new InvalidDataException("Transaction audit change is invalid.");
             }
-
-            var definition = SettingCatalog.Get(change.SettingId);
-            var address = definition.ResolveAddress(change.TargetId);
-            if (!addresses.Add(address)) throw new InvalidDataException("Transaction audit contains a duplicate change.");
-            if (change.Before.Exists) definition.Validate(change.Before.Value);
-            if (change.After.Exists) definition.Validate(change.After.Value);
         }
     }
 

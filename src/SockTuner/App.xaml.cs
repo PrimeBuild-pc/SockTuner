@@ -10,15 +10,23 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        if (e.Args.Length == 1 && string.Equals(e.Args[0], "--elevated-worker", StringComparison.Ordinal))
+        // Elevated worker mode: connects back to the launching process over the named pipe it
+        // was given and serves exactly one typed request.
+        if (e.Args.Length == 2 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
         {
-            Shutdown(ElevatedWorker.RunAsync(Console.In, Console.Out, CancellationToken.None).GetAwaiter().GetResult());
+            Shutdown(ElevatedWorkerHost.RunAsync(e.Args[1], CancellationToken.None).GetAwaiter().GetResult());
             return;
         }
 
         if (e.Args.Length == 1 && string.Equals(e.Args[0], "--probe", StringComparison.Ordinal))
         {
             Shutdown(RunProbe());
+            return;
+        }
+
+        if (e.Args.Length == 1 && string.Equals(e.Args[0], VerifyTcpWritesArgument, StringComparison.Ordinal))
+        {
+            Shutdown(RunTcpWriteVerification());
             return;
         }
 
@@ -30,6 +38,69 @@ public partial class App : Application
 
         MainWindow = new MainWindow();
         MainWindow.Show();
+    }
+
+    internal const string VerifyTcpWritesArgument = "--verify-tcp-writes";
+
+    /// <summary>
+    /// Set to 1 in the guest to arm the write verification. The argument alone is not enough: this
+    /// mode writes to the live TCP stack, so it must be impossible to trigger by mistyping --probe
+    /// on a real desktop.
+    /// </summary>
+    internal const string VerifyTcpWritesGate = "SOCKTUNER_VM_WRITE_TEST";
+
+    /// <summary>
+    /// VM-only. Flips one deliberately harmless TCP property on each template through the real
+    /// transaction engine and puts it back, to find out which templates accept a write at all and
+    /// whether the one carrying traffic is among them. Every change is snapshotted and rolled back;
+    /// a rollback that fails is reported as the headline rather than buried.
+    /// </summary>
+    private static int RunTcpWriteVerification()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable(VerifyTcpWritesGate), "1", StringComparison.Ordinal))
+        {
+            MessageBox.Show(
+                $"This mode writes to the live TCP stack and is for a disposable VM only." + Environment.NewLine + Environment.NewLine
+                + $"Set {VerifyTcpWritesGate}=1 in the guest to arm it.",
+                "SockTuner write verification",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            return 2;
+        }
+
+        try
+        {
+            var capabilities = WindowsGlobalSettingInventory.Read().Capabilities;
+            var resolution = WindowsTcpTemplateResolver.Read();
+            var store = new CimGlobalSettingStore();
+            var verifier = new TcpWriteVerifier(new SettingTransactionService(
+                SettingSpecifications.From([], capabilities)));
+
+            var report = verifier
+                .RunAsync(capabilities, resolution, store, () => store.IneffectiveWrites, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult();
+
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                $"socktuner-tcp-write-verification-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+            File.WriteAllText(path, SnapshotExporter.SerializeTcpWriteVerification(report));
+            MessageBox.Show(
+                $"{report.Verdict}" + Environment.NewLine + Environment.NewLine + "Report saved to:" + Environment.NewLine + path,
+                "SockTuner write verification",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+            return 0;
+        }
+        catch (Exception exception)
+        {
+            MessageBox.Show(
+                $"Write verification failed: {exception.Message}",
+                "SockTuner write verification",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return 1;
+        }
     }
 
     // Read-only hardware capability probe for collaborators: captures the inventory,

@@ -8,7 +8,7 @@ public sealed class PathDiagnosticService
 {
     private readonly Func<string, int, bool, int, TimeSpan, CancellationToken, Task<PathPingResult>> _ping;
 
-    public PathDiagnosticService() : this(PingAsync) { }
+    public PathDiagnosticService() : this(PingForRouteQualityAsync) { }
     internal PathDiagnosticService(Func<string, int, bool, int, TimeSpan, CancellationToken, Task<PathPingResult>> ping) => _ping = ping;
 
     public async Task<(IReadOnlyList<RouteSample> Routes, string? FirstPublicBoundary, PathMtuResult Mtu)> RunAsync(
@@ -56,6 +56,7 @@ public sealed class PathDiagnosticService
 
         var lower = 548;
         var upper = 1472;
+        var blackHole = false;
         try
         {
             var baseline = await _ping(target, lower, true, 64, TimeSpan.FromSeconds(1), cancellationToken);
@@ -67,9 +68,23 @@ public sealed class PathDiagnosticService
                 var reply = await _ping(target, payload, true, 64, TimeSpan.FromSeconds(1), cancellationToken);
                 if (reply.Status == IPStatus.Success) lower = payload;
                 else if (reply.Status == IPStatus.PacketTooBig) upper = payload - 1;
+                else if (reply.Status == IPStatus.TimedOut
+                    && (await _ping(target, payload, false, 64, TimeSpan.FromSeconds(1), cancellationToken)).Status == IPStatus.Success)
+                {
+                    // The same packet gets through when it may be fragmented, so it is not lost: the
+                    // path drops it silently and never sends "fragmentation needed". That is a PMTUD
+                    // black hole, and it is why connections stall on large transfers while ping works.
+                    blackHole = true;
+                    upper = payload - 1;
+                }
                 else return new(PathMtuState.IcmpBlockedOrInconclusive, null, $"Probe returned {reply.Status}; no MTU claim made.");
             }
-            return new(PathMtuState.Discovered, lower + 28, $"Largest successful IPv4 ICMP packet: {lower + 28} bytes.");
+
+            return blackHole
+                ? new(PathMtuState.IcmpBlackHole, lower + 28,
+                    $"Packets above {lower + 28} bytes are dropped without a 'fragmentation needed' reply, "
+                    + "so path MTU discovery cannot work on this path.")
+                : new(PathMtuState.Discovered, lower + 28, $"Largest successful IPv4 ICMP packet: {lower + 28} bytes.");
         }
         catch (PingException exception)
         {
@@ -94,7 +109,8 @@ public sealed class PathDiagnosticService
         return !address.IsIPv6LinkLocal && !address.IsIPv6SiteLocal && (bytes[0] & 0xFE) != 0xFC;
     }
 
-    private static async Task<PathPingResult> PingAsync(
+    // Shared with RouteQualityProbe so both traceroute paths use one ICMP implementation.
+    internal static async Task<PathPingResult> PingForRouteQualityAsync(
         string target, int payloadSize, bool dontFragment, int ttl, TimeSpan timeout, CancellationToken cancellationToken)
     {
         using var ping = new Ping();

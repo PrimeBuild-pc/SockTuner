@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
+using SockTuner.Services;
 
 namespace SockTuner.Persistence;
 
@@ -17,12 +18,25 @@ public static class SnapshotExporter
 
     public static string Serialize(NetworkSnapshot snapshot, bool redact = false, bool probe = false) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 11,
+        schemaVersion = 12,
         toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
         exportedAt = DateTimeOffset.Now,
         redacted = redact || probe,
         probe,
         snapshot = redact || probe ? Redact(snapshot, probe) : snapshot
+    }, Options);
+
+    /// <summary>
+    /// The write-verification report. Nothing here identifies the machine — it is template names,
+    /// port ranges and accept/refuse outcomes — so there is nothing to redact.
+    /// </summary>
+    public static string SerializeTcpWriteVerification(TcpWriteVerificationReport report) => JsonSerializer.Serialize(new
+    {
+        schemaVersion = 1,
+        toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
+        exportedAt = DateTimeOffset.Now,
+        windowsBuild = Environment.OSVersion.Version.ToString(),
+        report
     }, Options);
 
     internal static NetworkSnapshot Redact(NetworkSnapshot snapshot, bool probe = false)
@@ -100,7 +114,20 @@ public static class SnapshotExporter
                 Uri = RedactedValue(policy.Uri),
                 JobObject = RedactedValue(policy.JobObject)
             }).ToArray(),
-            QosPolicyInventoryError = Error(snapshot.QosPolicyInventoryError)
+            QosPolicyInventoryError = Error(snapshot.QosPolicyInventoryError),
+            // Driver-advertised constraints are the point of a probe report, so they survive
+            // intact. Only the current value of a user-assigned keyword is masked, exactly as the
+            // NDIS property list above is.
+            AdapterCapabilities = snapshot.AdapterCapabilities?.Select(capability => capability with
+            {
+                AdapterId = probe ? capability.AdapterId : Guid.Empty,
+                AdapterName = AdapterName(capability.AdapterName),
+                InterfaceDescription = probe ? capability.InterfaceDescription : Redacted,
+                CurrentValue = probe && !IsUserAssignedValue(capability.Keyword)
+                    ? capability.CurrentValue
+                    : Redacted
+            }).ToArray(),
+            AdapterCapabilityInventoryError = Error(snapshot.AdapterCapabilityInventoryError)
         };
     }
 

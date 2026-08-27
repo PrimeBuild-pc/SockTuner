@@ -1,0 +1,216 @@
+{
+  "archiveKey": "Realtek-8852CE-WiFi-6E-6001.16.172.0",
+  "vendor": "Realtek",
+  "model": "Realtek 8852CE WiFi 6E PCI-E NIC",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Realtek Semiconductor Corp.",
+    "version": "6001.16.172.0",
+    "date": "10-16-2025",
+    "infPath": "oem6.inf",
+    "componentId": "PCI\\VEN_10EC&DEV_C852&SUBSYS_C85210EC",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 11,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260726-140827.json"
+  },
+  "adapter": {
+    "id": "{03564037-E604-4C3B-AF52-6FC45643B872}",
+    "name": "Adapter 2",
+    "description": "Realtek 8852CE WiFi 6E PCI-E NIC",
+    "interfaceType": "Wireless80211",
+    "status": "Up",
+    "speedBitsPerSecond": 286500000,
+    "macAddress": "BC-C7-46-00-00-00",
+    "addresses": [
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [
+      "[IPv4 address redacted]"
+    ],
+    "dnsServers": [
+      "[IPv6 address redacted]",
+      "[IPv6 address redacted]",
+      "[IPv4 address redacted]",
+      "[IPv4 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "ipv4Index": 3,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 3,
+    "ipv6Mtu": 1500,
+    "supportsIPv4": true,
+    "supportsIPv6": true,
+    "inventoryError": null,
+    "driver": {
+      "provider": "Realtek Semiconductor Corp.",
+      "version": "6001.16.172.0",
+      "date": "10-16-2025",
+      "infPath": "oem6.inf",
+      "componentId": "PCI\\VEN_10EC&DEV_C852&SUBSYS_C85210EC",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 132
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 388162232,
+      "bytesSent": 8258522,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 3,
+        "metric": 50,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      },
+      {
+        "addressFamily": "IPv6",
+        "interfaceIndex": 3,
+        "metric": 50,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "286.5 Mbps",
+    "driverDisplay": "Realtek Semiconductor Corp. 6001.16.172.0",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "13",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv6 address redacted], [IPv4 address redacted]",
+    "gatewaysDisplay": "[IPv4 address redacted]",
+    "dnsDisplay": "[IPv6 address redacted], [IPv6 address redacted], [IPv4 address redacted], [IPv4 address redacted], [IPv4 address redacted]",
+    "receivedDisplay": "388.16 MB",
+    "sentDisplay": "8.26 MB",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 50 (automatic) / IPv6 50 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed / IPv6 allowed",
+    "mtuDisplay": "1500",
+    "protocolsDisplay": "IPv4 + IPv6"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "WifiProtocol_2g",
+      "displayName": "2.4G Modalita wireless",
+      "currentValue": "45",
+      "defaultValue": "45",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: IEEE 802.11b, 13: IEEE 802.11b/g/n, 45: IEEE 802.11b/g/n/ax, 5: IEEE 802.11b/g"
+    },
+    {
+      "keyword": "WifiProtocol_5g",
+      "displayName": "5G Modalita wireless",
+      "currentValue": "58",
+      "defaultValue": "58",
+      "type": "enum",
+      "validValues": "0: Disabilita, 10: IEEE 802.11a/n, 2: IEEE 802.11a, 26: IEEE 802.11a/n/ac, 58: IEEE 802.11a/n/ac/ax"
+    },
+    {
+      "keyword": "WifiProtocol_6G",
+      "displayName": "6GHz Band",
+      "currentValue": "34",
+      "defaultValue": "34",
+      "type": "enum",
+      "validValues": "0: Disabled, 34: Enabled"
+    },
+    {
+      "keyword": "Dot11dEnable",
+      "displayName": "802.11d",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "WifiBandwidth_phy0",
+      "displayName": "Bandwidth",
+      "currentValue": "15",
+      "defaultValue": "15",
+      "type": "enum",
+      "validValues": "1: 20MHz Only, 15: Auto"
+    },
+    {
+      "keyword": "AH_BcnIntv",
+      "displayName": "Beacon Interval",
+      "currentValue": "100",
+      "defaultValue": "100",
+      "type": "int",
+      "validValues": "20–1000 (step 1)"
+    },
+    {
+      "keyword": "SupportMACRandom",
+      "displayName": "MAC Randomization",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "PreambleMode",
+      "displayName": "Modalita preambolo",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "1: Preambolo lungo, 2: Long and Short Preamble"
+    },
+    {
+      "keyword": "MCCSup",
+      "displayName": "Multi-Channel Concurrent",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "PreferBand",
+      "displayName": "Preferred Band",
+      "currentValue": "2",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: 1. No Preference, 1: 2. 2.4G first, 2: 3. 5G first, 3: 4. 6G first"
+    },
+    {
+      "keyword": "RegRoamLevel",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: 1. Disable, 1: 2. Lowest, 2: 3. Medium-Low, 3: 4. Medium, 4: 5. Medium-High, 5: 6. Highest"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "0",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    }
+  ],
+  "capabilities": []
+}
