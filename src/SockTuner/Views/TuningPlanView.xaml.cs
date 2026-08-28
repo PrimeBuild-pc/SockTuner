@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using SockTuner.Models;
 using SockTuner.Persistence;
 using SockTuner.Services;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Views;
 
@@ -205,14 +206,19 @@ public partial class TuningPlanView : UserControl
             _preparedPlan = await transactions.PrepareAsync(requests, store, CancellationToken.None);
             PlanPreviewGrid.ItemsSource = _preparedPlan.Changes;
 
-            var needsConfirmation = _preparedPlan.Changes.Any(change => change.RequiresExplicitConfirmation);
+            // A remote session makes any link-dropping change worth a deliberate act, even one the
+            // plan would otherwise apply on a single click: the cost of being wrong is the machine.
+            var needsConfirmation = _preparedPlan.Changes.Any(change => change.RequiresExplicitConfirmation)
+                || RemoteSessionGuard.WarningFor(_preparedPlan.Changes) is not null;
             ConfirmationText.IsEnabled = needsConfirmation;
             ConfirmationText.Text = string.Empty;
             ApplyButton.IsEnabled = _preparedPlan.Changes.Count > 0;
+            var remote = RemoteSessionGuard.WarningFor(_preparedPlan.Changes);
             SetStatus(
                 $"Dry run at {_preparedPlan.CreatedAt:T}: {_preparedPlan.Changes.Count} effective change(s). "
                 + "Applying restarts each affected adapter, which briefly drops its link."
-                + (needsConfirmation ? $" Type {ConfirmationWord} to confirm high-risk or experimental changes." : string.Empty));
+                + (needsConfirmation ? $" Type {ConfirmationWord} to confirm high-risk or experimental changes." : string.Empty)
+                + (remote is null ? string.Empty : Environment.NewLine + remote));
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
                                           or KeyNotFoundException)
@@ -229,10 +235,13 @@ public partial class TuningPlanView : UserControl
             return;
         }
 
-        if (plan.Changes.Any(change => change.RequiresExplicitConfirmation)
+        var remoteWarning = RemoteSessionGuard.WarningFor(plan.Changes);
+        if ((plan.Changes.Any(change => change.RequiresExplicitConfirmation) || remoteWarning is not null)
             && !string.Equals(ConfirmationText.Text.Trim(), ConfirmationWord, StringComparison.Ordinal))
         {
-            SetStatus($"This plan contains high-risk or experimental changes; type {ConfirmationWord} to confirm.");
+            SetStatus(remoteWarning is null
+                ? $"This plan contains high-risk or experimental changes; type {ConfirmationWord} to confirm."
+                : $"{remoteWarning} Type {ConfirmationWord} to confirm anyway.");
             return;
         }
 

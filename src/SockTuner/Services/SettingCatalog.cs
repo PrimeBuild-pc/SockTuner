@@ -117,6 +117,29 @@ public static class SettingCatalog
             9000,
             EvidenceNote: "Documented Microsoft per-interface IPv4 MTU override, the registry form of the value netsh reports and sets. Correctness depends on the measured path MTU, so SockTuner offers it only alongside its own path-MTU discovery result."),
         new(
+            "tcp.interface.metric",
+            "Interface metric",
+            "IPv4 interface",
+            SettingScope.AdapterInterface,
+            EvidenceLevel.Documented,
+            ChangeRisk.High,
+            "Adapter restart",
+            "Overrides the routing cost Windows assigns to one interface. Removing the value restores the automatic "
+                + "metric Windows derives from link speed.",
+            "This decides which interface wins when two of them can reach the same destination — the reason a machine "
+                + "with Ethernet and Wi-Fi both connected sometimes sends its traffic over the wrong one. Lower wins. "
+                + "Setting it by hand freezes that decision: an interface pinned to the lowest metric keeps being chosen "
+                + "after its link degrades, which the automatic metric would have corrected on its own.",
+            TcpInterfaces,
+            "InterfaceMetric",
+            RegistryValueKind.DWord,
+            1,
+            9999,
+            EvidenceNote: "Documented Microsoft per-interface metric override — the registry form of the value "
+                + "netsh and Set-NetIPInterface write, and the one the automatic-metric feature is disabled by. "
+                + "Absent means Windows derives the metric from link speed, which is why removing the value is the "
+                + "restore rather than writing a number back."),
+        new(
             "tcp.interface.netbios-options",
             "NetBIOS over TCP/IP",
             "Legacy protocols",

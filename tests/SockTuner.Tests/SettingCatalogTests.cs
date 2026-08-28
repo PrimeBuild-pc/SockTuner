@@ -1,5 +1,6 @@
 using SockTuner.Models;
 using SockTuner.Services;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Tests;
 
@@ -109,5 +110,51 @@ public sealed class SettingCatalogTests
 
         Assert.Equal(EvidenceLevel.Experimental, definition.Evidence);
         Assert.StartsWith("Unverified", definition.EvidenceNote, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void InterfaceMetric_RestoresTheAutomaticMetricByRemovingTheValueRatherThanWritingOne()
+    {
+        // Absent is the real state here, the same way DHCP is for resolvers: Windows derives the
+        // metric from link speed when nothing overrides it. Writing a number back would not be a
+        // rollback, it would be a different setting that happened to match.
+        var definition = SettingCatalog.Get("tcp.interface.metric");
+
+        Assert.True(definition.SupportsAbsentValue);
+        Assert.Equal(SettingScope.AdapterInterface, definition.Scope);
+        Assert.Equal(RemoteSessionGuard.AdapterRestart, definition.RestartRequirement);
+        definition.Validate("1");
+        definition.Validate("9999");
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate("0"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => definition.Validate("10000"));
+    }
+
+    [Fact]
+    public void NoWritableSettingBlanketDisablesIpv6BindingsOrHiddenAdapters()
+    {
+        // A Step 8 exit criterion, held by a test rather than by nobody having added one yet. The
+        // three value names below are the ones every "network reset" guide reaches for, and each one
+        // turns a targeted tool into a blunt instrument whose damage cannot be rolled back exactly.
+        string[] forbidden = ["DisabledComponents", "EnableIPv6", "ArpRetryCount"];
+
+        foreach (var definition in SettingCatalog.All)
+        {
+            Assert.DoesNotContain(definition.ValueName, forbidden, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public void TheWinsockCatalogIsShownAndDeclinedRatherThanReset()
+    {
+        // The other Step 8 exit criterion: a broad reset is not a rollback. netsh winsock reset
+        // rebuilds from defaults, so what it replaced cannot be restored — it must stay declined
+        // on the record instead of shipping as a repair button.
+        var declined = InertSettingCatalog.All.Single(setting =>
+            setting.Name.Contains("Winsock catalog reset", StringComparison.Ordinal));
+
+        Assert.Equal(DiagnosticConfidence.High, declined.Confidence);
+        Assert.Contains("rolled back", declined.Reality, StringComparison.Ordinal);
+        Assert.DoesNotContain(SettingCatalog.All, definition =>
+            definition.RegistryPath.Contains("WinSock", StringComparison.OrdinalIgnoreCase));
     }
 }

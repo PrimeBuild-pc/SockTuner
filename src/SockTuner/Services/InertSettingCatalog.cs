@@ -110,6 +110,17 @@ public static class InertSettingCatalog
             + "— finds no TimerResolution string, so on this build the policy writes a value the scheduler does not "
             + "read. The name is common elsewhere in Windows for unrelated timers. Not confirmed across every build.",
             DiagnosticConfidence.Medium),
+        new("Winsock catalog reset (netsh winsock reset)",
+            @"HKLM\SYSTEM\CurrentControlSet\Services\WinSock2\Parameters",
+            "repairs the network stack by rebuilding the Winsock catalog.",
+            "It rebuilds the catalog from the defaults rather than restoring what was there, so nothing it does can be "
+            + "rolled back — the state it replaced is gone. That is the one thing SockTuner will not do: a broad reset "
+            + "presented as a repair is not a repair, because the tool cannot put the machine back if the reset was not "
+            + "the fix. What made this famous was third-party layered service providers wedging themselves into the "
+            + "chain, and LSPs were deprecated in Windows 8 and are not loaded by current builds. The catalog on a "
+            + "Windows 10 or 11 machine holds Microsoft base providers and name-space providers, which is why SockTuner "
+            + "shows the catalog and leaves it alone. If a provider really is wrong, its own uninstaller owns the fix.",
+            DiagnosticConfidence.High),
         new("AFD DefaultReceiveWindow, DefaultSendWindow, FastSendDatagramThreshold",
             @"HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters",
             "enlarges socket buffers for more throughput.",

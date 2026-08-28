@@ -166,7 +166,7 @@ Exit criteria:
 - Profiles remain editable diffs and touch only the selected adapter.
 - Intel I219/I225/I226 and Realtek RTL8111/RTL8125-class validation records expected trade-offs and failures.
 
-### Step 8 — TCP/IP, interfaces, QoS, and Winsock (`0.8`) — **P1**
+### Step 8 — TCP/IP, interfaces, QoS, and Winsock (`0.8`) — **P1, complete**
 
 **Goal:** expand controlled writes beyond NIC properties without introducing broad reset behavior.
 
@@ -183,7 +183,7 @@ Exit criteria:
 - IPv6, bindings, and hidden adapters are never blanket-disabled.
 - Rollback restores exact captured state; broad resets are not presented as rollback.
 
-### Step 9 — Gaming root-cause analysis (`0.9`) — **P1**
+### Step 9 — Gaming root-cause analysis (`0.9`) — **P1, complete**
 
 **Goal:** correlate inventory, counters, routes, and measurements into evidence-ranked findings.
 
@@ -221,6 +221,15 @@ Exit criteria:
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
 1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more probe reports arrive.
+2. **P2 / Step 10:** the gates that need what this project does not yet have — a code-signing certificate, and real machines across the Windows and locale matrix. Listed below rather than left implicit, because none of them can be closed by writing code.
+
+Steps 8 and 9 are complete. Step 8 closed with three things rather than a large surface. The interface metric joined MTU as a per-interface override whose restore is the *removal* of the value, since absent means Windows derives the metric from link speed — writing a number back would be a different setting that happened to match, not a rollback. A remote-session guard now stands in front of every change that drops the link: it does not work out which adapter carries the session, so it assumes this one might and forces the typed confirmation, because being wrong in that direction costs a sentence and being wrong in the other direction costs the machine. An unrecognised restart requirement is treated as disruptive, and a test fails if one appears that nobody classified.
+
+The third is a refusal. `netsh winsock reset` is the repair every guide reaches for, and it is now declined on the record: it rebuilds the catalog from defaults rather than restoring what was there, so nothing it does can be rolled back — which is the one thing this project will not ship. What made it famous were third-party layered service providers, deprecated in Windows 8 and not loaded by current builds; the catalog on a Windows 10 or 11 machine holds Microsoft providers, so SockTuner shows it and leaves it alone. Step 8's exit criteria about blanket-disabling IPv6 or bindings, and about broad resets not being presented as rollback, are now held by tests rather than by nobody having added one.
+
+Step 9's exit criteria were already met and are covered: **Inconclusive** is a real result in the bottleneck locator, the loaded-latency grader and path-MTU discovery; DNS is never blamed for steady in-session RTT, and says so in the finding itself; and the TCP-only settings state plainly that they do nothing for UDP. Regional endpoint catalogues are deliberately not bundled — they are third-party addresses that change without notice, and an imported capture supplies the real one.
+
+Step 10 cannot be completed from a keyboard. What remains needs a code-signing certificate (signed installer, update path, and the end of the SmartScreen prompt), real machines for the Windows 10 22H2 and Windows 11 matrix at several DPI levels in English and Italian, a screen-reader pass, a long-run stability soak, and recovery drills on disposable VMs. An SBOM is deliberately deferred to that same work rather than added to a release pipeline that is currently green.
 
 The Group Policy QoS Packet Scheduler limits are catalogued: reservable bandwidth and the outstanding-packet limit, both verified present in `pacer.sys`. The third policy in that node, timer resolution, is recorded as inert instead — `pacer.sys` contains neither the string nor any sign of reading it, while it does contain the other two.
 
