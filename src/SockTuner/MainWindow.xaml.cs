@@ -35,6 +35,8 @@ public partial class MainWindow : Window
     private readonly RouteQualityProbe _routeQuality = new();
     private readonly DnsBenchmarkProbe _dnsBenchmark = new();
     private CancellationTokenSource? _dnsBenchmarkCancellation;
+    private readonly ElevatedWorkerClient _dnsWorker = new();
+    private DnsBenchmarkReport? _lastDnsReport;
     private readonly BottleneckLocator _bottleneck = new();
     private CancellationTokenSource? _throughputCancellation;
     private LoadedLatencyResult? _lastLoadedLatency;
@@ -121,8 +123,17 @@ public partial class MainWindow : Window
         BuildText.Text = snapshot.System.Version;
         MachineText.Text = snapshot.System.MachineName;
         CapturedText.Text = snapshot.System.CapturedAt.ToString("yyyy-MM-dd HH:mm:ss zzz");
+        ShowHealthCheck(snapshot);
         _adapterRows = snapshot.Adapters;
         TuningPlan.SetAdapters(snapshot.Adapters);
+        var dnsCandidates = snapshot.Adapters
+            .Where(item => Guid.TryParse(item.Id, out _) && item.Kind == AdapterKind.Physical)
+            .ToArray();
+        var previouslySelected = (DnsAdapterComboBox.SelectedItem as AdapterInfo)?.Id;
+        DnsAdapterComboBox.ItemsSource = dnsCandidates;
+        DnsAdapterComboBox.SelectedItem = dnsCandidates.FirstOrDefault(item => item.Id == previouslySelected)
+            ?? dnsCandidates.FirstOrDefault(item => item.Status == System.Net.NetworkInformation.OperationalStatus.Up)
+            ?? dnsCandidates.FirstOrDefault();
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -1167,8 +1178,16 @@ public partial class MainWindow : Window
                 .ThenBy(result => result.MedianMs ?? double.MaxValue)
                 .ToArray();
             DnsVerdictText.Text = report.Verdict;
+            _lastDnsReport = report;
+            ApplyBestDnsButton.IsEnabled = WorthApplying(report);
             StatusText.Text = "Resolver benchmark complete.";
             WriteLog("dns.benchmark_completed", report.Verdict);
+
+            if (DnsAutoApplyCheck.IsChecked == true && WorthApplying(report))
+            {
+                DnsApplyStatusText.Text = "A worthwhile resolver was found; applying automatically\u2026";
+                await ApplyDnsAsync(report.Fastest!.Resolver.Address);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -1222,6 +1241,137 @@ public partial class MainWindow : Window
         }
 
         return candidates;
+    }
+
+    /// <summary>
+    /// Whether a measured winner is worth acting on. The same noise floor the verdict uses: a gain
+    /// under 5 ms is inside run-to-run variation, and acting on it automatically would be churn.
+    /// </summary>
+    private static bool WorthApplying(DnsBenchmarkReport report) =>
+        report.Fastest is not null
+        && !ReferenceEquals(report.Fastest, report.Current)
+        && report.ImprovementMs is >= 5;
+
+    private async void ApplyBestDns_Click(object sender, RoutedEventArgs e)
+    {
+        if (_lastDnsReport?.Fastest is not { } fastest)
+        {
+            DnsApplyStatusText.Text = "Run a benchmark first.";
+            return;
+        }
+
+        await ApplyDnsAsync(fastest.Resolver.Address);
+    }
+
+    private async void RevertDns_Click(object sender, RoutedEventArgs e) => await ApplyDnsAsync(null);
+
+    /// <summary>
+    /// Applies a resolver list, or restores DHCP when <paramref name="primary"/> is null. Goes
+    /// through the same elevated worker and the same snapshot, verify and rollback path as every
+    /// other change; nothing here writes directly.
+    /// </summary>
+    private async Task ApplyDnsAsync(string? primary)
+    {
+        if (DnsAdapterComboBox.SelectedItem is not AdapterInfo adapter || !Guid.TryParse(adapter.Id, out _))
+        {
+            DnsApplyStatusText.Text = "Select an adapter to change.";
+            return;
+        }
+
+        var specification = new DnsServerSpecification();
+        var store = new DnsServerStore();
+        var address = specification.ResolveAddress(adapter.Id);
+
+        try
+        {
+            var before = await store.ReadAsync(address, CancellationToken.None);
+            var after = primary is null
+                ? StoredSettingValue.Missing
+                : new StoredSettingValue(true, DnsServerSpecification.Canonical([primary]));
+
+            if (before == after)
+            {
+                DnsApplyStatusText.Text = primary is null
+                    ? $"{adapter.Name} already takes its resolvers from DHCP."
+                    : $"{adapter.Name} is already using {primary}.";
+                return;
+            }
+
+            var request = new ElevatedWorkerRequest(
+                ElevatedWorker.SchemaVersion,
+                Guid.NewGuid(),
+                WorkerOperationKind.Apply,
+                [new WorkerSettingOperation(
+                    address.SettingId,
+                    address.TargetId,
+                    new WorkerStoredValue(before.Exists, before.Value),
+                    new WorkerStoredValue(after.Exists, after.Value),
+                    ChangeSource.Manual)]);
+
+            DnsApplyStatusText.Text = "Approve the Windows elevation prompt to continue\u2026";
+            var response = await _dnsWorker.ExecuteAsync(request, CancellationToken.None);
+            DnsApplyStatusText.Text = response.Status;
+            WriteLog("dns.applied", $"Adapter={adapter.Name}; To={after.Value}; Success={response.Success}; {response.Status}");
+            if (response.Success) await RefreshInventoryAsync();
+        }
+        catch (ElevatedWorkerDeclinedException exception)
+        {
+            DnsApplyStatusText.Text = exception.Message;
+        }
+        catch (Exception exception)
+        {
+            DnsApplyStatusText.Text = $"Resolver change failed: {exception.Message}";
+            WriteLog("dns.apply_failed", exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// The initial pass: reads the inventory just captured and reports what it can already see,
+    /// with the tab that acts on each finding. Pure and cheap, so it runs on every refresh without
+    /// the user asking and without generating any traffic.
+    /// </summary>
+    private void ShowHealthCheck(NetworkSnapshot snapshot)
+    {
+        try
+        {
+            var findings = NetworkHealthAnalyzer.Analyze(snapshot, DateTimeOffset.Now);
+            HealthGrid.ItemsSource = findings;
+            OpenHealthSectionButton.IsEnabled = false;
+            HealthSummaryText.Text = findings.Count == 0
+                ? "Nothing stood out in the current inventory. This looks at configuration only; run a diagnosis to measure the path."
+                : $"{findings.Count} finding(s) from the current inventory. "
+                    + $"{findings.Count(finding => finding.Severity == ChangeRisk.High)} worth fixing, "
+                    + $"{findings.Count(finding => finding.Severity == ChangeRisk.Medium)} worth checking. "
+                    + "Select one to open the section that acts on it.";
+        }
+        catch (Exception exception)
+        {
+            HealthSummaryText.Text = $"Health check failed: {exception.Message}";
+            WriteLog("health.failed", exception.Message);
+        }
+    }
+
+    private void HealthGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
+        OpenHealthSectionButton.IsEnabled = HealthGrid.SelectedItem is HealthFinding;
+
+    private void OpenHealthSection_Click(object sender, RoutedEventArgs e)
+    {
+        if (HealthGrid.SelectedItem is not HealthFinding finding) return;
+
+        var tab = InventoryTabs.Items
+            .OfType<System.Windows.Controls.TabItem>()
+            .FirstOrDefault(item => string.Equals(
+                item.Header?.ToString()?.Replace("_", string.Empty),
+                finding.Section,
+                StringComparison.OrdinalIgnoreCase));
+        if (tab is null)
+        {
+            StatusText.Text = $"No section named {finding.Section}.";
+            return;
+        }
+
+        InventoryTabs.SelectedItem = tab;
+        StatusText.Text = finding.Action;
     }
 
     private sealed record NdisPropertyRow(

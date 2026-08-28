@@ -82,6 +82,30 @@
                             </Border>
                         </Grid>
 
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Health check" FontSize="20" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="HealthSummaryText" Text="Runs automatically with every inventory refresh." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" x:Name="OpenHealthSectionButton" Content="Open the section that fixes this"
+                                            Click="OpenHealthSection_Click" IsEnabled="False" VerticalAlignment="Top"/>
+                                </Grid>
+                                <DataGrid x:Name="HealthGrid" AutoGenerateColumns="False" MinHeight="120" Margin="0,12,0,0"
+                                          SelectionChanged="HealthGrid_SelectionChanged">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
+                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*"/>
+                                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2*"/>
@@ -705,9 +729,29 @@
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
-                                <TextBlock Text="Changing the resolver" FontSize="18" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="DnsApplyNoteText" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="15"
-                                           Text="SockTuner does not switch resolvers yet. Its transaction engine snapshots, verifies and rolls back numeric registry values, and a DNS server list is neither of those — it is a string, applied per interface. Offering a switch without the same snapshot and rollback guarantees would be the one change in this app you could not undo, so it waits for that support rather than shipping as an exception."/>
+                                <TextBlock Text="Apply a resolver" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="Applied through the supported Windows API on the selected adapter, snapshotted first and reversible from the tuning plan's history. Reverting restores exactly what was there, including DHCP-assigned resolvers."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ComboBox x:Name="DnsAdapterComboBox" Margin="0,0,12,0" AutomationProperties.Name="Adapter to change">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Name}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Button x:Name="ApplyBestDnsButton" Grid.Column="1" Content="Apply fastest resolver"
+                                            Click="ApplyBestDns_Click" IsEnabled="False" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
+                                    <Button x:Name="RevertDnsButton" Grid.Column="2" Content="Restore DHCP resolvers" Click="RevertDns_Click"/>
+                                </Grid>
+                                <CheckBox x:Name="DnsAutoApplyCheck" Margin="0,12,0,0"
+                                          Content="Apply the fastest resolver automatically when a benchmark finds a worthwhile one"
+                                          ToolTip="Only acts when the gain is above the noise floor. Still asks for elevation, and every change is snapshotted."
+                                          AutomationProperties.Name="Apply the fastest resolver automatically"/>
+                                <TextBlock x:Name="DnsApplyStatusText" Text="No resolver change requested." Margin="0,10,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>

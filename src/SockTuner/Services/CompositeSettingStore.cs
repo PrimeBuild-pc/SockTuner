@@ -15,16 +15,20 @@ public sealed class CompositeSettingStore : ISettingStore
     public CompositeSettingStore(
         ISettingStore registry,
         CimAdapterSettingStore adapters,
-        CimGlobalSettingStore? globals = null)
+        CimGlobalSettingStore? globals = null,
+        ISettingStore? dns = null)
     {
         _registry = registry;
         Adapters = adapters;
         Globals = globals ?? new CimGlobalSettingStore();
+        Dns = dns ?? new DnsServerStore();
     }
 
     public CimAdapterSettingStore Adapters { get; }
 
     public CimGlobalSettingStore Globals { get; }
+
+    public ISettingStore Dns { get; }
 
     public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken) =>
         For(address).ReadAsync(address, cancellationToken);
@@ -36,6 +40,7 @@ public sealed class CompositeSettingStore : ISettingStore
     {
         _ when address.SettingId.StartsWith(SettingSpecifications.NicPrefix, StringComparison.Ordinal) => Adapters,
         _ when address.SettingId.StartsWith(SettingSpecifications.CimPrefix, StringComparison.Ordinal) => Globals,
+        DnsServerSpecification.SettingId => Dns,
         _ => _registry
     };
 }

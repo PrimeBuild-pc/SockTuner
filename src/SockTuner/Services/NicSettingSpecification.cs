@@ -101,6 +101,11 @@ public static class SettingSpecifications
                 return CimGlobalSettingSpecification.Resolve(settingId, targetId, globals);
             }
 
+            if (string.Equals(settingId, DnsServerSpecification.SettingId, StringComparison.Ordinal))
+            {
+                return new DnsServerSpecification();
+            }
+
             return SettingCatalog.Get(settingId);
         };
     }
@@ -114,6 +119,7 @@ public static class SettingSpecifications
                 NicSettingSpecification.Resolve(settingId, targetId, capabilities),
             _ when settingId.StartsWith(CimPrefix, StringComparison.Ordinal) =>
                 CimGlobalSettingSpecification.Resolve(settingId, targetId, globals ?? []),
+            DnsServerSpecification.SettingId => new DnsServerSpecification(),
             _ => SettingCatalog.Get(settingId)
         };
 }
