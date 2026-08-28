@@ -222,6 +222,12 @@ The queue defines completion gates. A read-only prerequisite from the next item 
 
 1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more probe reports arrive.
 
+The Group Policy QoS Packet Scheduler limits are catalogued: reservable bandwidth and the outstanding-packet limit, both verified present in `pacer.sys`. The third policy in that node, timer resolution, is recorded as inert instead — `pacer.sys` contains neither the string nor any sign of reading it, while it does contain the other two.
+
+Parity with SG TCP Optimizer is deliberate rather than total. Most of its surface is already covered by the CIM TCP provider and the NIC keyword path; the rest is declined on the record in `InertSettingCatalog`, which now cites the System32 evidence behind each decline — including that the widely copied `HostPriority` spelling appears nowhere in `mswsock.dll`, whose actual value is `HostsPriority`.
+
+A DNS resolver benchmark queries each candidate directly over UDP so resolvers this machine does not use can still be measured, ranks them by median lookup time, and refuses to call a sub-5 ms difference an improvement. Switching resolvers is not offered: a server list is a per-interface string, and the transaction engine snapshots and rolls back numeric values only.
+
 Every service in the codebase is now reachable from the UI. Measurement (throughput, loaded latency), diagnosis (bufferbloat grade, bottleneck location, NAT topology, stability episodes, Wi-Fi radio, baseline drift, live watchdog) and remediation (per-finding actions, use-case profiles, receive-window advice, router guidance) each have a surface, and remediation hands proposed changes to the tuning plan rather than applying anything itself. The header badge reports the real write state — `INVENTORY ONLY` until the change consent is accepted, `CHANGES ARMED` after — instead of the permanent `READ-ONLY PREVIEW` label, which stopped being true once Step 7b unlocked the transaction path.
 
 Writable surfaces: the twelve registry-backed catalog entries (three experimental TCP-ACK behind typed confirmation, four MMCSS, interface MTU, NetBIOS over TCP/IP, TIME_WAIT delay, two DNS cache caps) and every property the selected driver advertises, minus the keywords the catalog rejects outright. Nothing is written that the driver does not currently advertise for that adapter.

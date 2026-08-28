@@ -76,7 +76,8 @@ public static class InertSettingCatalog
         new("MaxUserPort", TcpipParameters,
             "raises the number of usable outbound ports.",
             "Superseded in Windows Vista by the dynamic port range, which is what the stack actually consults. "
-            + "SockTuner exposes that range through the TCP settings provider instead.",
+            + "The name is still present in tcpipreg.sys and tcpipcfg.dll, so it is carried for compatibility rather "
+            + "than being the control that sizes the range. SockTuner exposes the dynamic port range instead.",
             DiagnosticConfidence.High),
         new("IRPStackSize", @"HKLM\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters",
             "improves network performance.",
@@ -95,9 +96,19 @@ public static class InertSettingCatalog
         new("Host resolution priority (LocalPriority, HostsPriority, DnsPriority, NetbtPriority)",
             @"HKLM\SYSTEM\CurrentControlSet\Services\Tcpip\ServiceProvider",
             "makes name resolution faster by reordering the providers.",
-            "These ordered the legacy Winsock name-space providers. The modern resolver does not appear to consult "
-            + "them, and any gain would be in lookup time rather than in the latency of an established session. "
-            + "Not confirmed across every current build.",
+            "These order the legacy Winsock name-space providers. A scan of System32 finds all four names in "
+            + "mswsock.dll, so they are read; what they change is the order answers are tried, not how fast any "
+            + "provider is, and never the latency of an established session. Note the spelling: guides and TCP "
+            + "Optimizer label the second one HostPriority, which appears nowhere in mswsock.dll — the value the "
+            + "provider reads is HostsPriority, so the widely copied name writes a dead key.",
+            DiagnosticConfidence.Medium),
+        new("QoS packet scheduler timer resolution",
+            @"HKLM\SOFTWARE\Policies\Microsoft\Windows\Psched\TimerResolution",
+            "makes the QoS scheduler tick faster for smoother traffic.",
+            "Offered by the Group Policy QoS Packet Scheduler node next to the two limits SockTuner does expose. A "
+            + "scan of pacer.sys — the scheduler driver that does contain NonBestEffortLimit and MaxOutstandingSends "
+            + "— finds no TimerResolution string, so on this build the policy writes a value the scheduler does not "
+            + "read. The name is common elsewhere in Windows for unrelated timers. Not confirmed across every build.",
             DiagnosticConfidence.Medium),
         new("AFD DefaultReceiveWindow, DefaultSendWindow, FastSendDatagramThreshold",
             @"HKLM\SYSTEM\CurrentControlSet\Services\AFD\Parameters",

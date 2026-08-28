@@ -647,6 +647,73 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="DNS resolvers">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="EXTRA RESOLVERS (COMMA SEPARATED, OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DnsExtraResolversText" Margin="0,6,0,0"
+                                             ToolTip="Added to the well-known list and to whatever this machine is already using"
+                                             AutomationProperties.Name="Extra resolvers"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="QUERIES PER NAME" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DnsRoundsText" Text="3" Margin="0,6,0,0" AutomationProperties.Name="Queries per name"/>
+                                </StackPanel>
+                                <Button x:Name="RunDnsBenchmarkButton" Grid.Column="2" Content="Benchmark resolvers"
+                                        Click="RunDnsBenchmark_Click" VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
+                                <Button x:Name="CancelDnsBenchmarkButton" Grid.Column="3" Content="Cancel" Click="CancelDnsBenchmark_Click"
+                                        VerticalAlignment="Bottom" IsEnabled="False"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="Each resolver is queried directly over UDP port 53, so one that is not configured on this machine can still be measured. This is read-only: no resolver is changed."
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Verdict" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DnsVerdictText" Text="No benchmark yet." Margin="0,6,0,0" TextWrapping="Wrap" FontSize="15"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Measured resolvers" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="Ranked by median lookup time. A resolver that answers fast is not automatically the right choice: filtering, privacy and who operates it matter as much as latency." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="DnsResolverGrid" AutoGenerateColumns="False" MinHeight="200">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Resolver" Binding="{Binding Resolver.Display}" Width="2*"/>
+                                        <DataGridTextColumn Header="Median ms" Binding="{Binding MedianMs, StringFormat=N1}" Width="100"/>
+                                        <DataGridTextColumn Header="Min" Binding="{Binding MinimumMs, StringFormat=N1}" Width="80"/>
+                                        <DataGridTextColumn Header="Max" Binding="{Binding MaximumMs, StringFormat=N1}" Width="80"/>
+                                        <DataGridTextColumn Header="Answered" Binding="{Binding Answered}" Width="90"/>
+                                        <DataGridTextColumn Header="Queries" Binding="{Binding Queries}" Width="80"/>
+                                        <DataGridTextColumn Header="Result" Binding="{Binding Summary}" Width="3*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Changing the resolver" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DnsApplyNoteText" TextWrapping="Wrap" Margin="0,6,0,0" FontSize="15"
+                                           Text="SockTuner does not switch resolvers yet. Its transaction engine snapshots, verifies and rolls back numeric registry values, and a DNS server list is neither of those — it is a string, applied per interface. Offering a switch without the same snapshot and rollback guarantees would be the one change in this app you could not undo, so it waits for that support rather than shipping as an exception."/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="Recommendations">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>

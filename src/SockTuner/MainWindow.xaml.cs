@@ -33,6 +33,8 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _monitorCancellation;
     private readonly ThroughputProbe _throughput = new();
     private readonly RouteQualityProbe _routeQuality = new();
+    private readonly DnsBenchmarkProbe _dnsBenchmark = new();
+    private CancellationTokenSource? _dnsBenchmarkCancellation;
     private readonly BottleneckLocator _bottleneck = new();
     private CancellationTokenSource? _throughputCancellation;
     private LoadedLatencyResult? _lastLoadedLatency;
@@ -1119,6 +1121,107 @@ public partial class MainWindow : Window
             ? $"Sent {accepted} change(s) to the tuning plan. Nothing is applied until you review and confirm there."
             : $"Sent {accepted} of {action.Changes.Count} change(s); the rest are not advertised for the selected adapter.";
         WriteLog("recommendations.sent_to_plan", $"Action={action.Id}; Accepted={accepted}/{action.Changes.Count}.");
+    }
+
+    private void CancelDnsBenchmark_Click(object sender, RoutedEventArgs e)
+    {
+        _dnsBenchmarkCancellation?.Cancel();
+        StatusText.Text = "Stopping the resolver benchmark\u2026";
+    }
+
+    private async void RunDnsBenchmark_Click(object sender, RoutedEventArgs e)
+    {
+        if (!int.TryParse(DnsRoundsText.Text.Trim(), out var rounds) || rounds is < 1 or > 10)
+        {
+            StatusText.Text = "Queries per name must be between 1 and 10.";
+            return;
+        }
+
+        var candidates = BuildResolverCandidates();
+        if (candidates.Count == 0)
+        {
+            StatusText.Text = "No resolver to measure.";
+            return;
+        }
+
+        _dnsBenchmarkCancellation?.Dispose();
+        _dnsBenchmarkCancellation = new CancellationTokenSource();
+        RunDnsBenchmarkButton.IsEnabled = false;
+        CancelDnsBenchmarkButton.IsEnabled = true;
+        DnsVerdictText.Text = "Measuring\u2026";
+        DnsResolverGrid.ItemsSource = null;
+        StatusText.Text = $"Benchmarking {candidates.Count} resolver(s)\u2026";
+        WriteLog("dns.benchmark_started", $"Resolvers={candidates.Count}; Rounds={rounds}.");
+
+        try
+        {
+            var report = await _dnsBenchmark.RunAsync(
+                candidates,
+                DnsBenchmarkProbe.DefaultHostnames,
+                rounds,
+                DnsBenchmarkProbe.DefaultTimeout,
+                _dnsBenchmarkCancellation.Token);
+
+            DnsResolverGrid.ItemsSource = report.Results
+                .OrderBy(result => result.Usable ? 0 : 1)
+                .ThenBy(result => result.MedianMs ?? double.MaxValue)
+                .ToArray();
+            DnsVerdictText.Text = report.Verdict;
+            StatusText.Text = "Resolver benchmark complete.";
+            WriteLog("dns.benchmark_completed", report.Verdict);
+        }
+        catch (OperationCanceledException)
+        {
+            DnsVerdictText.Text = "Cancelled before every resolver was measured.";
+            StatusText.Text = "Resolver benchmark cancelled.";
+            WriteLog("dns.benchmark_cancelled", "Cancelled by the operator.");
+        }
+        catch (Exception exception)
+        {
+            DnsVerdictText.Text = $"Benchmark failed: {exception.Message}";
+            StatusText.Text = "Resolver benchmark failed.";
+            WriteLog("dns.benchmark_failed", exception.Message);
+        }
+        finally
+        {
+            RunDnsBenchmarkButton.IsEnabled = true;
+            CancelDnsBenchmarkButton.IsEnabled = false;
+        }
+    }
+
+    /// <summary>
+    /// The well-known list, the resolvers this machine is actually configured to use, and anything
+    /// typed in. Without the ones in use there is nothing to compare against, so a "faster" result
+    /// would have no meaning.
+    /// </summary>
+    private IReadOnlyList<DnsResolverCandidate> BuildResolverCandidates()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var candidates = new List<DnsResolverCandidate>();
+
+        foreach (var address in (_snapshot?.Adapters ?? [])
+            .Where(adapter => adapter.Status == System.Net.NetworkInformation.OperationalStatus.Up)
+            .SelectMany(adapter => adapter.DnsServers))
+        {
+            if (IPAddress.TryParse(address, out var parsed)
+                && parsed.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                && seen.Add(address))
+            {
+                candidates.Add(new DnsResolverCandidate("Currently configured", address, InUse: true));
+            }
+        }
+
+        foreach (var extra in DnsExtraResolversText.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (seen.Add(extra)) candidates.Add(new DnsResolverCandidate("Custom", extra));
+        }
+
+        foreach (var known in DnsBenchmarkProbe.WellKnown)
+        {
+            if (seen.Add(known.Address)) candidates.Add(known);
+        }
+
+        return candidates;
     }
 
     private sealed record NdisPropertyRow(

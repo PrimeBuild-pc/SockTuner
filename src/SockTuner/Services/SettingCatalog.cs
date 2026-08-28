@@ -10,6 +10,8 @@ public static class SettingCatalog
     private const string GamesTask = MultimediaProfile + @"\Tasks\Games";
     private const string TcpParameters = @"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters";
     private const string DnsCacheParameters = @"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters";
+    // The Group Policy QoS Packet Scheduler node writes here; pacer.sys is the scheduler driver.
+    private const string PschedPolicy = @"SOFTWARE\Policies\Microsoft\Windows\Psched";
 
     public static IReadOnlyList<SettingDefinition> All { get; } =
     [
@@ -220,7 +222,39 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             0,
             86400,
-            EvidenceNote: "Documented Microsoft DNS client parameter. Same consumers as the positive-cache cap: dnsrslvr.dll and dnsapi.dll, with a direct code reference in the 32-bit build.")
+            EvidenceNote: "Documented Microsoft DNS client parameter. Same consumers as the positive-cache cap: dnsrslvr.dll and dnsapi.dll, with a direct code reference in the 32-bit build."),
+        new(
+            "qos.psched.reservable-bandwidth",
+            "Reservable bandwidth (%)",
+            "QoS packet scheduler",
+            SettingScope.System,
+            EvidenceLevel.Documented,
+            ChangeRisk.Medium,
+            "System reboot",
+            "Percentage of the link the QoS packet scheduler may reserve for prioritised traffic. This is the Group Policy \"Limit reservable bandwidth\" setting.",
+            "The reservation is a ceiling for traffic that asked for a guarantee, not a permanent deduction: ordinary traffic already uses the whole link when nothing has reserved it. Setting it to 0 is widely repeated as a speed fix and is not one.",
+            PschedPolicy,
+            "NonBestEffortLimit",
+            RegistryValueKind.DWord,
+            0,
+            100,
+            EvidenceNote: "The value name is present in pacer.sys, the QoS packet scheduler driver, so the scheduler genuinely reads it. With the policy value absent Windows applies its own default of 20 percent."),
+        new(
+            "qos.psched.outstanding-packets",
+            "Outstanding packet limit",
+            "QoS packet scheduler",
+            SettingScope.System,
+            EvidenceLevel.Documented,
+            ChangeRisk.Medium,
+            "System reboot",
+            "How many packets the QoS packet scheduler may leave outstanding. This is the Group Policy \"Limit outstanding packets\" setting.",
+            "Lowering it bounds how much the scheduler can queue, shortening the local queue at the cost of throughput on a fast link. It governs only traffic the scheduler handles.",
+            PschedPolicy,
+            "MaxOutstandingSends",
+            RegistryValueKind.DWord,
+            0,
+            4294967295,
+            EvidenceNote: "The value name is present in pacer.sys alongside NonBestEffortLimit, so the same driver reads it.")
     ];
 
     private static readonly IReadOnlyDictionary<string, SettingDefinition> ById =
