@@ -104,7 +104,7 @@ public sealed class NetworkDiagnosticService
             await boundaryTask);
     }
 
-    private static async Task<ProbeStatistics> ProbeAsync(
+    internal static async Task<ProbeStatistics> ProbeAsync(
         string label,
         string target,
         DiagnosticProfile profile,

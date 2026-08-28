@@ -9,6 +9,9 @@ using Microsoft.Win32;
 using SockTuner.Models;
 using SockTuner.Persistence;
 using SockTuner.Services;
+using SockTuner.Services.Collection;
+using SockTuner.Services.Diagnosis;
+using SockTuner.Services.Remediation;
 
 namespace SockTuner;
 
@@ -28,6 +31,11 @@ public partial class MainWindow : Window
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
     private CancellationTokenSource? _monitorCancellation;
+    private readonly ThroughputProbe _throughput = new();
+    private readonly RouteQualityProbe _routeQuality = new();
+    private readonly BottleneckLocator _bottleneck = new();
+    private CancellationTokenSource? _throughputCancellation;
+    private LoadedLatencyResult? _lastLoadedLatency;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
@@ -46,13 +54,38 @@ public partial class MainWindow : Window
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
         DiagnosticLoadComboBox.ItemsSource = Enum.GetValues<DiagnosticLoadCondition>();
         DiagnosticLoadComboBox.SelectedIndex = 0;
+        ThroughputDirectionComboBox.ItemsSource = Enum.GetValues<TransferDirection>();
+        ThroughputDirectionComboBox.SelectedIndex = 0;
+        UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
+        UseCaseComboBox.SelectedIndex = 0;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
-        TuningPlan.Applied += async (_, _) => await RefreshInventoryAsync();
+        TuningPlan.Applied += async (_, _) =>
+        {
+            // Consent is accepted inside the plan view, so the badge is re-read after it acts.
+            _preferences = AppPreferences.Load();
+            ShowWriteState();
+            await RefreshInventoryAsync();
+        };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         Loaded += async (_, _) => await RefreshInventoryAsync();
+        ShowWriteState();
         WriteLog("app.started", "SockTuner UI started.");
+    }
+
+    /// <summary>
+    /// States what the app can actually do right now. The badge used to read "read-only preview"
+    /// permanently, which stopped being true once the transaction path was unlocked — a label that
+    /// understates what a tool can change is as misleading as one that overstates it.
+    /// </summary>
+    private void ShowWriteState()
+    {
+        var accepted = WriteConsent.IsAccepted(_preferences);
+        WriteStateText.Text = accepted ? "CHANGES ARMED" : "INVENTORY ONLY";
+        WriteStateText.ToolTip = accepted
+            ? "Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible."
+            : "Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.";
     }
 
     private async void RefreshInventory_Click(object sender, RoutedEventArgs e) => await RefreshInventoryAsync();
@@ -216,6 +249,7 @@ public partial class MainWindow : Window
             DiagnosticSamplesGrid.ItemsSource = statistics.SelectMany(item => item.Samples.Select(sample => new DiagnosticTimelineSample(
                 item.Label, sample.Timestamp, sample.RoundTripTimeMs, item.SpikeSamples.Contains(sample), sample.FailureKind, sample.Error))).ToArray();
             RouteSamplesGrid.ItemsSource = report.RouteSamples ?? [];
+            await ShowRoutingAnalysisAsync(report, afterSnapshot, _diagnosticCancellation.Token);
             FindingsGrid.ItemsSource = report.Findings;
             var counterSummary = report.CounterDeltas is { Count: > 0 }
                 ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"
@@ -387,6 +421,24 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Log export failed: {exception.Message}";
         }
+    }
+
+    /// <summary>
+    /// A single spot test cannot answer "has this got worse". Only the history can, and only when
+    /// there are enough comparable runs on each side of the window.
+    /// </summary>
+    private void CheckDrift_Click(object sender, RoutedEventArgs e)
+    {
+        var report = BaselineAnalyzer.Compare(_history.ToArray(), TimeSpan.FromDays(7), DateTimeOffset.Now);
+        var lines = new List<string> { report.Verdict };
+        if (report.Comparable)
+        {
+            lines.Add($"{report.RecentRuns} recent run(s) against {report.BaselineRuns} earlier one(s).");
+            lines.AddRange(report.Changes.Select(change => (change.Significant ? "• " : "  ") + change.Summary));
+        }
+
+        ComparisonText.Text = string.Join(Environment.NewLine, lines);
+        WriteLog("baseline.checked", report.Verdict);
     }
 
     private void CompareHistory_Click(object sender, RoutedEventArgs e)
@@ -614,10 +666,18 @@ public partial class MainWindow : Window
                 new("Game endpoint", resolvedTarget)
             };
             if (!string.IsNullOrWhiteSpace(gateway)) targets.Insert(0, new("Gateway", gateway));
+            // Judged on a rolling window, not on single samples: one lost probe is not an outage,
+            // and a user alerted on every one of them stops reading the alerts.
+            var watchdog = new Watchdog(new WatchdogThresholds());
             var progress = new Progress<MonitorSample>(sample =>
             {
                 if (_monitorSamples.Count == MonitorMaximumSamples) _monitorSamples.RemoveAt(0);
                 _monitorSamples.Add(sample);
+                if (watchdog.Observe(sample) is { } alert)
+                {
+                    SetMonitorStatus(alert.Summary);
+                    WriteLog(alert.Open ? "watchdog.opened" : "watchdog.closed", alert.Summary);
+                }
             });
             var report = await _monitor.RunAsync(
                 targets,
@@ -628,8 +688,21 @@ public partial class MainWindow : Window
                 progress,
                 _monitorCancellation.Token);
             var window = report.SamplesTruncated ? $"Newest {report.Samples.Count}/{report.TotalSampleCount} samples: " : string.Empty;
-            SetMonitorStatus(window + string.Join(" · ", report.Summaries.Select(summary => $"{summary.Label}: {summary.Summary}")));
-            WriteLog("monitor.completed", $"Target={target}; Duration={report.Duration.TotalSeconds:0.0}s; Samples={report.Samples.Count}.");
+            // A run that averages well can still have dropped out entirely for two seconds, which is
+            // what a player actually feels. The episode list is the part worth reading.
+            var stability = StabilityAnalyzer.Analyze(report);
+            if (watchdog.Alerts.Count > 0)
+            {
+                WriteLog("watchdog.summary", $"{watchdog.Alerts.Count} alert(s); {watchdog.OpenAlerts.Count} still open at the end of the run.");
+            }
+            SetMonitorStatus(
+                window
+                + string.Join(" · ", report.Summaries.Select(summary => $"{summary.Label}: {summary.Summary}"))
+                + Environment.NewLine + stability.Verdict
+                + (stability.Episodes.Count == 0
+                    ? string.Empty
+                    : Environment.NewLine + string.Join(Environment.NewLine, stability.Episodes.Select(episode => "• " + episode.Summary))));
+            WriteLog("monitor.completed", $"Target={target}; Duration={report.Duration.TotalSeconds:0.0}s; Samples={report.Samples.Count}; {stability.Verdict}");
         }
         catch (OperationCanceledException)
         {
@@ -700,6 +773,353 @@ public partial class MainWindow : Window
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
+
+    /// <summary>
+    /// Locates the first degrading segment and describes the shape of the path. Both are diagnosis
+    /// over facts already collected plus one traceroute-quality pass; neither changes anything.
+    /// </summary>
+    private async Task ShowRoutingAnalysisAsync(
+        GamingDiagnosticReport report, NetworkSnapshot snapshot, CancellationToken cancellationToken)
+    {
+        RoutePathDiagnostic? route = null;
+        try
+        {
+            route = await _routeQuality.RunAsync(
+                report.RequestedTarget,
+                RouteQualityProbe.DefaultRounds,
+                RouteQualityProbe.DefaultMaximumHops,
+                TimeSpan.FromSeconds(2),
+                cancellationToken);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception exception)
+        {
+            // A blocked traceroute is normal on many paths. The segment walk still works without it.
+            WriteLog("route.quality_unavailable", exception.Message);
+        }
+
+        var assessment = _bottleneck.Locate(new BottleneckInput(
+            BuildLocalLinkEvidence(snapshot),
+            report.Gateway,
+            report.Reference,
+            report.GameTarget,
+            route));
+
+        var lines = new List<string> { assessment.Title, $"Segment: {assessment.Segment}. Confidence: {assessment.Confidence}. Owner: {assessment.Owner}." };
+        lines.AddRange(assessment.Supporting.Select(item => "• " + item));
+        if (assessment.Contradicting.Count > 0)
+        {
+            lines.Add("Against this reading:");
+            lines.AddRange(assessment.Contradicting.Select(item => "• " + item));
+        }
+
+        BottleneckResultText.Text = string.Join(Environment.NewLine, lines);
+
+        var topology = TopologyAnalyzer.Analyze(new TopologyInput(
+            route,
+            route?.Hops.FirstOrDefault(hop => hop.AddressKind == HopAddressKind.Private)?.Address,
+            report.FirstPublicBoundary,
+            report.PathMtu,
+            snapshot.Adapters.FirstOrDefault(adapter => adapter.Ipv4Mtu > 0)?.Ipv4Mtu));
+
+        var topologyLines = new List<string> { $"NAT topology: {topology.Topology}." };
+        topologyLines.AddRange(topology.Findings.Select(finding => $"• {finding.Title} — {finding.Evidence} {finding.Action}".TrimEnd()));
+        if (topology.Findings.Count == 0) topologyLines.Add("No NAT or path-MTU problem stood out in this run.");
+        TopologyResultText.Text = string.Join(Environment.NewLine, topologyLines);
+    }
+
+    private static LocalLinkEvidence BuildLocalLinkEvidence(NetworkSnapshot snapshot)
+    {
+        var adapter = snapshot.Adapters
+            .Where(item => item.Kind == AdapterKind.Physical && item.Counters is not null)
+            .OrderByDescending(item => item.Status == System.Net.NetworkInformation.OperationalStatus.Up)
+            .ThenByDescending(item => item.Counters!.BytesReceived)
+            .FirstOrDefault();
+        if (adapter?.Counters is not { } counters)
+        {
+            return LocalLinkEvidence.Healthy;
+        }
+
+        return new LocalLinkEvidence(
+            adapter.Status == System.Net.NetworkInformation.OperationalStatus.Up,
+            adapter.SpeedBitsPerSecond,
+            counters.IncomingPacketsWithErrors,
+            counters.IncomingPacketsDiscarded,
+            counters.OutgoingPacketsWithErrors,
+            counters.OutgoingPacketsDiscarded,
+            adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
+    }
+
+    private void CancelThroughput_Click(object sender, RoutedEventArgs e)
+    {
+        _throughputCancellation?.Cancel();
+        StatusText.Text = "Stopping the transfer…";
+    }
+
+    private async void RunThroughput_Click(object sender, RoutedEventArgs e)
+    {
+        var endpoint = ThroughputEndpointText.Text.Trim();
+        var latencyTarget = LoadedLatencyTargetText.Text.Trim();
+        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(latencyTarget))
+        {
+            StatusText.Text = "Enter both a throughput endpoint and a latency target.";
+            return;
+        }
+
+        if (!int.TryParse(ThroughputStreamsText.Text.Trim(), out var streams)
+            || streams < 1 || streams > ThroughputProbe.MaximumStreams)
+        {
+            StatusText.Text = $"Streams must be between 1 and {ThroughputProbe.MaximumStreams}.";
+            return;
+        }
+
+        if (!int.TryParse(ThroughputSecondsText.Text.Trim(), out var seconds)
+            || seconds < 1 || seconds > ThroughputProbe.MaximumDuration.TotalSeconds)
+        {
+            StatusText.Text = $"Seconds per phase must be between 1 and {ThroughputProbe.MaximumDuration.TotalSeconds:0}.";
+            return;
+        }
+
+        if (ThroughputDirectionComboBox.SelectedItem is not TransferDirection direction)
+        {
+            StatusText.Text = "Select a transfer direction.";
+            return;
+        }
+
+        _throughputCancellation?.Dispose();
+        _throughputCancellation = new CancellationTokenSource();
+        SetThroughputBusy(true);
+        BufferbloatGradeText.Text = "Measuring…";
+        ThroughputResultText.Text = "Running…";
+        LoadedLatencyResultText.Text = "Running…";
+        BufferbloatAssessmentText.Text = "Running…";
+        StatusText.Text = $"Measuring {direction.ToString().ToLowerInvariant()} throughput and loaded latency…";
+        WriteLog("throughput.started", $"Endpoint={endpoint}; Latency={latencyTarget}; Direction={direction}; Streams={streams}; Seconds={seconds}.");
+
+        try
+        {
+            // The same adapter counters the diagnostics tab uses, so an idle baseline taken while
+            // something else was already filling the link is reported as such instead of graded.
+            var beforeCounters = await Task.Run(_inventory.CaptureCounters, _throughputCancellation.Token);
+            var startedAt = DateTimeOffset.Now;
+
+            var profile = new DiagnosticProfile(
+                "loaded-latency", "Loaded latency", Math.Max(seconds * 2, 10),
+                TimeSpan.FromMilliseconds(250), TimeSpan.FromSeconds(1));
+
+            var probe = LoadedLatencyProbe.For(
+                latencyTarget, endpoint, streams, NetworkDiagnosticService.ProbeAsync, _throughput);
+
+            var result = await probe.RunAsync(
+                direction, profile, LoadedLatencyProbe.DefaultWarmUp, _throughputCancellation.Token);
+
+            var afterCounters = await Task.Run(_inventory.CaptureCounters, _throughputCancellation.Token);
+            var elapsed = DateTimeOffset.Now - startedAt;
+            var utilization = BuildUtilization(beforeCounters, afterCounters, elapsed);
+
+            _lastLoadedLatency = result;
+            ShowLoadedLatency(result, utilization);
+            StatusText.Text = "Measurement complete.";
+            WriteLog("throughput.completed", result.Summary);
+        }
+        catch (OperationCanceledException)
+        {
+            BufferbloatGradeText.Text = "Cancelled";
+            BufferbloatAssessmentText.Text = "The run was cancelled before it could be graded.";
+            StatusText.Text = "Measurement cancelled.";
+            WriteLog("throughput.cancelled", "Cancelled by the operator.");
+        }
+        catch (Exception exception)
+        {
+            BufferbloatGradeText.Text = "Failed";
+            BufferbloatAssessmentText.Text = exception.Message;
+            StatusText.Text = "Measurement failed.";
+            WriteLog("throughput.failed", exception.Message);
+        }
+        finally
+        {
+            SetThroughputBusy(false);
+        }
+    }
+
+    private IReadOnlyList<LinkUtilization> BuildUtilization(
+        IReadOnlyList<AdapterCounterSample> before, IReadOnlyList<AdapterCounterSample> after, TimeSpan elapsed)
+    {
+        var speeds = (_snapshot?.Adapters ?? [])
+            .ToDictionary(adapter => adapter.Id, adapter => adapter.SpeedBitsPerSecond, StringComparer.OrdinalIgnoreCase);
+        return AdapterCounterDeltaCalculator.Calculate(before, after)
+            .Select(delta => LinkUtilization.Calculate(
+                delta, elapsed, speeds.TryGetValue(delta.AdapterId, out var speed) && speed > 0 ? speed : 0))
+            .ToArray();
+    }
+
+    private void ShowLoadedLatency(LoadedLatencyResult result, IReadOnlyList<LinkUtilization> utilization)
+    {
+        ThroughputResultText.Text = result.Load.Summary;
+        LoadedLatencyResultText.Text = result.Summary;
+
+        BufferbloatGradeText.Text = result.LatencyIncreaseMs is { } increase
+            ? LoadedLatencyAnalyzer.Display(LoadedLatencyAnalyzer.Grade(increase))
+            : "Not gradable";
+
+        var assessment = LoadedLatencyAnalyzer.Analyze(result, utilization);
+        var lines = new List<string> { assessment.Title, $"Confidence: {assessment.Confidence}. Owner: {assessment.Owner}." };
+        lines.AddRange(assessment.Supporting.Select(item => $"• {item}"));
+        if (assessment.Contradicting.Count > 0)
+        {
+            lines.Add("Against this reading:");
+            lines.AddRange(assessment.Contradicting.Select(item => $"• {item}"));
+        }
+
+        BufferbloatAssessmentText.Text = string.Join(Environment.NewLine, lines);
+    }
+
+    private void SetThroughputBusy(bool isBusy)
+    {
+        RunThroughputButton.IsEnabled = !isBusy;
+        CancelThroughputButton.IsEnabled = isBusy;
+    }
+
+    private void RemediationGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
+        SendToPlanButton.IsEnabled = RemediationGrid.SelectedItem is RemediationAction { AppliesLocally: true };
+
+    /// <summary>
+    /// Turns what the last runs established into actions. Everything here is derived from facts
+    /// already collected — nothing is measured, and nothing is written.
+    /// </summary>
+    private void BuildRecommendations_Click(object sender, RoutedEventArgs e)
+    {
+        if (_lastReport is not { } report)
+        {
+            RecommendationSummaryText.Text = "Run a diagnosis first: recommendations are derived from its findings, never invented.";
+            return;
+        }
+
+        try
+        {
+            var adapter = _snapshot?.Adapters.FirstOrDefault(item =>
+                item.Kind == AdapterKind.Physical
+                && item.Status == System.Net.NetworkInformation.OperationalStatus.Up
+                && Guid.TryParse(item.Id, out _));
+            var adapterId = adapter is not null && Guid.TryParse(adapter.Id, out var parsed) ? parsed : (Guid?)null;
+
+            var capabilities = WindowsAdapterCapabilityInventory.Read().Capabilities;
+            var globals = WindowsGlobalSettingInventory.Read().Capabilities;
+
+            // The receive-window advice is computed from this path, so it is only offered when a
+            // throughput run actually measured one.
+            TcpPathMeasurement? path = null;
+            if (_lastLoadedLatency is { } loaded && loaded.Load.BitsPerSecond > 0 && loaded.Idle.MedianMs is { } rtt)
+            {
+                path = new TcpPathMeasurement(
+                    loaded.Load.BitsPerSecond,
+                    rtt,
+                    loaded.LatencyIncreaseMs is { } increase ? LoadedLatencyAnalyzer.Grade(increase) : null);
+            }
+
+            var context = new RemediationContext(
+                adapterId,
+                capabilities,
+                report.PathMtu is { State: PathMtuState.IcmpBlackHole, Mtu: { } mtu } ? mtu : null,
+                globals,
+                path);
+
+            var actions = RemediationPlanner.Plan(report.Findings, context).ToList();
+
+            // The use-case profile is a deliberate preset rather than a finding, so it is added
+            // explicitly and only when there is an adapter whose advertised keywords can carry it.
+            if (UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
+            {
+                actions.Insert(0, UseCaseProfiles.PlanFor(profile, id, capabilities));
+            }
+
+            RemediationGrid.ItemsSource = actions;
+            SendToPlanButton.IsEnabled = false;
+
+            var wifi = ShowWifiRadio();
+            ShowRouterGuidance(wifi);
+
+            var local = actions.Count(action => action.AppliesLocally);
+            RecommendationSummaryText.Text =
+                $"{actions.Count} action(s) from {report.Findings.Count} finding(s): {local} this machine can make, "
+                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.";
+            WriteLog("recommendations.built", $"Actions={actions.Count}; Local={local}.");
+        }
+        catch (Exception exception)
+        {
+            RecommendationSummaryText.Text = $"Recommendations could not be built: {exception.Message}";
+            WriteLog("recommendations.failed", exception.Message);
+        }
+    }
+
+    private WifiRadioInfo? ShowWifiRadio()
+    {
+        var inventory = WindowsWifiInventory.Read();
+        if (!inventory.Supported || inventory.Radios.Count == 0)
+        {
+            WifiRadioText.Text = inventory.Error is { } error
+                ? $"Wi-Fi radio inventory unavailable: {error}"
+                : "No Wi-Fi radio is connected; this connection is wired.";
+            return null;
+        }
+
+        var radio = inventory.Radios[0];
+        var findings = WifiRadioAnalyzer.Analyze(radio);
+        var lines = new List<string>
+        {
+            $"{radio.Description}: SSID {radio.Ssid} · {radio.SignalDisplay} · {radio.RateDisplay}"
+        };
+        lines.AddRange(findings.Select(finding => $"• {finding.Title} — {finding.Evidence} {finding.Action}".TrimEnd()));
+        if (WifiRadioAnalyzer.RecommendChannel(radio) is { } channel)
+        {
+            lines.Add(channel.AlreadyBest
+                ? $"• Channel {channel.Channel} is already the least congested of those seen."
+                : $"• Channel {channel.Channel} is less congested than the one in use.");
+        }
+
+        if (findings.Count == 0) lines.Add("• Nothing about the radio stood out.");
+        WifiRadioText.Text = string.Join(Environment.NewLine, lines);
+        return radio;
+    }
+
+    private void ShowRouterGuidance(WifiRadioInfo? wifi)
+    {
+        var download = _lastLoadedLatency is { Direction: TransferDirection.Download } ? _lastLoadedLatency : null;
+        var upload = _lastLoadedLatency is { Direction: TransferDirection.Upload } ? _lastLoadedLatency : null;
+        var items = RouterGuidance.For(new RouterGuidanceInput(download, upload, wifi));
+        if (items.Count == 0)
+        {
+            RouterGuidanceText.Text = _lastLoadedLatency is null
+                ? "Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one."
+                : "Nothing measured here needs a router change.";
+            return;
+        }
+
+        var lines = new List<string>();
+        foreach (var item in items)
+        {
+            lines.Add($"{item.Title}  [{item.Owner}]");
+            lines.AddRange(item.Instructions.Select(instruction => $"    • {instruction.Summary}"));
+            lines.Add($"    Verify: {item.Verification}");
+        }
+
+        RouterGuidanceText.Text = string.Join(Environment.NewLine, lines);
+    }
+
+    private void SendRecommendationToPlan_Click(object sender, RoutedEventArgs e)
+    {
+        if (RemediationGrid.SelectedItem is not RemediationAction { AppliesLocally: true } action)
+        {
+            StatusText.Text = "Select an action that this machine can make.";
+            return;
+        }
+
+        var accepted = TuningPlan.Propose(action.Changes);
+        StatusText.Text = accepted == action.Changes.Count
+            ? $"Sent {accepted} change(s) to the tuning plan. Nothing is applied until you review and confirm there."
+            : $"Sent {accepted} of {action.Changes.Count} change(s); the rest are not advertised for the selected adapter.";
+        WriteLog("recommendations.sent_to_plan", $"Action={action.Id}; Accepted={accepted}/{action.Changes.Count}.");
+    }
 
     private sealed record NdisPropertyRow(
         string Adapter,

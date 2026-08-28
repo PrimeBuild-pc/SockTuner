@@ -31,7 +31,9 @@
                 <Button Content="Export logs" Click="ExportLogs_Click" Margin="0,0,12,0"/>
                 <Border Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
                         BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
-                    <TextBlock Text="READ-ONLY PREVIEW" Foreground="{StaticResource PrimaryTextBrush}" FontSize="11" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="WriteStateText" Text="INVENTORY ONLY" Foreground="{StaticResource PrimaryTextBrush}"
+                               FontSize="11" FontWeight="SemiBold"
+                               ToolTip="Writes require accepting the change consent, elevation, and an explicit confirmation in the tuning plan."/>
                 </Border>
             </StackPanel>
         </Grid>
@@ -467,6 +469,22 @@
 
                         <Border Style="{StaticResource Card}" Margin="0,18,0,0">
                             <StackPanel>
+                                <TextBlock Text="Where the problem starts" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock Text="Walks outward — adapter, LAN, router, ISP, external hop, endpoint — and stops at the first segment that degrades relative to the one before it." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="BottleneckResultText" Text="Not run" TextWrapping="Wrap" FontSize="15"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Path shape" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock Text="NAT layers and path-MTU behaviour. Neither shows up in a latency measurement, and both explain whole classes of report — port forwarding that will not work, or downloads that stall while ping is fine." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="TopologyResultText" Text="Not run" TextWrapping="Wrap" FontSize="15"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
                                 <TextBlock Text="Probe statistics" FontSize="20" FontWeight="SemiBold"/>
                                 <TextBlock Text="Jitter is the mean absolute difference between consecutive successful RTT samples." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12"/>
                                 <DataGrid x:Name="DiagnosticStatisticsGrid" AutoGenerateColumns="False" MinHeight="150">
@@ -548,6 +566,160 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Throughput &amp; bufferbloat">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="120"/>
+                                    <ColumnDefinition Width="110"/>
+                                    <ColumnDefinition Width="130"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="THROUGHPUT ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="ThroughputEndpointText" Margin="0,6,0,0"
+                                             ToolTip="Host that accepts a sustained transfer, for example a speed-test host you control"
+                                             AutomationProperties.Name="Throughput endpoint"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="LATENCY TARGET" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="LoadedLatencyTargetText" Margin="0,6,0,0"
+                                             ToolTip="Pinged idle and again under load to measure queue growth"
+                                             AutomationProperties.Name="Latency target"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                    <TextBlock Text="DIRECTION" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="ThroughputDirectionComboBox" Margin="0,6,0,0" AutomationProperties.Name="Transfer direction"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
+                                    <TextBlock Text="STREAMS" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="ThroughputStreamsText" Text="4" Margin="0,6,0,0" AutomationProperties.Name="Parallel streams"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4" Margin="0,0,12,0">
+                                    <TextBlock Text="SECONDS PER PHASE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="ThroughputSecondsText" Text="10" Margin="0,6,0,0" AutomationProperties.Name="Seconds per phase"/>
+                                </StackPanel>
+                                <Button x:Name="RunThroughputButton" Grid.Column="5" Content="Measure" Click="RunThroughput_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
+                                <Button x:Name="CancelThroughputButton" Grid.Column="6" Content="Cancel" Click="CancelThroughput_Click"
+                                        VerticalAlignment="Bottom" IsEnabled="False"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="This moves real data over your connection and will saturate it for the duration. Nothing is written to Windows or the adapter. Choose an endpoint you are allowed to load."
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Bufferbloat grade" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="BufferbloatGradeText" Text="Not measured" FontSize="34" FontWeight="Bold" Margin="0,6,0,0"/>
+                                <TextBlock x:Name="BufferbloatSummaryText" Text="Latency increase under load is graded on the Waveform scale. It describes queue growth in front of the slowest link, not link speed."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Measured throughput" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="ThroughputResultText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Idle versus loaded" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="LoadedLatencyResultText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="What this points at" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="BufferbloatAssessmentText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Recommendations">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="240"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="WHAT THIS CONNECTION IS FOR" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBlock Text="Recommendations are derived from the last diagnosis and the last bufferbloat run. Run those first; nothing here measures anything by itself." Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                    <TextBlock Text="USE-CASE PROFILE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="UseCaseComboBox" Margin="0,6,0,0" AutomationProperties.Name="Use-case profile">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <Button x:Name="BuildRecommendationsButton" Grid.Column="2" Content="Build recommendations"
+                                        Click="BuildRecommendations_Click" VerticalAlignment="Bottom" Style="{StaticResource PrimaryButton}"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock x:Name="RecommendationSummaryText" Text="No recommendations yet." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Changes this machine can make" FontSize="20" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button x:Name="SendToPlanButton" Grid.Column="1" Content="Send selected to tuning plan"
+                                            Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"/>
+                                </Grid>
+                                <DataGrid x:Name="RemediationGrid" AutoGenerateColumns="False" MinHeight="150"
+                                          SelectionChanged="RemediationGrid_SelectionChanged">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="2*"/>
+                                        <DataGridTextColumn Header="Segment" Binding="{Binding Segment}" Width="130"/>
+                                        <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="140"/>
+                                        <DataGridTextColumn Header="Changes" Binding="{Binding ChangesDisplay}" Width="2*"/>
+                                        <DataGridTextColumn Header="Expected effect" Binding="{Binding ExpectedEffect}" Width="2*"/>
+                                        <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*"/>
+                                        <DataGridTextColumn Header="How to verify" Binding="{Binding Verification}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Changes only the router can make" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock Text="The queue that causes bufferbloat lives on the device in front of the slow link. No amount of local tuning drains it." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="RouterGuidanceText" Text="No run yet." TextWrapping="Wrap" FontSize="15"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Wi-Fi radio" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="WifiRadioText" Text="Not inspected." Margin="0,5,0,0" TextWrapping="Wrap" FontSize="15"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="History &amp; comparison">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -556,6 +728,8 @@
                         <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/></StackPanel>
                         <Button Grid.Column="1" Content="Compare selected" Click="CompareHistory_Click" Margin="0,0,8,0"/>
                         <Button Grid.Column="2" Content="Trend selected" Click="TrendHistory_Click" Margin="0,0,8,0"/>
+                        <Button Grid.Column="2" Content="Check drift" Click="CheckDrift_Click" Margin="0,0,8,0"
+                                HorizontalAlignment="Right" ToolTip="Compares the most recent runs against older ones to show whether this connection has drifted"/>
                         <Button Grid.Column="3" Content="Export selected redacted" Click="ExportHistory_Click" Margin="0,0,8,0"/>
                         <Button Grid.Column="4" Content="Delete selected" Click="DeleteHistory_Click"/>
                     </Grid>

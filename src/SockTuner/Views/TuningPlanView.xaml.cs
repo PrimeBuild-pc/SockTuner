@@ -97,6 +97,45 @@ public partial class TuningPlanView : UserControl
             ?? candidates.FirstOrDefault();
     }
 
+    /// <summary>
+    /// Fills in proposed values for changes suggested elsewhere in the app. It only sets values on
+    /// rows the driver already advertises for the selected adapter and that pass their own
+    /// validation, and returns how many were accepted — a caller cannot smuggle in a setting that
+    /// is not on this adapter, and nothing is applied: the plan still has to be previewed and
+    /// confirmed by hand.
+    /// </summary>
+    public int Propose(IReadOnlyList<ChangeRequest> changes)
+    {
+        var accepted = 0;
+        foreach (var change in changes)
+        {
+            if (change.ProposedValue is not { } value) continue;
+            var row = _rows.FirstOrDefault(item =>
+                string.Equals(item.Capability.SettingId, change.SettingId, StringComparison.OrdinalIgnoreCase));
+            if (row is null) continue;
+
+            var text = value.ToString();
+            try
+            {
+                row.Capability.Validate(text);
+            }
+            catch (Exception exception) when (exception is ArgumentOutOfRangeException or InvalidOperationException)
+            {
+                continue;
+            }
+
+            row.ProposedValue = text;
+            accepted++;
+        }
+
+        if (accepted > 0)
+        {
+            InvalidatePlan($"{accepted} proposed value(s) filled in. Preview the plan before applying.");
+        }
+
+        return accepted;
+    }
+
     private void ReloadCapabilities_Click(object sender, RoutedEventArgs e) => LoadCapabilities();
 
     private void Adapter_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadCapabilities();
