@@ -17,6 +17,7 @@
         <SolidColorBrush x:Key="TextBrush" Color="#F2F2F2"/>
         <SolidColorBrush x:Key="MutedTextBrush" Color="#B3B3B3"/>
         <SolidColorBrush x:Key="WarningBrush" Color="#FFD166"/>
+        <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD166"/>
         <SolidColorBrush x:Key="WarningMutedBrush" Color="#332B00"/>
 
         <Style x:Key="AppWindowStyle" TargetType="Window">
@@ -77,6 +78,48 @@
                                 <Setter TargetName="Chrome" Property="Background" Value="#202020"/>
                                 <Setter TargetName="Chrome" Property="BorderBrush" Value="#3A3A3A"/>
                                 <Setter Property="Foreground" Value="#7A7A7A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Pill toggle: used where a set is picked from a list of small, equal choices,
+             such as which processors service a device's interrupts. -->
+        <Style x:Key="CorePill" TargetType="ToggleButton">
+            <Setter Property="MinWidth" Value="54"/>
+            <Setter Property="MinHeight" Value="32"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Chrome"
+                                Background="{StaticResource PanelBrush}"
+                                BorderBrush="{StaticResource ControlBorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="16"
+                                Padding="{TemplateBinding Padding}"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource PanelHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{StaticResource TextBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.45"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

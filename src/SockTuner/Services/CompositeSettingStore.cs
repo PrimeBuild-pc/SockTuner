@@ -16,12 +16,24 @@ public sealed class CompositeSettingStore : ISettingStore
         ISettingStore registry,
         CimAdapterSettingStore adapters,
         CimGlobalSettingStore? globals = null,
-        ISettingStore? dns = null)
+        ISettingStore? dns = null,
+        ISettingStore? interrupts = null)
     {
         _registry = registry;
         Adapters = adapters;
         Globals = globals ?? new CimGlobalSettingStore();
         Dns = dns ?? new DnsServerStore();
+        Interrupts = interrupts ?? CreateInterruptStore();
+    }
+
+    // Built from the devices actually present, so the specification can refuse an instance ID that
+    // is not one of them before it ever becomes a registry path.
+    private static ISettingStore CreateInterruptStore()
+    {
+        var inventory = Collection.InterruptAffinityInventory.Read(onlyInteresting: false);
+        return new InterruptAffinityStore(new InterruptAffinitySpecification(
+            Math.Max(inventory.LogicalProcessors, 1),
+            inventory.Devices.Select(device => device.InstanceId).ToHashSet(StringComparer.OrdinalIgnoreCase)));
     }
 
     public CimAdapterSettingStore Adapters { get; }
@@ -29,6 +41,8 @@ public sealed class CompositeSettingStore : ISettingStore
     public CimGlobalSettingStore Globals { get; }
 
     public ISettingStore Dns { get; }
+
+    public ISettingStore Interrupts { get; }
 
     public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken) =>
         For(address).ReadAsync(address, cancellationToken);
@@ -41,6 +55,7 @@ public sealed class CompositeSettingStore : ISettingStore
         _ when address.SettingId.StartsWith(SettingSpecifications.NicPrefix, StringComparison.Ordinal) => Adapters,
         _ when address.SettingId.StartsWith(SettingSpecifications.CimPrefix, StringComparison.Ordinal) => Globals,
         DnsServerSpecification.SettingId => Dns,
+        InterruptAffinitySpecification.SettingId => Interrupts,
         _ => _registry
     };
 }

@@ -831,6 +831,100 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Interrupt affinity">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Which processors service a device's interrupts" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="IrqIntroText" TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"
+                                           Text="Windows places interrupts on its own unless a device carries an override. Pinning concentrates a device's work on the cores you name and takes it off the others; there is no generally correct placement, so measure before and after rather than trusting a preset."/>
+                                <Grid Margin="0,12,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox x:Name="IrqNetworkOnlyCheck" Content="Network devices only" IsChecked="True"
+                                              VerticalAlignment="Center" Margin="0,0,18,0" Click="IrqFilter_Changed"
+                                              AutomationProperties.Name="Network devices only"/>
+                                    <CheckBox x:Name="IrqOverriddenOnlyCheck" Grid.Column="1" Content="Only devices with an override"
+                                              VerticalAlignment="Center" Margin="0,0,18,0" Click="IrqFilter_Changed"
+                                              AutomationProperties.Name="Only devices with an override"/>
+                                    <Button Grid.Column="2" Content="Rescan devices" Click="IrqRescan_Click" HorizontalAlignment="Right"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock x:Name="IrqSummaryText" Text="Not scanned." Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="IrqDeviceGrid" AutoGenerateColumns="False" MinHeight="160" MaxHeight="260"
+                                          SelectionChanged="IrqDeviceGrid_SelectionChanged">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Device" Binding="{Binding FriendlyName}" Width="3*"/>
+                                        <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="110"/>
+                                        <DataGridTextColumn Header="Current placement" Binding="{Binding StateDisplay}" Width="2*"/>
+                                        <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="100"/>
+                                        <DataGridTextColumn Header="MSI" Binding="{Binding MsiDisplay}" Width="90"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Assign processors" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="IrqSelectedDeviceText" Text="Select a device above." Margin="0,5,0,0" TextWrapping="Wrap"/>
+
+                                <TextBlock Text="PROCESSORS" Foreground="{StaticResource MutedTextBrush}" FontSize="11" Margin="0,14,0,0"/>
+                                <ItemsControl x:Name="IrqCoreList" Margin="0,8,0,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <ToggleButton Content="{Binding Label}" IsChecked="{Binding Selected, Mode=TwoWay}"
+                                                          Style="{StaticResource CorePill}" Margin="0,0,8,8"
+                                                          AutomationProperties.Name="{Binding Label}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+
+                                <Grid Margin="0,10,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="220"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="160"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="Policy" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="IrqPolicyComboBox" Grid.Column="1" Margin="0,0,18,0"
+                                              SelectionChanged="IrqPolicy_Changed" AutomationProperties.Name="Interrupt policy">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding Display}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <TextBlock Text="Priority" Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <ComboBox x:Name="IrqPriorityComboBox" Grid.Column="3" AutomationProperties.Name="Interrupt priority"/>
+                                </Grid>
+
+                                <TextBlock x:Name="IrqWarningText" Margin="0,12,0,0" TextWrapping="Wrap"
+                                           Foreground="{StaticResource WarningTextBrush}" Visibility="Collapsed"/>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                    <Button x:Name="IrqApplyButton" Content="Apply to this device" Click="IrqApply_Click"
+                                            IsEnabled="False" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
+                                    <Button x:Name="IrqResetButton" Content="Restore Windows default" Click="IrqReset_Click" IsEnabled="False"/>
+                                </StackPanel>
+                                <TextBlock x:Name="IrqStatusText" Text="No change requested." Margin="0,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
             <TabItem Header="History &amp; comparison">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>

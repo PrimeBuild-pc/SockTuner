@@ -87,6 +87,7 @@ public static class SettingSpecifications
     {
         IReadOnlyList<AdapterSettingCapability>? adapters = null;
         IReadOnlyList<GlobalSettingCapability>? globals = null;
+        Models.InterruptAffinityInventoryResult? interrupts = null;
         return (settingId, targetId) =>
         {
             if (settingId.StartsWith(NicPrefix, StringComparison.Ordinal))
@@ -106,6 +107,14 @@ public static class SettingSpecifications
                 return new DnsServerSpecification();
             }
 
+            if (string.Equals(settingId, InterruptAffinitySpecification.SettingId, StringComparison.Ordinal))
+            {
+                interrupts ??= Collection.InterruptAffinityInventory.Read(onlyInteresting: false);
+                return new InterruptAffinitySpecification(
+                    Math.Max(interrupts.LogicalProcessors, 1),
+                    interrupts.Devices.Select(device => device.InstanceId).ToHashSet(StringComparer.OrdinalIgnoreCase));
+            }
+
             return SettingCatalog.Get(settingId);
         };
     }
@@ -120,6 +129,8 @@ public static class SettingSpecifications
             _ when settingId.StartsWith(CimPrefix, StringComparison.Ordinal) =>
                 CimGlobalSettingSpecification.Resolve(settingId, targetId, globals ?? []),
             DnsServerSpecification.SettingId => new DnsServerSpecification(),
+            InterruptAffinitySpecification.SettingId => new InterruptAffinitySpecification(
+                Environment.ProcessorCount, new HashSet<string>([targetId ?? string.Empty], StringComparer.OrdinalIgnoreCase)),
             _ => SettingCatalog.Get(settingId)
         };
 }

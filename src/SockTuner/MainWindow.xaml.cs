@@ -37,6 +37,9 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _dnsBenchmarkCancellation;
     private readonly ElevatedWorkerClient _dnsWorker = new();
     private DnsBenchmarkReport? _lastDnsReport;
+    private readonly ElevatedWorkerClient _irqWorker = new();
+    private InterruptAffinityInventoryResult? _interrupts;
+    private readonly ObservableCollection<CoreChoice> _coreChoices = [];
     private readonly BottleneckLocator _bottleneck = new();
     private CancellationTokenSource? _throughputCancellation;
     private LoadedLatencyResult? _lastLoadedLatency;
@@ -62,6 +65,18 @@ public partial class MainWindow : Window
         ThroughputDirectionComboBox.SelectedIndex = 0;
         UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
         UseCaseComboBox.SelectedIndex = 0;
+        IrqPolicyComboBox.ItemsSource = new[]
+        {
+            InterruptPolicy.SpecifiedProcessors,
+            InterruptPolicy.AllCloseProcessors,
+            InterruptPolicy.OneCloseProcessor,
+            InterruptPolicy.AllProcessorsInMachine,
+            InterruptPolicy.SpreadMessagesAcrossAllProcessors
+        }.Select(policy => new PolicyChoice(policy)).ToArray();
+        IrqPolicyComboBox.SelectedIndex = 0;
+        IrqPriorityComboBox.ItemsSource = Enum.GetValues<InterruptPriority>();
+        IrqPriorityComboBox.SelectedItem = InterruptPriority.Undefined;
+        IrqCoreList.ItemsSource = _coreChoices;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
@@ -73,7 +88,11 @@ public partial class MainWindow : Window
             await RefreshInventoryAsync();
         };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
-        Loaded += async (_, _) => await RefreshInventoryAsync();
+        Loaded += async (_, _) =>
+        {
+            await RefreshInventoryAsync();
+            LoadInterruptAffinity();
+        };
         ShowWriteState();
         WriteLog("app.started", "SockTuner UI started.");
     }
@@ -1372,6 +1391,229 @@ public partial class MainWindow : Window
 
         InventoryTabs.SelectedItem = tab;
         StatusText.Text = finding.Action;
+    }
+
+    // ---- Interrupt affinity ---------------------------------------------------------------
+
+    private void IrqRescan_Click(object sender, RoutedEventArgs e) => LoadInterruptAffinity();
+
+    private void IrqFilter_Changed(object sender, RoutedEventArgs e) => ShowInterruptDevices();
+
+    private void LoadInterruptAffinity()
+    {
+        _interrupts = InterruptAffinityInventory.Read();
+        if (_interrupts.Error is { } error)
+        {
+            IrqSummaryText.Text = $"Device scan failed: {error}";
+            return;
+        }
+
+        _coreChoices.Clear();
+        for (var core = 0; core < _interrupts.LogicalProcessors; core++)
+        {
+            _coreChoices.Add(new CoreChoice(core));
+        }
+
+        ShowInterruptDevices();
+    }
+
+    private void ShowInterruptDevices()
+    {
+        if (_interrupts is not { } inventory) return;
+
+        var devices = inventory.Devices.AsEnumerable();
+        if (IrqNetworkOnlyCheck.IsChecked == true) devices = devices.Where(device => device.IsNetwork);
+        if (IrqOverriddenOnlyCheck.IsChecked == true) devices = devices.Where(device => device.HasOverride);
+
+        var rows = devices.ToArray();
+        IrqDeviceGrid.ItemsSource = rows;
+        var overridden = inventory.Devices.Count(device => device.HasOverride);
+        IrqSummaryText.Text =
+            $"{rows.Length} device(s) shown of {inventory.Devices.Count} present. "
+            + $"{overridden} currently carry an override; the rest are placed by Windows. "
+            + $"This machine reports {inventory.LogicalProcessors} logical processors.";
+    }
+
+    private void IrqDeviceGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        var selected = IrqDeviceGrid.SelectedItem as InterruptAffinityDevice;
+        IrqApplyButton.IsEnabled = selected is not null;
+        IrqResetButton.IsEnabled = selected is { HasOverride: true };
+        if (selected is null)
+        {
+            IrqSelectedDeviceText.Text = "Select a device above.";
+            return;
+        }
+
+        IrqSelectedDeviceText.Text =
+            $"{selected.FriendlyName}  —  {selected.StateDisplay}. Instance: {selected.InstanceId}";
+
+        // Start from what the device already has, so applying without touching anything is a no-op
+        // rather than a silent change to whatever the controls happened to show.
+        var current = selected.Cores.ToHashSet();
+        foreach (var choice in _coreChoices) choice.Selected = current.Contains(choice.Core);
+
+        var wanted = selected.Policy == InterruptPolicy.MachineDefault
+            ? InterruptPolicy.SpecifiedProcessors
+            : selected.Policy;
+        IrqPolicyComboBox.SelectedItem = IrqPolicyComboBox.ItemsSource
+            .OfType<PolicyChoice>()
+            .FirstOrDefault(choice => choice.Policy == wanted);
+        IrqPriorityComboBox.SelectedItem = selected.Priority;
+        UpdateIrqWarning();
+    }
+
+    private void IrqPolicy_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        var specified = IrqPolicyComboBox.SelectedItem is PolicyChoice { Policy: InterruptPolicy.SpecifiedProcessors };
+        IrqCoreList.IsEnabled = specified;
+        UpdateIrqWarning();
+    }
+
+    /// <summary>
+    /// Says the two things that actually go wrong: pinning to CPU 0, which already carries most of
+    /// the system's deferred work, and stacking several devices onto one core.
+    /// </summary>
+    private void UpdateIrqWarning()
+    {
+        var warnings = new List<string>();
+        var chosen = _coreChoices.Where(choice => choice.Selected).Select(choice => choice.Core).ToArray();
+
+        if (IrqPolicyComboBox.SelectedItem is PolicyChoice { Policy: InterruptPolicy.SpecifiedProcessors })
+        {
+            if (chosen.Length == 0)
+            {
+                warnings.Add("Select at least one processor, or the device would have no core to run on.");
+            }
+            else if (chosen.Contains(0))
+            {
+                warnings.Add("CPU 0 already services most of the system's deferred work by default; it is rarely the right place to add more.");
+            }
+
+            if (chosen.Length == 1 && _interrupts is { Devices.Count: > 0 })
+            {
+                var sharing = _interrupts.Devices.Count(device =>
+                    device.Policy == InterruptPolicy.SpecifiedProcessors && device.Cores.Contains(chosen[0]));
+                if (sharing > 0)
+                {
+                    warnings.Add($"{sharing} other device(s) are already pinned to CPU {chosen[0]}.");
+                }
+            }
+        }
+
+        IrqWarningText.Text = string.Join(Environment.NewLine, warnings);
+        IrqWarningText.Visibility = warnings.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private async void IrqApply_Click(object sender, RoutedEventArgs e)
+    {
+        if (IrqDeviceGrid.SelectedItem is not InterruptAffinityDevice device) return;
+        if (IrqPolicyComboBox.SelectedItem is not PolicyChoice { Policy: var policy }
+            || IrqPriorityComboBox.SelectedItem is not InterruptPriority priority)
+        {
+            IrqStatusText.Text = "Select a policy and priority.";
+            return;
+        }
+
+        var mask = policy == InterruptPolicy.SpecifiedProcessors
+            ? InterruptAffinityDevice.ToMask(_coreChoices.Where(choice => choice.Selected).Select(choice => choice.Core))
+            : 0UL;
+
+        await ApplyInterruptAffinityAsync(
+            device, new StoredSettingValue(true, InterruptAffinitySpecification.Canonical(policy, priority, mask)));
+    }
+
+    private async void IrqReset_Click(object sender, RoutedEventArgs e)
+    {
+        if (IrqDeviceGrid.SelectedItem is not InterruptAffinityDevice device) return;
+        await ApplyInterruptAffinityAsync(device, StoredSettingValue.Missing);
+    }
+
+    private async Task ApplyInterruptAffinityAsync(InterruptAffinityDevice device, StoredSettingValue desired)
+    {
+        if (_interrupts is not { } inventory) return;
+
+        try
+        {
+            var specification = new InterruptAffinitySpecification(
+                Math.Max(inventory.LogicalProcessors, 1),
+                inventory.Devices.Select(item => item.InstanceId).ToHashSet(StringComparer.OrdinalIgnoreCase));
+            if (desired.Exists) specification.Validate(desired.Value);
+
+            var address = specification.ResolveAddress(device.InstanceId);
+            var store = new InterruptAffinityStore(specification);
+            var before = await store.ReadAsync(address, CancellationToken.None);
+            if (before == desired)
+            {
+                IrqStatusText.Text = $"{device.FriendlyName} already has that placement.";
+                return;
+            }
+
+            var request = new ElevatedWorkerRequest(
+                ElevatedWorker.SchemaVersion,
+                Guid.NewGuid(),
+                WorkerOperationKind.Apply,
+                [new WorkerSettingOperation(
+                    address.SettingId,
+                    address.TargetId,
+                    new WorkerStoredValue(before.Exists, before.Value),
+                    new WorkerStoredValue(desired.Exists, desired.Value),
+                    ChangeSource.Manual)]);
+
+            IrqStatusText.Text = "Approve the Windows elevation prompt to continue\u2026";
+            var response = await _irqWorker.ExecuteAsync(request, CancellationToken.None);
+            IrqStatusText.Text = response.Success
+                ? $"{response.Status} The new placement takes effect after a restart."
+                : response.Status;
+            WriteLog("irq.applied",
+                $"Device={device.FriendlyName}; To={(desired.Exists ? desired.Value : "default")}; Success={response.Success}");
+            if (response.Success) LoadInterruptAffinity();
+        }
+        catch (ElevatedWorkerDeclinedException exception)
+        {
+            IrqStatusText.Text = exception.Message;
+        }
+        catch (Exception exception)
+        {
+            IrqStatusText.Text = $"Interrupt affinity change failed: {exception.Message}";
+            WriteLog("irq.apply_failed", exception.Message);
+        }
+    }
+
+    /// <summary>A policy with the wording shown to the user rather than its enum name.</summary>
+    private sealed record PolicyChoice(InterruptPolicy Policy)
+    {
+        public string Display => Policy switch
+        {
+            InterruptPolicy.SpecifiedProcessors => "Only the processors I select",
+            InterruptPolicy.AllCloseProcessors => "All processors near the device",
+            InterruptPolicy.OneCloseProcessor => "One processor near the device",
+            InterruptPolicy.AllProcessorsInMachine => "Any processor",
+            InterruptPolicy.SpreadMessagesAcrossAllProcessors => "Spread messages across all processors",
+            _ => Policy.ToString()
+        };
+    }
+
+    /// <summary>One selectable processor. Bound to the pill toggles.</summary>
+    private sealed class CoreChoice(int core) : System.ComponentModel.INotifyPropertyChanged
+    {
+        private bool _selected;
+
+        public int Core { get; } = core;
+        public string Label => $"CPU {Core}";
+
+        public bool Selected
+        {
+            get => _selected;
+            set
+            {
+                if (_selected == value) return;
+                _selected = value;
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Selected)));
+            }
+        }
+
+        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
     }
 
     private sealed record NdisPropertyRow(
