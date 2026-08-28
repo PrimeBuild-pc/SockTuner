@@ -84,4 +84,30 @@ public sealed class SettingCatalogTests
 
         Assert.Throws<InvalidOperationException>(() => SettingCatalog.ValidateAddress(forged));
     }
+
+    [Fact]
+    public void EverySettingCitesItsEvidence()
+    {
+        // An evidence level on its own is an assertion. Each entry must say which documentation or
+        // which Windows component backs it — including entries whose honest answer is "nothing yet".
+        foreach (var definition in SettingCatalog.All)
+        {
+            Assert.False(
+                string.IsNullOrWhiteSpace(definition.EvidenceNote),
+                $"{definition.Id} carries an evidence level with no supporting note.");
+        }
+    }
+
+    [Theory]
+    [InlineData("tcp.interface.no-delay")]
+    [InlineData("tcp.interface.delayed-ack-ticks")]
+    public void UnverifiedSettingsAreNotPresentedAsDocumented(string id)
+    {
+        // Neither has a confirmed consuming binary or Microsoft documentation, so neither may
+        // claim the Documented level while its note says otherwise.
+        var definition = SettingCatalog.Get(id);
+
+        Assert.Equal(EvidenceLevel.Experimental, definition.Evidence);
+        Assert.StartsWith("Unverified", definition.EvidenceNote, StringComparison.Ordinal);
+    }
 }

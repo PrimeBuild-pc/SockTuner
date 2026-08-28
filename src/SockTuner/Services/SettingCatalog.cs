@@ -28,7 +28,8 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             0,
             1,
-            new HashSet<uint> { 0, 1 }),
+            new HashSet<uint> { 0, 1 },
+            EvidenceNote: "Unverified. Widely repeated as a per-interface companion to TcpAckFrequency, but no Microsoft documentation and no confirmed consuming binary have been established for this exact value name and path. Note the casing: a search for \"TcpNoDelay\" does not test \"TCPNoDelay\"."),
         new(
             "tcp.interface.ack-frequency",
             "TcpAckFrequency",
@@ -44,7 +45,8 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             1,
             2,
-            new HashSet<uint> { 1, 2 }),
+            new HashSet<uint> { 1, 2 },
+            EvidenceNote: "Present in tcpipreg.sys and reached through a kernel registry table whose destination variable is read by driver code, so the value is genuinely consumed. In tcpip.sys the same name populates a variable nothing reads. This establishes that it is read, not that it lowers latency, so the level stays Experimental."),
         new(
             "tcp.interface.delayed-ack-ticks",
             "TcpDelAckTicks",
@@ -59,7 +61,8 @@ public static class SettingCatalog
             "TcpDelAckTicks",
             RegistryValueKind.DWord,
             0,
-            6),
+            6,
+            EvidenceNote: "Unverified. Undocumented by Microsoft and not yet checked against any Windows system binary. Highest-priority candidate for an evidence check; until then it stays Experimental and High risk."),
         new(
             "mmcss.network-throttling-index",
             "NetworkThrottlingIndex",
@@ -75,7 +78,8 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             1,
             uint.MaxValue,
-            new HashSet<uint>(Enumerable.Range(1, 70).Select(value => (uint)value).Append(uint.MaxValue))),
+            new HashSet<uint>(Enumerable.Range(1, 70).Select(value => (uint)value).Append(uint.MaxValue)),
+            EvidenceNote: "Documented by Microsoft as part of the multimedia class scheduler profile, and the value name is present in mmcss.sys. A binary scan that only walks .text reports no reference because the string sits in an init-time section — a limitation of that technique, not evidence against the setting."),
         new(
             "mmcss.system-responsiveness",
             "SystemResponsiveness",
@@ -91,7 +95,8 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             10,
             100,
-            new HashSet<uint>(Enumerable.Range(1, 10).Select(value => (uint)(value * 10)))),
+            new HashSet<uint>(Enumerable.Range(1, 10).Select(value => (uint)(value * 10))),
+            EvidenceNote: "Documented by Microsoft as part of the multimedia class scheduler profile. The value name appears in several Windows components, including a direct code reference in avrt.dll, the user-mode MMCSS API. Consumption by a user-mode scheduler rather than a driver is expected here."),
         new(
             "tcp.interface.mtu",
             "Interface MTU",
@@ -107,7 +112,8 @@ public static class SettingCatalog
             "MTU",
             RegistryValueKind.DWord,
             576,
-            9000),
+            9000,
+            EvidenceNote: "Documented Microsoft per-interface IPv4 MTU override, the registry form of the value netsh reports and sets. Correctness depends on the measured path MTU, so SockTuner offers it only alongside its own path-MTU discovery result."),
         new(
             "tcp.interface.netbios-options",
             "NetBIOS over TCP/IP",
@@ -125,7 +131,8 @@ public static class SettingCatalog
             RegistryValueKind.DWord,
             0,
             2,
-            new HashSet<uint> { 0, 1, 2 }),
+            new HashSet<uint> { 0, 1, 2 },
+            EvidenceNote: "Documented Microsoft per-interface NetBIOS over TCP/IP selector, the registry form of the Device Manager WINS setting, with the same 0/1/2 encoding."),
         new(
             "mmcss.games.gpu-priority",
             "Games task GPU priority",
@@ -141,7 +148,8 @@ public static class SettingCatalog
             "GPU Priority",
             RegistryValueKind.DWord,
             0,
-            31),
+            31,
+            EvidenceNote: "Documented Microsoft MMCSS task-profile value under the Games task. A string scan of System32 did not locate the name, which is expected for a value read from a task profile by the scheduler rather than embedded in a binary — treat the documentation, not the scan, as the evidence here."),
         new(
             "mmcss.games.priority",
             "Games task priority",
@@ -157,7 +165,8 @@ public static class SettingCatalog
             "Priority",
             RegistryValueKind.DWord,
             1,
-            8),
+            8,
+            EvidenceNote: "Documented Microsoft MMCSS task-profile value under the Games task. The name is too generic to verify by string scan — it occurs in over a thousand system binaries for unrelated reasons — so the documentation and the containing key are the evidence, not a binary match."),
         new(
             "tcp.global.timed-wait-delay",
             "TIME_WAIT delay (seconds)",
@@ -174,7 +183,8 @@ public static class SettingCatalog
             "TcpTimedWaitDelay",
             RegistryValueKind.DWord,
             30,
-            300),
+            300,
+            EvidenceNote: "Documented Microsoft TCP/IP parameter. The value name is present in tcpipcfg.dll and in tcpipreg.sys through a kernel registry table; in tcpip.sys it appears with no code reference, so the live consumers are the configuration and registry components."),
         new(
             "dns.cache.max-ttl",
             "DNS cache maximum TTL (seconds)",
@@ -191,7 +201,8 @@ public static class SettingCatalog
             "MaxCacheTtl",
             RegistryValueKind.DWord,
             0,
-            86400),
+            86400,
+            EvidenceNote: "Documented Microsoft DNS client parameter. The value name is present in dnsrslvr.dll — the DNS Client service — and in dnsapi.dll, with a direct code reference in the 32-bit build, so the caching path genuinely reads it."),
         new(
             "dns.cache.max-negative-ttl",
             "DNS negative cache maximum TTL (seconds)",
@@ -208,7 +219,8 @@ public static class SettingCatalog
             "MaxNegativeCacheTtl",
             RegistryValueKind.DWord,
             0,
-            86400)
+            86400,
+            EvidenceNote: "Documented Microsoft DNS client parameter. Same consumers as the positive-cache cap: dnsrslvr.dll and dnsapi.dll, with a direct code reference in the 32-bit build.")
     ];
 
     private static readonly IReadOnlyDictionary<string, SettingDefinition> ById =

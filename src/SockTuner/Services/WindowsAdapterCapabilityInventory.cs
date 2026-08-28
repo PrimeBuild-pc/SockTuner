@@ -103,7 +103,8 @@ internal static class WindowsAdapterCapabilityInventory
             ReadBoolean(item, "Optional"),
             profile.Areas,
             profile.Risk,
-            profile.TradeOff);
+            profile.TradeOff,
+            profile.Rejected);
     }
 
     // Valid values arrive as two parallel arrays. A driver may ship the registry values without

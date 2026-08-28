@@ -156,6 +156,7 @@ Deliverables:
 
 - RSS, moderation, flow control, buffers/queues, supported offloads, jumbo frames, EEE, power, wake, and link controls.
 - Driver enum/range validation and absent/unsupported-state handling.
+- A refusal list for keywords that are unsafe at any value (`NicKeywordCatalog` `Rejected` → evidence level `Blocked`): the undocumented Realtek `HwOption*` bitmasks, `ThreadPoll`, `DisablePhyReset`, `PnPCapabilities`, and `DropHighlyFragmentedPacket`. They stay visible in the read-only inventory with the reason attached, and `AdapterSettingCapability.Validate` refuses them inside the elevated worker.
 - Adapter restart planning, reconnection verification, and exact rollback.
 - Transparent **Balanced**, **Low latency**, and **Custom** proposal profiles for validated hardware only.
 
@@ -221,7 +222,9 @@ The queue defines completion gates. A read-only prerequisite from the next item 
 
 1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more probe reports arrive.
 
-Writable surfaces: the five registry-backed catalog entries (two MMCSS, three experimental TCP-ACK behind typed confirmation) and every property the selected driver advertises. Nothing is written that the driver does not currently advertise for that adapter.
+Writable surfaces: the twelve registry-backed catalog entries (three experimental TCP-ACK behind typed confirmation, four MMCSS, interface MTU, NetBIOS over TCP/IP, TIME_WAIT delay, two DNS cache caps) and every property the selected driver advertises, minus the keywords the catalog rejects outright. Nothing is written that the driver does not currently advertise for that adapter.
+
+Every catalog entry carries an `EvidenceNote` recording what actually backs its evidence level — the Microsoft documentation, or the Windows component observed to consume the value (`tcpipreg.sys` for the TCP-ACK and TIME_WAIT entries, `dnsrslvr.dll`/`dnsapi.dll` for the DNS caps, `avrt.dll` and `mmcss.sys` for MMCSS). Two entries state plainly that nothing has been verified: `TCPNoDelay` and `TcpDelAckTicks`. A test refuses any entry without a note, and refuses either of those two claiming the Documented level.
 
 ## Deferred until measured demand
 

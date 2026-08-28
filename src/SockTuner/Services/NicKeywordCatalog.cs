@@ -2,7 +2,16 @@ using SockTuner.Models;
 
 namespace SockTuner.Services;
 
-public sealed record NicKeywordProfile(TuningArea Areas, ChangeRisk Risk, string TradeOff);
+/// <param name="Rejected">
+/// The keyword is known to be unsafe to write, not merely risky. A rejected keyword stays visible
+/// in the read-only inventory — hiding it would be less honest than explaining it — but it resolves
+/// to <see cref="EvidenceLevel.Blocked"/> and the capability refuses to validate any value for it.
+/// </param>
+public sealed record NicKeywordProfile(
+    TuningArea Areas,
+    ChangeRisk Risk,
+    string TradeOff,
+    bool Rejected = false);
 
 /// <summary>
 /// Editorial metadata for NDIS advanced-property keywords: which tuning area they belong to,
@@ -25,6 +34,12 @@ public static class NicKeywordCatalog
 
     public static bool IsCharacterised(string keyword) => Profiles.ContainsKey(keyword);
 
+    /// <summary>Whether SockTuner refuses to write this keyword at all. See <see cref="NicKeywordProfile.Rejected"/>.</summary>
+    public static bool IsRejected(string keyword) => For(keyword).Rejected;
+
+    internal static IEnumerable<string> RejectedKeywords =>
+        Profiles.Where(entry => entry.Value.Rejected).Select(entry => entry.Key);
+
     internal static int CharacterisedCount => Profiles.Count;
 
     private static Dictionary<string, NicKeywordProfile> Build()
@@ -36,6 +51,17 @@ public static class NicKeywordCatalog
             foreach (var keyword in keywords)
             {
                 profiles[keyword] = new NicKeywordProfile(areas, risk, tradeOff);
+            }
+        }
+
+        // Keywords SockTuner will not write at any value. They remain visible in the read-only
+        // inventory with the reason attached, because recognising a dangerous knob and explaining
+        // it is more useful than pretending the driver never advertised it.
+        void Reject(TuningArea areas, string reason, params string[] keywords)
+        {
+            foreach (var keyword in keywords)
+            {
+                profiles[keyword] = new NicKeywordProfile(areas, ChangeRisk.High, reason, Rejected: true);
             }
         }
 
@@ -156,6 +182,29 @@ public static class NicKeywordCatalog
         Add(TuningArea.WiFiRadio | TuningArea.Identity, ChangeRisk.Medium,
             "MAC randomisation improves privacy but breaks MAC-based network access control.",
             "SupportMACRandom");
+
+        // ---- Refused: undocumented, or a blast radius no measurement justifies ---------------
+        Reject(TuningArea.Other,
+            "Undocumented vendor bitmask with no published meaning. A value valid on one silicon "
+            + "revision is undefined behaviour on another, so there is no safe value to offer.",
+            "HwOption", "HwOptionV2", "HwOptionV3");
+        Reject(TuningArea.Latency,
+            "Busy-polls the adapter from a driver thread. It can hold a CPU core at full utilisation, "
+            + "raising power, heat and DPC latency for every other device — it trades a whole core for "
+            + "receive latency.",
+            "ThreadPoll");
+        Reject(TuningArea.Other,
+            "Suppresses PHY reset. It can wedge link renegotiation after a cable or speed change, with "
+            + "a driver reinstall as the recovery path.",
+            "DisablePhyReset");
+        Reject(TuningArea.Power | TuningArea.Wake,
+            "One opaque bitmask covering the Device Manager power-management and wake checkboxes. The "
+            + "individual standardised power keywords express the same intent legibly and reversibly.",
+            "PnPCapabilities");
+        Reject(TuningArea.Other,
+            "Silently discards legitimate fragmented traffic. That is a correctness change, not a "
+            + "latency control.",
+            "DropHighlyFragmentedPacket");
 
         return profiles;
     }

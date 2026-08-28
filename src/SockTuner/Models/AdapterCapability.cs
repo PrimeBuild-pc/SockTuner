@@ -45,7 +45,10 @@ public sealed record AdapterSettingCapability(
     bool CanRemove,
     TuningArea Areas,
     ChangeRisk Risk,
-    string TradeOff)
+    string TradeOff,
+    // Set from NicKeywordProfile.Rejected: the keyword is unsafe to write at any value. It stays
+    // visible here so the inventory can explain it, but it is never writable.
+    bool Rejected = false)
 {
     public const uint RegistrySz = 1;
     private const int MaximumFreeFormLength = 255;
@@ -56,9 +59,11 @@ public sealed record AdapterSettingCapability(
     // anything else is vendor-defined and only as trustworthy as the driver's own metadata.
     public bool IsStandardKeyword => Keyword.StartsWith('*');
 
-    public EvidenceLevel Evidence => IsStandardKeyword
-        ? EvidenceLevel.DriverAdvertised
-        : EvidenceLevel.Experimental;
+    public EvidenceLevel Evidence => Rejected
+        ? EvidenceLevel.Blocked
+        : IsStandardKeyword
+            ? EvidenceLevel.DriverAdvertised
+            : EvidenceLevel.Experimental;
 
     public bool IsEnumerated => Choices.Count > 0;
     public bool IsNumericRange => !IsEnumerated && Minimum.HasValue && Maximum.HasValue;
@@ -87,6 +92,15 @@ public sealed record AdapterSettingCapability(
     public void Validate(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
+
+        // Checked before the driver's own constraints: a rejected keyword has no acceptable value,
+        // so a plan naming one is refused even if the driver would happily take it. This runs inside
+        // the elevated worker too, so the refusal cannot be bypassed by a hand-built plan.
+        if (Rejected)
+        {
+            throw new InvalidOperationException(
+                $"{Keyword} is blocked: {TradeOff}");
+        }
 
         if (IsEnumerated)
         {

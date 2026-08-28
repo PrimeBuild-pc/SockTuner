@@ -68,7 +68,12 @@ public sealed record SettingDefinition(
     RegistryValueKind ValueKind,
     uint Minimum,
     uint Maximum,
-    IReadOnlySet<uint>? AllowedValues = null) : ISettingSpecification
+    IReadOnlySet<uint>? AllowedValues = null,
+    // Why this entry carries its EvidenceLevel: the documentation, or the Windows component that
+    // actually consumes the value. A level on its own is an assertion; this makes it a citation a
+    // reviewer can check. NIC settings do not need one — the driver advertises them — so this lives
+    // on SettingDefinition rather than on ISettingSpecification. Enforced non-empty by tests.
+    string EvidenceNote = "") : ISettingSpecification
 {
     // A registry value can legitimately be absent, which is how "Windows default" is expressed.
     public bool SupportsAbsentValue => true;
