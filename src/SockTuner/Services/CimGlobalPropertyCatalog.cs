@@ -151,6 +151,22 @@ public static class CimGlobalPropertyCatalog
             + "short-lived connections — and a range that runs past 65535 is rejected.",
             255, 64511),
 
+        // The provider advertises these and SockTuner did not expose them. They are the modern
+        // answer to the problem the old MaxUserPort and TcpTimedWaitDelay tweaks were aimed at:
+        // rather than widening the range or shortening the reservation, Windows can reuse ports
+        // that are still in TIME_WAIT when the four-tuple cannot collide.
+        new(TcpSettingClass, "AutoReusePortRangeStartPort", "Port reuse range start", "TCP resources",
+            ChangeRisk.Medium, TcpRestart,
+            "First port in the range Windows may reuse while it is still in TIME_WAIT. Zero disables port reuse, "
+            + "which is the default on a client machine.",
+            0, 65535),
+        new(TcpSettingClass, "AutoReusePortRangeNumberOfPorts", "Port reuse range size", "TCP resources",
+            ChangeRisk.Medium, TcpRestart,
+            "How many ports may be reused. This is the safer of the two ways to survive port exhaustion: shortening "
+            + "TIME_WAIT drops a reservation that exists so a late packet cannot reach a new connection, whereas "
+            + "reuse keeps the reservation and only skips it where the connection tuple cannot collide.",
+            0, 65535),
+
         new(OffloadGlobalClass, "ReceiveSideScaling", "Receive side scaling", "Global offload",
             ChangeRisk.Medium, "None",
             "Spreads receive processing across CPU cores. Disabling it pins every interrupt to one core and is a "

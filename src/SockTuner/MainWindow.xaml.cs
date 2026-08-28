@@ -77,6 +77,7 @@ public partial class MainWindow : Window
         IrqPriorityComboBox.ItemsSource = Enum.GetValues<InterruptPriority>();
         IrqPriorityComboBox.SelectedItem = InterruptPriority.Undefined;
         IrqCoreList.ItemsSource = _coreChoices;
+        ReferenceLinkList.ItemsSource = ReferenceLinks.All;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
@@ -1391,6 +1392,31 @@ public partial class MainWindow : Window
 
         InventoryTabs.SelectedItem = tab;
         StatusText.Text = finding.Action;
+    }
+
+    /// <summary>
+    /// Opens a reference in the default browser. The URL comes from the fixed list rather than from
+    /// the control, and only https is launched, so a link can never become a way to start something
+    /// local.
+    /// </summary>
+    private void OpenReference_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button { Tag: string url }) return;
+        if (!ReferenceLinks.All.Any(link => string.Equals(link.Url, url, StringComparison.Ordinal)))
+        {
+            ReferenceStatusText.Text = "That link is not one of the listed references.";
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            ReferenceStatusText.Text = $"Opened {url} in your browser.";
+        }
+        catch (Exception exception)
+        {
+            ReferenceStatusText.Text = $"Could not open the link: {exception.Message}";
+        }
     }
 
     // ---- Interrupt affinity ---------------------------------------------------------------

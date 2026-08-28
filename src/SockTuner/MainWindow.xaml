@@ -951,17 +951,40 @@
             </TabItem>
 
             <TabItem Header="Preferences">
-                <StackPanel Margin="0,20,0,0" MaxWidth="620" HorizontalAlignment="Left">
+                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Stretch">
                     <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
                     <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
                                Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left">
                         <TextBlock Text="Log file size" VerticalAlignment="Center" Margin="0,0,12,0"/>
                         <ComboBox x:Name="LogRetentionComboBox" Width="150" SelectionChanged="LogRetention_SelectionChanged"
                                   AutomationProperties.Name="Maximum log file size"/>
                         <TextBlock Text="MB per file" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource MutedTextBrush}"/>
                     </StackPanel>
                     <TextBlock x:Name="PreferenceStatusText" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0"/>
+
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Reference tools and reading" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="Opened in your browser. SockTuner bundles no third-party binaries and downloads nothing: these are where to get the tools it does not replace, and the measurement services worth checking a result against."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <ItemsControl x:Name="ReferenceLinkList">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding Title}" ToolTip="{Binding Url}" Tag="{Binding Url}"
+                                                    Click="OpenReference_Click" Margin="0,0,8,8" Padding="14,6"
+                                                    AutomationProperties.Name="{Binding Title}"/>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock x:Name="ReferenceStatusText" Margin="0,4,0,0" TextWrapping="Wrap"
+                                           Foreground="{StaticResource MutedTextBrush}"/>
+                            </StackPanel>
+                        </Border>
                 </StackPanel>
             </TabItem>
 
