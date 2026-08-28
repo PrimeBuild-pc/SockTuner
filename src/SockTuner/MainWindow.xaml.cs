@@ -37,6 +37,7 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _dnsBenchmarkCancellation;
     private readonly ElevatedWorkerClient _dnsWorker = new();
     private DnsBenchmarkReport? _lastDnsReport;
+    private GameFlowReport? _importedReport;
     private readonly ElevatedWorkerClient _irqWorker = new();
     private InterruptAffinityInventoryResult? _interrupts;
     private readonly ObservableCollection<CoreChoice> _coreChoices = [];
@@ -1417,6 +1418,67 @@ public partial class MainWindow : Window
         {
             ReferenceStatusText.Text = $"Could not open the link: {exception.Message}";
         }
+    }
+
+    /// <summary>
+    /// Loads a capture report produced by an external analyzer. The file is untrusted input: it is
+    /// size-limited, parsed defensively, and nothing in it is executed or turned into a path.
+    /// </summary>
+    private void ImportGameReport_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Import a capture report",
+            Filter = "Capture report (*.json)|*.json|All files (*.*)|*.*",
+            CheckFileExists = true
+        };
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            var file = new FileInfo(dialog.FileName);
+            if (file.Length > GameReportImporter.MaximumBytes)
+            {
+                ImportedReportText.Text = $"That file is larger than {GameReportImporter.MaximumBytes / (1024 * 1024)} MB and was not read.";
+                return;
+            }
+
+            var report = GameReportImporter.Parse(File.ReadAllText(dialog.FileName));
+            var findings = GameReportImporter.Analyze(report);
+
+            _importedReport = report;
+            ImportedReportText.Text = report.Summary
+                + (report.CapturedAt == DateTimeOffset.MinValue ? string.Empty : $"  Captured {report.CapturedAt:yyyy-MM-dd HH:mm}.")
+                + (report.Scores.Count == 0
+                    ? string.Empty
+                    : "  Reported grades: " + string.Join(", ", report.Scores.Select(score => $"{score.Key} {score.Value}")) + ".");
+            ImportedFindingsGrid.ItemsSource = findings;
+            ImportedFindingsGrid.Visibility = Visibility.Visible;
+            UseReportTargetButton.IsEnabled = !string.IsNullOrWhiteSpace(report.DiagnosticTarget);
+            WriteLog("report.imported", $"Game={report.Game}; Target={report.DiagnosticTarget}; Findings={findings.Count}.");
+        }
+        catch (Exception exception)
+        {
+            _importedReport = null;
+            UseReportTargetButton.IsEnabled = false;
+            ImportedFindingsGrid.Visibility = Visibility.Collapsed;
+            ImportedReportText.Text = $"That file could not be read as a capture report: {exception.Message}";
+            WriteLog("report.import_failed", exception.Message);
+        }
+    }
+
+    /// <summary>
+    /// Points the diagnosis at the server the capture saw. This is the whole point of importing:
+    /// the report supplies the target, and SockTuner then measures it directly.
+    /// </summary>
+    private void UseReportTarget_Click(object sender, RoutedEventArgs e)
+    {
+        if (_importedReport?.DiagnosticTarget is not { } target) return;
+
+        DiagnosticTargetText.Text = target;
+        if (!string.IsNullOrWhiteSpace(_importedReport.RemotePort)) DiagnosticPortText.Text = _importedReport.RemotePort;
+        LoadedLatencyTargetText.Text = target;
+        StatusText.Text = $"Diagnosis target set to {target} from the imported report. Nothing has been measured yet.";
     }
 
     // ---- Interrupt affinity ---------------------------------------------------------------

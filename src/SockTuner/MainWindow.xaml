@@ -460,6 +460,33 @@
                         <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Import a capture report" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock Text="A packet capture knows the one thing this app cannot work out on its own: which server the game actually talked to, and how its packets were spaced. Import the report and SockTuner measures that endpoint itself rather than taking the numbers on trust."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Import report…" Click="ImportGameReport_Click" Margin="0,0,8,0" VerticalAlignment="Top"/>
+                                    <Button x:Name="UseReportTargetButton" Grid.Column="2" Content="Use this endpoint"
+                                            Click="UseReportTarget_Click" IsEnabled="False" VerticalAlignment="Top"/>
+                                </Grid>
+                                <TextBlock x:Name="ImportedReportText" Text="No report imported." Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="ImportedFindingsGrid" AutoGenerateColumns="False" MaxHeight="180" Margin="0,10,0,0"
+                                          Visibility="Collapsed">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
+                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*"/>
+                                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="110"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="120"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                 <TextBlock Text="Continuous monitor" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,18,0"/>

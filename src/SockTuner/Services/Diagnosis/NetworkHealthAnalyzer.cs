@@ -67,6 +67,7 @@ public static class NetworkHealthAnalyzer
             PowerSavingOnActiveAdapter(adapter, findings);
         }
 
+        AntiCheatRunning(findings);
         MixedResolvers(active, findings);
         CompetingDefaultRoutes(active, findings);
         DatapathFilters(snapshot, active, findings);
@@ -136,6 +137,51 @@ public static class NetworkHealthAnalyzer
             + "felt as an occasional spike rather than as steady latency. Each is a driver-advertised property.",
             "NDIS & drivers",
             DiagnosticConfidence.Medium,
+            ChangeRisk.Medium));
+    }
+
+    /// <summary>
+    /// Kernel-level anti-cheat drivers watch for exactly the kind of driver and device changes this
+    /// app makes. Nothing here is against the rules, but a change applied mid-session is worth
+    /// knowing about before it turns into an unexplained kick.
+    /// </summary>
+    private static void AntiCheatRunning(List<HealthFinding> findings)
+    {
+        // Queried through WMI rather than ServiceController: System.Management is already a
+        // dependency, and this avoids taking a package for one lookup.
+        string[] services = ["EasyAntiCheat", "EasyAntiCheat_EOS", "BEService", "vgk", "vgc", "ACE-BASE", "ACE-GAME"];
+        var running = new List<string>();
+        try
+        {
+            var names = string.Join(" OR ", services.Select(name => $"Name='{name}'"));
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                $"SELECT Name, State FROM Win32_Service WHERE ({names})");
+            foreach (var item in searcher.Get().Cast<System.Management.ManagementBaseObject>())
+            {
+                using (item)
+                {
+                    if (string.Equals(item["State"] as string, "Running", StringComparison.OrdinalIgnoreCase))
+                    {
+                        running.Add(item["Name"] as string ?? "unknown");
+                    }
+                }
+            }
+        }
+        catch (Exception exception) when (exception is System.Management.ManagementException
+            or UnauthorizedAccessException or System.Runtime.InteropServices.COMException)
+        {
+            return;
+        }
+
+        if (running.Count == 0) return;
+
+        findings.Add(new HealthFinding(
+            $"{running.Count} anti-cheat service(s) are running",
+            string.Join(", ", running),
+            "Apply adapter and driver changes with the game closed, then start it. A driver reload while a "
+            + "kernel-level anti-cheat is watching can end the session, and the cause is hard to attribute afterwards.",
+            "Tuning plan",
+            DiagnosticConfidence.High,
             ChangeRisk.Medium));
     }
 
