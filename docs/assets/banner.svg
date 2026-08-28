@@ -1,4 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-label="SockTuner — advanced network tuning and diagnostics for Windows">
+  <!--
+    Animated with SMIL rather than CSS keyframes, and with no script: GitHub serves this through a
+    proxy that blocks scripts, and a browser renders an <img>-referenced SVG in a restricted mode.
+    CSS @keyframes were tried first and measured not to run in that mode, while SMIL does — the
+    banner has to animate where it is actually displayed, not where it is convenient to author.
+
+    Everything that moves starts fully transparent and is made visible by its own animation, so a
+    renderer that ignores SMIL shows the original still banner rather than a stray dash parked at
+    the start of the trace. The reduced-motion block removes the moving parts outright; it is a
+    plain style rule, not an animation, so it still applies.
+  -->
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0d1117"/>
@@ -18,14 +29,39 @@
     <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
       <path d="M40 0H0V40" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
     </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   </defs>
+
+  <style>
+    /* A reader who has asked for less motion gets the still banner, not a slower one. */
+    @media (prefers-reduced-motion: reduce) {
+      .motion { display: none; }
+    }
+  </style>
 
   <rect width="1200" height="280" rx="16" fill="url(#bg)"/>
   <rect width="1200" height="280" rx="16" fill="url(#grid)"/>
 
-  <!-- signal wave -->
+  <!-- signal trace -->
   <path d="M0 205 C 80 205 100 150 160 150 S 240 250 300 250 S 380 165 440 165 S 520 235 580 235 S 660 140 720 140 S 800 250 860 250 S 940 165 1000 165 S 1080 225 1140 215 L1200 205"
         fill="none" stroke="url(#wave)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- one probe travelling the wire: pathLength normalises the dash so it crosses exactly once
+       per cycle regardless of the trace's real length, with no dead air at either end -->
+  <path class="motion"
+        d="M0 205 C 80 205 100 150 160 150 S 240 250 300 250 S 380 165 440 165 S 520 235 580 235 S 660 140 720 140 S 800 250 860 250 S 940 165 1000 165 S 1080 225 1140 215 L1200 205"
+        pathLength="1000"
+        fill="none" stroke="#7dd3fc" stroke-width="3.5" stroke-linecap="round"
+        stroke-dasharray="26 974" stroke-dashoffset="1000" stroke-opacity="0" filter="url(#glow)">
+    <animate attributeName="stroke-dashoffset" values="1000;0" dur="7s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-opacity" values="1;1" dur="7s" repeatCount="indefinite"/>
+  </path>
 
   <!-- network nodes -->
   <g fill="#38bdf8">
@@ -39,6 +75,27 @@
     <circle cx="720" cy="140" r="12"/>
   </g>
 
+  <!-- a reply radiating from each hop in turn, staggered left to right so it reads as one probe
+       reaching them in sequence rather than four things blinking together -->
+  <g class="motion" fill="none" stroke="#2dd4bf" stroke-opacity="0">
+    <circle cx="160" cy="150" r="7">
+      <animate attributeName="r" values="7;27" dur="3.6s" begin="0s" repeatCount="indefinite"/>
+      <animate attributeName="stroke-opacity" values="0.75;0" dur="3.6s" begin="0s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="440" cy="165" r="7">
+      <animate attributeName="r" values="7;27" dur="3.6s" begin="0.9s" repeatCount="indefinite"/>
+      <animate attributeName="stroke-opacity" values="0.75;0" dur="3.6s" begin="0.9s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="720" cy="140" r="7">
+      <animate attributeName="r" values="7;27" dur="3.6s" begin="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="stroke-opacity" values="0.75;0" dur="3.6s" begin="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1000" cy="165" r="7">
+      <animate attributeName="r" values="7;27" dur="3.6s" begin="2.7s" repeatCount="indefinite"/>
+      <animate attributeName="stroke-opacity" values="0.75;0" dur="3.6s" begin="2.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
   <!-- wordmark -->
   <text x="600" y="118" text-anchor="middle"
         font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="72" font-weight="700"
@@ -47,11 +104,11 @@
         font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="21" font-weight="400"
         letter-spacing="4" fill="#8b98a9">ADVANCED NETWORK TUNING &amp; DIAGNOSTICS FOR WINDOWS</text>
 
-  <!-- pre-alpha tag -->
+  <!-- stage tag -->
   <g>
     <rect x="1044" y="24" width="132" height="30" rx="15" fill="#f59e0b" fill-opacity="0.15" stroke="#f59e0b" stroke-opacity="0.6"/>
     <text x="1110" y="44" text-anchor="middle"
           font-family="Segoe UI, Inter, system-ui, sans-serif" font-size="15" font-weight="600"
-          fill="#fbbf24">PRE-ALPHA</text>
+          fill="#fbbf24">ALPHA</text>
   </g>
 </svg>
