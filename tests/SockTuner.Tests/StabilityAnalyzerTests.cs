@@ -103,6 +103,50 @@ public sealed class StabilityAnalyzerTests
         Assert.Contains("Older samples were dropped", result.Verdict, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void AvailabilityIsAShareOfTimeRatherThanOfPackets()
+    {
+        // 4 of 300 samples lost is 98.7% of packets, which sounds fine. What the player met was a
+        // four-second hole in a five-minute window, and only the time-based figure says so.
+        var samples = Enumerable.Range(0, 300).Select(index => index is >= 10 and <= 13
+            ? NoReply(index)
+            : Reply(index, 20));
+
+        var result = StabilityAnalyzer.Analyze(Report(samples));
+
+        // The episode spans the first to the last unanswered probe: 3 seconds of a 300 second window.
+        Assert.Equal(99, result.AvailabilityPercent!.Value, 3);
+        Assert.Contains("dropout(s)", PlayabilityAnalyzer.Availability(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AvailabilityIsTakenFromTheWorstTargetRatherThanSummedAcrossThem()
+    {
+        // Two targets losing the same three seconds is one outage, not six seconds of them.
+        var samples = Enumerable.Range(0, 100).SelectMany(index => new[]
+        {
+            index is >= 5 and <= 8
+                ? new MonitorSample(Start.AddSeconds(index), "Gateway", "192.168.1.1", null, MonitorSampleKind.NoReply, "TimedOut")
+                : new MonitorSample(Start.AddSeconds(index), "Gateway", "192.168.1.1", 1, MonitorSampleKind.Reply, null),
+            index is >= 5 and <= 8
+                ? new MonitorSample(Start.AddSeconds(index), "Endpoint", "9.9.9.9", null, MonitorSampleKind.NoReply, "TimedOut")
+                : new MonitorSample(Start.AddSeconds(index), "Endpoint", "9.9.9.9", 60, MonitorSampleKind.Reply, null)
+        });
+
+        var result = StabilityAnalyzer.Analyze(Report(samples));
+
+        Assert.Equal(99, result.AvailabilityPercent!.Value, 3);
+    }
+
+    [Fact]
+    public void ACleanRunReportsFullAvailabilityAndSaysWhatItCannotSee()
+    {
+        var result = StabilityAnalyzer.Analyze(Report(Enumerable.Range(0, 40).Select(index => Reply(index, 20))));
+
+        Assert.Equal(100, result.AvailabilityPercent);
+        Assert.Contains("No dropouts", PlayabilityAnalyzer.Availability(result), StringComparison.Ordinal);
+    }
+
     private static MonitorReport Report(IEnumerable<MonitorSample> samples)
     {
         var values = samples.ToArray();

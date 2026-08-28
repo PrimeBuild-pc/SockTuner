@@ -112,7 +112,7 @@ public sealed class NetworkDiagnosticService
     {
         var samples = new List<ProbeSample>(profile.SampleCount);
         using var ping = new Ping();
-        var payload = new byte[32];
+        var payload = new byte[profile.PayloadBytes];
 
         for (var index = 0; index < profile.SampleCount; index++)
         {

@@ -11,7 +11,7 @@ public sealed class DiagnosticReportExporterTests
     {
         using var document = JsonDocument.Parse(DiagnosticReportExporter.SerializeJson(Report()));
 
-        Assert.Equal(2, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(3, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.False(document.RootElement.GetProperty("redacted").GetBoolean());
         Assert.Equal(10, document.RootElement.GetProperty("report").GetProperty("gameTarget").GetProperty("samples")[0].GetProperty("roundTripTimeMs").GetDouble());
     }
@@ -39,6 +39,24 @@ public sealed class DiagnosticReportExporterTests
             Assert.DoesNotContain(secret, json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(secret, html, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    [Fact]
+    public void TheExportCarriesTheTickRateItWasJudgedAgainstAndTheThresholdsThatFollowFromIt()
+    {
+        // A report sent to a provider has to say what "playable" meant, or the grade is just the
+        // app's opinion with no arithmetic behind it.
+        var html = DiagnosticReportExporter.SerializeHtml(Report() with { Game = GameProfiles.Get("valorant") });
+
+        Assert.Contains("Playability — Valorant", html, StringComparison.Ordinal);
+        Assert.Contains("128 Hz", html, StringComparison.Ordinal);
+        Assert.Contains("half a tick and one", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ARunWithNoTickRateExportsNoVerdictRatherThanADefaultOne()
+    {
+        Assert.DoesNotContain("Playability", DiagnosticReportExporter.SerializeHtml(Report()), StringComparison.Ordinal);
     }
 
     private static GamingDiagnosticReport Report()

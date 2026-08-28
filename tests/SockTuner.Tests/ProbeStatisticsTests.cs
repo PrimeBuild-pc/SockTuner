@@ -5,6 +5,41 @@ namespace SockTuner.Tests;
 public sealed class ProbeStatisticsTests
 {
     [Fact]
+    public void WindowedJitter_DoesNotMoveWithHowFastTheProbeSent()
+    {
+        // The same line, sampled at 100 ms and at 50 ms. The consecutive-difference jitter reports
+        // the same swing either way here, but the windowed figure is the one defined so that it
+        // cannot drift with the send rate — which is what makes it comparable to a tick budget.
+        var slow = Windowed(10, 100, index => index % 2 == 0 ? 20 : 30);
+        var fast = Windowed(20, 50, index => index % 2 == 0 ? 20 : 30);
+
+        Assert.Equal(5, slow.WindowedJitterMs!.Value, 3);
+        Assert.Equal(5, fast.WindowedJitterMs!.Value, 3);
+    }
+
+    [Fact]
+    public void WindowedJitter_IsNullWhenNoSecondHeldTwoReplies()
+    {
+        // At a one-second interval there is never more than one reply per window. A fabricated
+        // figure would be worse than none.
+        var sparse = Windowed(10, 1000, _ => 20);
+
+        Assert.Null(sparse.WindowedJitterMs);
+        Assert.NotNull(sparse.JitterMs);
+    }
+
+    [Fact]
+    public void WindowedJitter_IsZeroOnAPerfectlySteadyPath()
+    {
+        Assert.Equal(0, Windowed(20, 100, _ => 18).WindowedJitterMs);
+    }
+
+    private static ProbeStatistics Windowed(int count, int intervalMs, Func<int, double> value) =>
+        ProbeStatistics.Calculate("Game", "example.test", Enumerable.Range(0, count)
+            .Select(index => new ProbeSample(DateTimeOffset.UnixEpoch.AddMilliseconds(index * intervalMs), value(index)))
+            .ToArray());
+
+    [Fact]
     public void Calculate_ReportsPercentilesLossAndJitter()
     {
         var samples = new ProbeSample[]

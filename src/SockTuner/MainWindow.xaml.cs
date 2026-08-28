@@ -21,6 +21,9 @@ public partial class MainWindow : Window
     private const int UseImmersiveDarkModeBefore20H1 = 19;
     private const int MonitorMaximumSamples = 1000;
 
+    /// <summary>The catalogue, plus whatever tick rate an imported capture brought with it.</summary>
+    private readonly ObservableCollection<GameProfile> _gameProfiles = new(GameProfiles.All);
+
     private readonly SystemInventoryService _inventory = new();
     private readonly NetworkDiagnosticService _diagnostics = new();
     private readonly NetworkMonitorService _monitor = new();
@@ -60,6 +63,8 @@ public partial class MainWindow : Window
         LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
+        DiagnosticGameComboBox.ItemsSource = _gameProfiles;
+        DiagnosticGameComboBox.SelectedItem = _gameProfiles[0];
         DiagnosticLoadComboBox.ItemsSource = Enum.GetValues<DiagnosticLoadCondition>();
         DiagnosticLoadComboBox.SelectedIndex = 0;
         ThroughputDirectionComboBox.ItemsSource = Enum.GetValues<TransferDirection>();
@@ -235,6 +240,18 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (DiagnosticGameComboBox.SelectedItem is not GameProfile game)
+        {
+            StatusText.Text = "Select a game tick rate.";
+            return;
+        }
+
+        // The game decides how large each probe is — a live game packet is not 32 bytes — but not
+        // how fast they are sent. A serial ICMP probe cannot reach 128 packets a second against a
+        // real path, and sending at a game's rate to somebody else's server uninvited is not this
+        // app's business. The rate-independent jitter figure is what keeps the comparison honest.
+        profile = profile with { PayloadBytes = game.PayloadBytes };
+
         _diagnosticCancellation?.Dispose();
         _diagnosticCancellation = new CancellationTokenSource();
         _lastReport = null;
@@ -258,7 +275,11 @@ public partial class MainWindow : Window
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             _snapshot = afterSnapshot;
             ShowSnapshot(afterSnapshot);
-            report = report with { CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters) };
+            report = report with
+            {
+                CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters),
+                Game = game
+            };
             _lastReport = report;
             try
             {
@@ -285,6 +306,7 @@ public partial class MainWindow : Window
             RouteSamplesGrid.ItemsSource = report.RouteSamples ?? [];
             await ShowRoutingAnalysisAsync(report, afterSnapshot, _diagnosticCancellation.Token);
             FindingsGrid.ItemsSource = report.Findings;
+            ShowPlayability(report.GameTarget, game);
             var counterSummary = report.CounterDeltas is { Count: > 0 }
                 ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"
                 : " Counter deltas unavailable.";
@@ -733,6 +755,7 @@ public partial class MainWindow : Window
                 window
                 + string.Join(" · ", report.Summaries.Select(summary => $"{summary.Label}: {summary.Summary}"))
                 + Environment.NewLine + stability.Verdict
+                + Environment.NewLine + PlayabilityAnalyzer.Availability(stability)
                 + (stability.Episodes.Count == 0
                     ? string.Empty
                     : Environment.NewLine + string.Join(Environment.NewLine, stability.Episodes.Select(episode => "• " + episode.Summary))));
@@ -774,6 +797,7 @@ public partial class MainWindow : Window
         DiagnosticTargetText.IsEnabled = !isBusy;
         DiagnosticPortText.IsEnabled = !isBusy;
         DiagnosticProfileComboBox.IsEnabled = !isBusy;
+        DiagnosticGameComboBox.IsEnabled = !isBusy;
         DiagnosticLoadComboBox.IsEnabled = !isBusy;
     }
 
@@ -787,6 +811,21 @@ public partial class MainWindow : Window
         DiagnosticStatisticsGrid.ItemsSource = null;
         DiagnosticSamplesGrid.ItemsSource = null;
         RouteSamplesGrid.ItemsSource = null;
+        PlayabilityHeadlineText.Text = value;
+        PlayabilityDetailText.Text = string.Empty;
+        PlayabilityMetricsGrid.ItemsSource = null;
+        PlayabilityTickText.Text = string.Empty;
+    }
+
+    private void ShowPlayability(ProbeStatistics gameEndpoint, GameProfile game)
+    {
+        var verdict = PlayabilityAnalyzer.Judge(gameEndpoint, game);
+        PlayabilityHeadlineText.Text = $"{verdict.Headline} — decided by {verdict.DecidedBy}";
+        PlayabilityDetailText.Text = verdict.Detail;
+        PlayabilityMetricsGrid.ItemsSource = verdict.Metrics;
+        PlayabilityTickText.Text = $"{game.DisplayName}: {game.TickDisplay} ({game.SourceDisplay}). {game.Evidence} "
+            + $"Probes carried {game.PayloadBytes} bytes of payload.";
+        WriteLog("playability.judged", $"Game={game.Id}; Grade={verdict.Grade}; DecidedBy={verdict.DecidedBy}.");
     }
 
     private void WriteLog(string eventName, string message)
@@ -1003,6 +1042,20 @@ public partial class MainWindow : Window
         {
             lines.Add("Against this reading:");
             lines.AddRange(assessment.Contradicting.Select(item => $"• {item}"));
+        }
+
+        // A letter grade says how far the queue grew. It does not say whether the game survives it,
+        // and that answer depends on the tick rate the diagnostics tab is already set to.
+        if (DiagnosticGameComboBox.SelectedItem is GameProfile game)
+        {
+            var idle = PlayabilityAnalyzer.Judge(result.Idle, game);
+            var loaded = PlayabilityAnalyzer.Judge(result.Loaded, game);
+            lines.Add(idle.Grade == loaded.Grade
+                ? $"For {game.DisplayName}: {loaded.GradeDisplay.ToLowerInvariant()} both idle and under load."
+                : $"For {game.DisplayName}: {idle.GradeDisplay.ToLowerInvariant()} idle, "
+                    + $"{loaded.GradeDisplay.ToLowerInvariant()} under load — decided by {loaded.DecidedBy}. "
+                    + "A game that only breaks while something else is downloading is a queue, and the queue is the "
+                    + "router's to fix.");
         }
 
         BufferbloatAssessmentText.Text = string.Join(Environment.NewLine, lines);
@@ -1478,7 +1531,38 @@ public partial class MainWindow : Window
         DiagnosticTargetText.Text = target;
         if (!string.IsNullOrWhiteSpace(_importedReport.RemotePort)) DiagnosticPortText.Text = _importedReport.RemotePort;
         LoadedLatencyTargetText.Text = target;
-        StatusText.Text = $"Diagnosis target set to {target} from the imported report. Nothing has been measured yet.";
+        var tick = SelectImportedTickRate(_importedReport);
+        StatusText.Text = $"Diagnosis target set to {target} from the imported report.{tick} Nothing has been measured yet.";
+    }
+
+    /// <summary>
+    /// Carries the capture's own tick rate over to the live measurement, so the endpoint the report
+    /// found is judged against the cadence the report saw rather than against whatever was selected
+    /// beforehand. A rate that is not a catalogue title is added as its own entry rather than being
+    /// snapped to the nearest one.
+    /// </summary>
+    private string SelectImportedTickRate(GameFlowReport report)
+    {
+        if (report.ExpectedTickMs is not { } tickMs || tickMs <= 0)
+        {
+            return " It carries no tick rate, so the game profile is unchanged.";
+        }
+
+        var profile = GameProfile.FromTickIntervalMs(report.Game, tickMs);
+        if (!_gameProfiles.Contains(profile))
+        {
+            // Only ever one imported entry: a second import replaces the first rather than
+            // accumulating stale rates the user has to tell apart.
+            for (var index = _gameProfiles.Count - 1; index >= 0; index--)
+            {
+                if (_gameProfiles[index].Id == "imported") _gameProfiles.RemoveAt(index);
+            }
+
+            _gameProfiles.Insert(0, profile);
+        }
+
+        DiagnosticGameComboBox.SelectedItem = _gameProfiles.First(item => item == profile);
+        return $" Judging against {profile.DisplayName} at {profile.TickRateHz:0.#} Hz, from the report.";
     }
 
     // ---- Interrupt affinity ---------------------------------------------------------------

@@ -160,4 +160,39 @@ public sealed record StabilityReport(
     string Verdict)
 {
     public bool Stable => Episodes.Count == 0;
+
+    /// <summary>
+    /// The share of the measured window the line was actually answering, taken from the target that
+    /// lost the most time rather than averaged across targets.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// A share of time, not of packets, and the distinction is the whole point: a line that answers
+    /// 99.98 % of probes but goes silent for four seconds twice an evening is precisely the fault a
+    /// game notices and a packet average hides.
+    /// </para>
+    /// <para>
+    /// Its resolution is the probe interval — a hole shorter than one interval cannot be seen at
+    /// all — so this is a floor on the damage, never a clean bill of health.
+    /// </para>
+    /// </remarks>
+    public double? AvailabilityPercent
+    {
+        get
+        {
+            if (Window <= TimeSpan.Zero)
+            {
+                return null;
+            }
+
+            var worst = Episodes
+                .Where(episode => episode.Kind == StabilityEventKind.LossBurst)
+                .GroupBy(episode => (episode.Label, episode.Target))
+                .Select(target => target.Sum(episode => episode.Duration.TotalSeconds))
+                .DefaultIfEmpty(0)
+                .Max();
+
+            return Math.Clamp(100 - (worst * 100 / Window.TotalSeconds), 0, 100);
+        }
+    }
 }

@@ -422,6 +422,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="140"/>
+                                    <ColumnDefinition Width="190"/>
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="150"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -442,22 +443,52 @@
                                     </ComboBox>
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                    <TextBlock Text="GAME (TICK RATE)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="DiagnosticGameComboBox" Margin="0,6,0,0"
+                                              ToolTip="Sets the probe's packet size and the thresholds the result is judged against"
+                                              AutomationProperties.Name="Game tick rate profile">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
                                     <TextBlock Text="LOAD" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
                                     <ComboBox x:Name="DiagnosticLoadComboBox" Margin="0,6,0,0" AutomationProperties.Name="Load condition"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
+                                <StackPanel Grid.Column="4" Margin="0,0,12,0">
                                     <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
                                     <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="4" Content="Run diagnosis" Click="RunDiagnostic_Click"
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="5" Content="Run diagnosis" Click="RunDiagnostic_Click"
                                         VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelDiagnosticButton" Grid.Column="5" Content="Cancel" Click="CancelDiagnostic_Click"
+                                <Button x:Name="CancelDiagnosticButton" Grid.Column="6" Content="Cancel" Click="CancelDiagnostic_Click"
                                         VerticalAlignment="Bottom" IsEnabled="False"/>
                             </Grid>
                         </Border>
 
                         <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Playable?" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock Text="The same measurement means different things to different games. A server updating 128 times a second cannot place an input that arrives 10 ms out of position, while one updating 20 times a second will not notice it — so the jitter limits here are derived from the selected tick rate rather than chosen, and the verdict is the worst of the three numbers, never their average."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="PlayabilityHeadlineText" Text="Not run" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="PlayabilityDetailText" Text="Run a diagnosis to judge the game endpoint against a tick rate."
+                                           Margin="0,8,0,0" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="PlayabilityMetricsGrid" AutoGenerateColumns="False" Margin="0,12,0,0" MaxHeight="150">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="110"/>
+                                        <DataGridTextColumn Header="Verdict" Binding="{Binding GradeDisplay}" Width="150"/>
+                                        <DataGridTextColumn Header="Measured" Binding="{Binding Measured}" Width="2*"/>
+                                        <DataGridTextColumn Header="Budget for this tick rate" Binding="{Binding Budget}" Width="2*"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock x:Name="PlayabilityTickText" Text="" Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
@@ -537,7 +568,8 @@
                         <Border Style="{StaticResource Card}" Margin="0,18,0,0">
                             <StackPanel>
                                 <TextBlock Text="Probe statistics" FontSize="20" FontWeight="SemiBold"/>
-                                <TextBlock Text="Jitter is the mean absolute difference between consecutive successful RTT samples." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12"/>
+                                <TextBlock Text="Jitter is the mean absolute difference between consecutive successful RTT samples, so it moves with how fast the profile sent. Jitter (1s) is the standard deviation inside each one-second window, averaged — the same line reports the same figure at any probe rate, which is the one that can be compared against a game's tick budget. It is blank when no single second collected two replies."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
                                 <DataGrid x:Name="DiagnosticStatisticsGrid" AutoGenerateColumns="False" MinHeight="150">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Target" Binding="{Binding Label}" Width="150"/>
@@ -551,6 +583,7 @@
                                         <DataGridTextColumn Header="P99" Binding="{Binding P99Ms}" Width="70"/>
                                         <DataGridTextColumn Header="Max" Binding="{Binding MaximumMs}" Width="70"/>
                                         <DataGridTextColumn Header="Jitter" Binding="{Binding JitterMs}" Width="70"/>
+                                        <DataGridTextColumn Header="Jitter (1s)" Binding="{Binding WindowedJitterMs}" Width="80"/>
                                         <DataGridTextColumn Header="Spikes" Binding="{Binding SpikeSamples.Count}" Width="65"/>
                                     </DataGrid.Columns>
                                 </DataGrid>

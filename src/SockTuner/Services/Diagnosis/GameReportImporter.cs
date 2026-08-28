@@ -78,17 +78,23 @@ public static class GameReportImporter
 
         var tick = report.ExpectedTickMs;
 
-        if (tick is { } expected && flow.AverageJitterMs > expected / 2)
+        // The same thresholds the live measurement is judged against, so a capture and a probe
+        // cannot disagree about the same line: half a tick is comfortable, one tick is the edge.
+        var game = tick is { } expected and > 0 ? GameProfile.FromTickIntervalMs(report.Game, expected) : null;
+
+        if (game is not null && flow.AverageJitterMs > game.GoodJitterMs)
         {
+            var past = flow.AverageJitterMs > game.PlayableJitterMs;
             findings.Add(new HealthFinding(
-                $"{report.Game}: jitter is large against the game's own tick",
-                $"Average jitter {flow.AverageJitterMs:0.0} ms against an expected tick of {expected:0.#} ms.",
+                $"{report.Game}: jitter is {(past ? "past" : "at")} what the game's own tick allows",
+                $"Average jitter {flow.AverageJitterMs:0.0} ms against a {game.TickIntervalMs:0.#} ms tick — "
+                + $"{game.GoodJitterMs:0.0} ms is comfortable, {game.PlayableJitterMs:0.0} ms is the edge.",
                 "Packets arriving unevenly relative to the tick is what is felt as inconsistent hit registration. "
                 + "Measure the same endpoint under load: if jitter only appears under load, the queue is the cause "
                 + "and it is the router's to fix.",
                 "Throughput & bufferbloat",
-                DiagnosticConfidence.Medium,
-                ChangeRisk.Medium));
+                past ? DiagnosticConfidence.High : DiagnosticConfidence.Medium,
+                past ? ChangeRisk.High : ChangeRisk.Medium));
         }
 
         if (tick is { } tickMs && flow.MaximumDeltaMs > tickMs * 5)

@@ -1,18 +1,30 @@
 namespace SockTuner.Models;
 
+/// <param name="PayloadBytes">
+/// Bytes of padding in each probe. A game's live packets are tens to a few hundred bytes rather
+/// than the 32 a default ping sends, and size is what decides whether one meets a fragmentation or
+/// a shaping rule on the way. Capped below the smallest sensible path MTU so a probe cannot become
+/// a fragmentation test by accident.
+/// </param>
 public sealed record DiagnosticProfile(
     string Id,
     string DisplayName,
     int SampleCount,
     TimeSpan Interval,
-    TimeSpan Timeout)
+    TimeSpan Timeout,
+    int PayloadBytes = 32)
 {
+    /// <summary>Ethernet's 1500 byte MTU less a 20 byte IPv4 and an 8 byte ICMP header.</summary>
+    public const int MaximumPayloadBytes = 1472;
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(Id);
         ArgumentException.ThrowIfNullOrWhiteSpace(DisplayName);
         ArgumentOutOfRangeException.ThrowIfLessThan(SampleCount, 3);
         ArgumentOutOfRangeException.ThrowIfGreaterThan(SampleCount, 300);
+        ArgumentOutOfRangeException.ThrowIfNegative(PayloadBytes);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(PayloadBytes, MaximumPayloadBytes);
         if (Interval < TimeSpan.Zero || Interval > TimeSpan.FromMinutes(1)) throw new ArgumentOutOfRangeException(nameof(Interval));
         if (Timeout <= TimeSpan.Zero || Timeout > TimeSpan.FromMinutes(1)) throw new ArgumentOutOfRangeException(nameof(Timeout));
     }
@@ -132,6 +144,47 @@ public sealed record ProbeStatistics(
 {
     public int Lost => Sent - Received;
     public string JitterMethod => "Mean absolute consecutive RTT difference";
+
+    /// <summary>
+    /// Jitter measured over fixed one-second windows — the standard deviation of the round trips
+    /// inside each second, averaged over the seconds that hold at least two replies.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <see cref="JitterMs"/> is the difference between consecutive samples, and that makes the
+    /// figure depend on how fast the probe sent: the same line reports one number at a 100 ms
+    /// interval and a different one at 500 ms. A fixed window does not care how many samples fell
+    /// inside it, so two runs of different profiles against the same path are comparable, and so is
+    /// a run against a game's tick budget.
+    /// </para>
+    /// <para>
+    /// Null when no single second collected two replies — at a 500 ms interval and above that is
+    /// the normal case, and a fabricated figure would be worse than none.
+    /// </para>
+    /// </remarks>
+    public double? WindowedJitterMs
+    {
+        get
+        {
+            var windows = Samples
+                .Where(sample => sample.RoundTripTimeMs.HasValue)
+                .GroupBy(sample => sample.Timestamp.ToUnixTimeMilliseconds() / 1000)
+                .Select(window => window.Select(sample => sample.RoundTripTimeMs!.Value).ToArray())
+                .Where(values => values.Length >= 2)
+                .Select(StandardDeviation)
+                .ToArray();
+
+            return windows.Length == 0 ? null : windows.Average();
+        }
+    }
+
+    /// <summary>Population standard deviation: the window is the whole of what was measured in that second, not a sample of it.</summary>
+    private static double StandardDeviation(double[] values)
+    {
+        var mean = values.Average();
+        return Math.Sqrt(values.Sum(value => (value - mean) * (value - mean)) / values.Length);
+    }
+
     public IReadOnlyList<ProbeSample> SpikeSamples => MedianMs is not { } median
         ? []
         : Samples.Where(sample => sample.RoundTripTimeMs > median + Math.Max(10, (JitterMs ?? 0) * 3)).ToArray();
@@ -307,6 +360,11 @@ public enum DiagnosticLoadCondition
     UnderLoad = 3
 }
 
+/// <param name="Game">
+/// The tick rate the run was judged against. Carried in the report because the same numbers mean
+/// different things to different games, so a result sent to a provider without it is a measurement
+/// with its interpretation removed.
+/// </param>
 public sealed record GamingDiagnosticReport(
     string RequestedTarget,
     DateTimeOffset StartedAt,
@@ -323,7 +381,8 @@ public sealed record GamingDiagnosticReport(
     string? FirstPublicBoundary = null,
     PathMtuResult? PathMtu = null,
     IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null,
-    ProbeStatistics? FirstPublicBoundaryProbe = null);
+    ProbeStatistics? FirstPublicBoundaryProbe = null,
+    GameProfile? Game = null);
 
 internal static class DoubleArrayExtensions
 {

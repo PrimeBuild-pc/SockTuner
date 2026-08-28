@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using SockTuner.Models;
 using SockTuner.Services;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Persistence;
 
@@ -19,7 +20,7 @@ public static class DiagnosticReportExporter
 
     public static string SerializeJson(GamingDiagnosticReport report, bool redact = false) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 2,
+        schemaVersion = 3,
         toolVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             ?? "unknown",
@@ -34,15 +35,17 @@ public static class DiagnosticReportExporter
         var title = HtmlEncoder.Default.Encode($"SockTuner diagnostic — {safe.RequestedTarget}");
         var rows = new[] { safe.Gateway, safe.Reference, safe.GameTarget }
             .Concat(safe.FirstPublicBoundaryProbe is null ? [] : [safe.FirstPublicBoundaryProbe])
-            .Select(item => $"<tr><td>{H(item.Label)}</td><td>{item.Sent}</td><td>{item.Received}</td><td>{item.Lost}</td><td>{F(item.MinimumMs)}</td><td>{F(item.MedianMs)}</td><td>{F(item.AverageMs)}</td><td>{F(item.P95Ms)}</td><td>{F(item.P99Ms)}</td><td>{F(item.MaximumMs)}</td><td>{F(item.JitterMs)}</td></tr>");
+            .Select(item => $"<tr><td>{H(item.Label)}</td><td>{item.Sent}</td><td>{item.Received}</td><td>{item.Lost}</td><td>{F(item.MinimumMs)}</td><td>{F(item.MedianMs)}</td><td>{F(item.AverageMs)}</td><td>{F(item.P95Ms)}</td><td>{F(item.P99Ms)}</td><td>{F(item.MaximumMs)}</td><td>{F(item.JitterMs)}</td><td>{F(item.WindowedJitterMs)}</td></tr>");
         var findings = safe.Findings.Select(item => $"<tr><td>{H(item.Scope.ToString())}</td><td>{H(item.Confidence.ToString())}</td><td>{H(item.Title)}</td><td>{H(item.Evidence)}</td><td>{H(item.Action)}</td></tr>");
+        var playability = Playability(safe);
         var json = H(SerializeJson(report, redact));
         return $$"""
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>{{title}}</title>
 <style>body{font:14px Segoe UI,Arial;background:#111;color:#f2f2f2;margin:32px}h1,h2{font-weight:500}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #444;padding:8px;text-align:left;vertical-align:top}th{background:#2b2b2b}pre{white-space:pre-wrap;background:#1f1f1f;border:1px solid #444;padding:16px}.muted{color:#b3b3b3}</style></head>
 <body><h1>{{title}}</h1><p class="muted">Started {{H(safe.StartedAt.ToString("O"))}} · Profile {{H(safe.Profile.DisplayName)}} · Load {{H(safe.LoadCondition.ToString())}} · Duration {{safe.Duration.TotalSeconds:0.0}}s · Redacted {{redact}}</p>
-<h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
+{{playability}}
+<h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th><th>Jitter (1s windows)</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>
 """;
@@ -109,6 +112,33 @@ public static class DiagnosticReportExporter
             Findings = report.Findings.Select(finding => finding with { Evidence = "[detail redacted]" }).ToArray(),
             CounterDeltas = report.CounterDeltas?.Select(delta => delta with { AdapterId = "[redacted]", AdapterName = "Adapter" }).ToArray()
         };
+    }
+
+    /// <summary>
+    /// The verdict section, and the arithmetic behind it. A report sent to a provider has to carry
+    /// the thresholds it was judged against, or the reader has only the app's word for the grade.
+    /// </summary>
+    private static string Playability(GamingDiagnosticReport report)
+    {
+        if (report.Game is not { } game)
+        {
+            return string.Empty;
+        }
+
+        var verdict = PlayabilityAnalyzer.Judge(report.GameTarget, game);
+        var rows = verdict.Metrics.Select(metric =>
+            $"<tr><td>{H(metric.Name)}</td><td>{H(metric.GradeDisplay)}</td><td>{H(metric.Measured)}</td>"
+            + $"<td>{H(metric.Budget)}</td><td>{H(metric.Explanation)}</td></tr>");
+
+        return $"""
+<h2>Playability — {H(game.DisplayName)}</h2>
+<p>{H(verdict.Headline)} — decided by {H(verdict.DecidedBy)}.</p>
+<p class="muted">{H(game.TickDisplay)} ({H(game.SourceDisplay)}). {H(game.Evidence)} Jitter limits are half a tick and one
+tick, capped at 15 ms and 30 ms; the latency limits are a judgement scaled to the tick rate; the loss limits are the same
+at every tick rate. Probes carried {game.PayloadBytes} bytes of payload.</p>
+<table><thead><tr><th>Metric</th><th>Verdict</th><th>Measured</th><th>Budget</th><th>What it means</th></tr></thead>
+<tbody>{string.Join("", rows)}</tbody></table>
+""";
     }
 
     private static string H(string value) => HtmlEncoder.Default.Encode(value);
