@@ -32,6 +32,26 @@ public class Win32Rect {
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int c);
+    [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")] public static extern bool BringWindowToTop(IntPtr h);
+    [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, IntPtr pid);
+    [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint from, uint to, bool attach);
+    [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+
+    // Windows refuses SetForegroundWindow to a process that does not already own the
+    // foreground, and returns true anyway. Sharing the input queue of whatever does own it
+    // for the length of the call is the documented way through, and without it a shot
+    // silently captures the window that is actually on top instead.
+    public static void Raise(IntPtr h) {
+        IntPtr fg = GetForegroundWindow();
+        uint mine = GetCurrentThreadId();
+        uint theirs = GetWindowThreadProcessId(fg, IntPtr.Zero);
+        bool attached = theirs != 0 && theirs != mine && AttachThreadInput(mine, theirs, true);
+        ShowWindow(h, 9);            // SW_RESTORE
+        BringWindowToTop(h);
+        SetForegroundWindow(h);
+        if (attached) AttachThreadInput(mine, theirs, false);
+    }
 }
 '@
     }
@@ -110,9 +130,15 @@ switch ($Command) {
     'shot' {
         $win = Get-Window
         $h = [IntPtr]$win.Current.NativeWindowHandle
-        [void][Win32Rect]::ShowWindow($h, 9)          # SW_RESTORE
-        [void][Win32Rect]::SetForegroundWindow($h)
+        [Win32Rect]::Raise($h)
         Start-Sleep -Milliseconds 600
+        if ([Win32Rect]::GetForegroundWindow() -ne $h) {
+            [Win32Rect]::Raise($h)
+            Start-Sleep -Milliseconds 600
+        }
+        if ([Win32Rect]::GetForegroundWindow() -ne $h) {
+            throw "Could not raise the SockTuner window; another window is on top and the shot would capture it."
+        }
         $r = New-Object Win32Rect+RECT
         [void][Win32Rect]::GetWindowRect($h, [ref]$r)
         $w = $r.Right - $r.Left; $ht = $r.Bottom - $r.Top

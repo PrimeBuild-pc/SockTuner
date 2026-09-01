@@ -72,6 +72,12 @@ public partial class TuningPlanView : UserControl
     private readonly TransactionAuditStore _auditStore = new();
     private readonly ElevatedWorkerClient _worker = new();
     private readonly ObservableCollection<CapabilityRow> _rows = [];
+
+    // Device-level changes — enabling an adapter, its power management — sent here from the
+    // Interfaces tab. They are not NDIS keywords on one adapter, so they cannot live in _rows,
+    // but they go through exactly the same preview, confirmation, audit and rollback path. There
+    // is one write path in this app and this is it.
+    private readonly List<ChangeRequest> _deviceChanges = [];
     private IReadOnlyList<AdapterSettingCapability> _capabilities = [];
     private ChangePlan? _preparedPlan;
     private string? _capabilityError;
@@ -97,6 +103,56 @@ public partial class TuningPlanView : UserControl
             ?? candidates.FirstOrDefault(adapter => adapter.NdisSupported)
             ?? candidates.FirstOrDefault();
     }
+
+    /// <summary>
+    /// Queues device-level changes for the next preview. Each one is resolved and validated here,
+    /// against the adapters this machine actually has, so a request naming a device that is not
+    /// present is dropped rather than carried into a plan. Returns how many were accepted.
+    /// </summary>
+    public int ProposeDeviceChanges(IReadOnlyList<ChangeRequest> changes)
+    {
+        ArgumentNullException.ThrowIfNull(changes);
+        var resolve = DeviceResolver();
+        var accepted = 0;
+        foreach (var change in changes)
+        {
+            if (change.ProposedValue is not { } value) continue;
+            try
+            {
+                var specification = resolve(change.SettingId, change.TargetId);
+                specification.ResolveAddress(change.TargetId);
+                specification.Validate(value);
+            }
+            catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
+                                              or KeyNotFoundException)
+            {
+                continue;
+            }
+
+            // One pending change per setting per device: proposing twice replaces, never stacks.
+            _deviceChanges.RemoveAll(item =>
+                string.Equals(item.SettingId, change.SettingId, StringComparison.Ordinal)
+                && string.Equals(item.TargetId, change.TargetId, StringComparison.OrdinalIgnoreCase));
+            _deviceChanges.Add(change);
+            accepted++;
+        }
+
+        if (accepted > 0)
+        {
+            InvalidatePlan($"{accepted} device change(s) queued. Preview the plan before applying.");
+        }
+
+        return accepted;
+    }
+
+    /// <summary>Pending device changes, so another surface can show what is waiting.</summary>
+    public int PendingDeviceChangeCount => _deviceChanges.Count;
+
+    private SettingSpecificationResolver DeviceResolver() => SettingSpecifications.From(
+        _capabilities,
+        globals: null,
+        presentAdapters: AdapterStateSpecification.PresentAdapters(),
+        adapterKeys: AdapterPowerSavingSpecification.ReadAdapterKeys());
 
     /// <summary>
     /// Fills in proposed values for changes suggested elsewhere in the app. It only sets values on
@@ -147,6 +203,27 @@ public partial class TuningPlanView : UserControl
         ApplyPresetFilter();
     }
 
+    /// <summary>
+    /// The keyword, the trade-off and the full accepted range for the selected property. They used
+    /// to be grid columns, where nine columns in a thousand pixels left them two characters wide.
+    /// </summary>
+    private void Capability_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (CapabilityGrid.SelectedItem is not CapabilityRow row)
+        {
+            CapabilityDetailHeadingText.Text = "Select a property";
+            CapabilityDetailText.Text =
+                "Its keyword, what it trades against, and everything the driver will accept are shown here.";
+            return;
+        }
+
+        var capability = row.Capability;
+        CapabilityDetailHeadingText.Text =
+            $"{capability.DisplayName}  ·  {capability.Keyword}  ·  {capability.Risk} risk  ·  {capability.AreasDisplay}";
+        CapabilityDetailText.Text =
+            $"Accepted: {capability.ConstraintDisplay}{Environment.NewLine}Trade-off: {capability.TradeOff}";
+    }
+
     private void LoadCapabilities()
     {
         var result = WindowsAdapterCapabilityInventory.Read();
@@ -183,13 +260,18 @@ public partial class TuningPlanView : UserControl
     private void Discard_Click(object sender, RoutedEventArgs e)
     {
         foreach (var row in _rows) row.Reset();
-        InvalidatePlan("Proposals discarded.");
+        var devices = _deviceChanges.Count;
+        _deviceChanges.Clear();
+        InvalidatePlan(devices == 0
+            ? "Proposals discarded."
+            : $"Proposals discarded, including {devices} queued device change(s).");
     }
 
     private async void Preview_Click(object sender, RoutedEventArgs e)
     {
         var requests = _rows.Where(row => row.HasChange)
             .Select(row => new ChangeRequest(row.Capability.SettingId, row.Capability.AdapterId.ToString(), row.ProposedValue))
+            .Concat(_deviceChanges)
             .ToArray();
         if (requests.Length == 0)
         {
@@ -202,7 +284,7 @@ public partial class TuningPlanView : UserControl
             // Preview reads through a read-only store: nothing here can write.
             var store = new CompositeSettingStore(
                 WindowsRegistrySettingStore.CreateReadOnly(), new CimAdapterSettingStore());
-            var transactions = new SettingTransactionService(SettingSpecifications.From(_capabilities));
+            var transactions = new SettingTransactionService(DeviceResolver());
             _preparedPlan = await transactions.PrepareAsync(requests, store, CancellationToken.None);
             PlanPreviewGrid.ItemsSource = _preparedPlan.Changes;
 

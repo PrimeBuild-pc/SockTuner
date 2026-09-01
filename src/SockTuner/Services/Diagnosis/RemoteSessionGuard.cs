@@ -43,6 +43,9 @@ public static class RemoteSessionGuard
         {
             ["None"] = false,
             [AdapterRestart] = true,
+            // Disabling an adapter takes its link down and leaves it down. Nothing about that is
+            // gentler than a restart, so it is classified the same way: disruptive.
+            [AdapterStateSpecification.DisableRestart] = true,
             ["Service restart"] = false,
             ["System reboot"] = false
         };

@@ -17,13 +17,19 @@ public sealed class CompositeSettingStore : ISettingStore
         CimAdapterSettingStore adapters,
         CimGlobalSettingStore? globals = null,
         ISettingStore? dns = null,
-        ISettingStore? interrupts = null)
+        ISettingStore? interrupts = null,
+        ISettingStore? adapterState = null,
+        ISettingStore? adapterPower = null)
     {
         _registry = registry;
         Adapters = adapters;
         Globals = globals ?? new CimGlobalSettingStore();
         Dns = dns ?? new DnsServerStore();
         Interrupts = interrupts ?? CreateInterruptStore();
+        AdapterState = adapterState ?? new AdapterStateStore();
+        AdapterPower = adapterPower
+            ?? new AdapterPowerSavingStore(new AdapterPowerSavingSpecification(
+                AdapterPowerSavingSpecification.ReadAdapterKeys()));
     }
 
     // Built from the devices actually present, so the specification can refuse an instance ID that
@@ -44,6 +50,10 @@ public sealed class CompositeSettingStore : ISettingStore
 
     public ISettingStore Interrupts { get; }
 
+    public ISettingStore AdapterState { get; }
+
+    public ISettingStore AdapterPower { get; }
+
     public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken) =>
         For(address).ReadAsync(address, cancellationToken);
 
@@ -55,6 +65,8 @@ public sealed class CompositeSettingStore : ISettingStore
         _ when address.SettingId.StartsWith(SettingSpecifications.NicPrefix, StringComparison.Ordinal) => Adapters,
         _ when address.SettingId.StartsWith(SettingSpecifications.CimPrefix, StringComparison.Ordinal) => Globals,
         DnsServerSpecification.SettingId => Dns,
+        AdapterStateSpecification.SettingId => AdapterState,
+        AdapterPowerSavingSpecification.SettingId => AdapterPower,
         InterruptAffinitySpecification.SettingId => Interrupts,
         _ => _registry
     };

@@ -24,7 +24,7 @@
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/><ColumnDefinition Width="260"/>
                         <ColumnDefinition Width="Auto"/><ColumnDefinition Width="180"/>
-                        <ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*" MinWidth="130"/><ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBlock Text="Adapter" VerticalAlignment="Center" Margin="0,0,10,0"/>
                     <ComboBox x:Name="AdapterComboBox" Grid.Column="1"
@@ -59,13 +59,14 @@
 
             <DataGrid x:Name="CapabilityGrid" AutoGenerateColumns="False" Height="300" Margin="0,10,0,0"
                       IsReadOnly="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                      SelectionChanged="Capability_SelectionChanged"
                       AutomationProperties.Name="Driver-advertised adapter properties">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Property" Binding="{Binding Capability.DisplayName}" Width="200" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Keyword" Binding="{Binding Capability.Keyword}" Width="150" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Current" Binding="{Binding Capability.CurrentDisplay}" Width="130" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Default" Binding="{Binding Capability.DefaultDisplay}" Width="130" IsReadOnly="True"/>
-                    <DataGridTemplateColumn Header="Proposed" Width="150">
+                    <DataGridTextColumn Header="Property" Binding="{Binding Capability.DisplayName}" Width="190" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Keyword" Binding="{Binding Capability.Keyword}" Width="155" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Current" Binding="{Binding Capability.CurrentDisplay}" Width="115" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Default" Binding="{Binding Capability.DefaultDisplay}" Width="115" IsReadOnly="True"/>
+                    <DataGridTemplateColumn Header="Proposed" Width="140">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ComboBox IsEditable="True" ItemsSource="{Binding Options}"
@@ -74,12 +75,21 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Accepted values" Binding="{Binding Capability.ConstraintDisplay}" Width="2*" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Risk" Binding="{Binding Capability.Risk}" Width="70" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Focus" Binding="{Binding Capability.AreasDisplay}" Width="150" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Trade-off" Binding="{Binding Capability.TradeOff}" Width="3*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Accepted values" Binding="{Binding Capability.ConstraintDisplay}" Width="*" MinWidth="150" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Risk" Binding="{Binding Capability.Risk}" Width="85" IsReadOnly="True"
+                                        ElementStyle="{StaticResource RiskCellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0" Padding="14,12">
+                <StackPanel>
+                    <TextBlock x:Name="CapabilityDetailHeadingText" Text="Select a property"
+                               FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="CapabilityDetailText" Foreground="{StaticResource MutedTextBrush}"
+                               Text="Its keyword, what it trades against, and everything the driver will accept are shown here."
+                               TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
 
             <Border Style="{StaticResource Card}" Margin="0,14,0,0">
                 <StackPanel>
@@ -99,15 +109,16 @@
 
             <DataGrid x:Name="PlanPreviewGrid" AutoGenerateColumns="False" Height="170" Margin="0,14,0,0" IsReadOnly="True">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Setting" Binding="{Binding Definition.Title}" Width="200"/>
-                    <DataGridTextColumn Header="Current" Binding="{Binding BeforeDisplay}" Width="120"/>
-                    <DataGridTextColumn Header="Proposed" Binding="{Binding AfterDisplay}" Width="120"/>
-                    <DataGridTextColumn Header="Rollback restores" Binding="{Binding BeforeDisplay}" Width="130"/>
-                    <DataGridTextColumn Header="Risk" Binding="{Binding Definition.Risk}" Width="70"/>
-                    <DataGridTextColumn Header="Evidence" Binding="{Binding Definition.Evidence}" Width="130"/>
+                    <DataGridTextColumn Header="Setting" Binding="{Binding Definition.Title}" Width="190"/>
+                    <DataGridTextColumn Header="Current" Binding="{Binding BeforeDisplay}" Width="115"/>
+                    <DataGridTextColumn Header="Proposed" Binding="{Binding AfterDisplay}" Width="115"/>
+                    <DataGridTextColumn Header="Risk" Binding="{Binding Definition.Risk}" Width="85"
+                                        ElementStyle="{StaticResource RiskCellText}"/>
+                    <DataGridTextColumn Header="Evidence" Binding="{Binding Definition.Evidence}" Width="120"/>
                     <DataGridTextColumn Header="Restart" Binding="{Binding Definition.RestartRequirement}" Width="130"/>
                     <DataGridTextColumn Header="Extra confirm" Binding="{Binding RequiresExplicitConfirmation}" Width="100"/>
-                    <DataGridTextColumn Header="Trade-off" Binding="{Binding Definition.TradeOff}" Width="3*"/>
+                    <DataGridTextColumn Header="Trade-off" Binding="{Binding Definition.TradeOff}" Width="*" MinWidth="160"
+                                        ElementStyle="{StaticResource WrapCellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -115,7 +126,8 @@
                 <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <StackPanel>
                     <TextBlock Text="Transaction audit history" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="Select an applied entry to restore exactly the values it captured."
+                    <TextBlock Text="Select an applied entry to restore exactly the values it captured: the Current column of the plan it applied."
+                               TextWrapping="Wrap"
                                Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                 </StackPanel>
                 <Button Grid.Column="1" Content="Roll back selected" Click="Rollback_Click" VerticalAlignment="Bottom"/>
@@ -125,8 +137,8 @@
                     <DataGridTextColumn Header="Time" Binding="{Binding RecordedAt}" Width="170"/>
                     <DataGridTextColumn Header="Outcome" Binding="{Binding Outcome}" Width="150"/>
                     <DataGridTextColumn Header="Changes" Binding="{Binding Changes.Count}" Width="80"/>
-                    <DataGridTextColumn Header="Snapshot" Binding="{Binding SnapshotId}" Width="260"/>
-                    <DataGridTextColumn Header="Error" Binding="{Binding Error}" Width="2*"/>
+                    <DataGridTextColumn Header="Snapshot" Binding="{Binding SnapshotId}" Width="200"/>
+                    <DataGridTextColumn Header="Error" Binding="{Binding Error}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
         </StackPanel>

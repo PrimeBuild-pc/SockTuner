@@ -30,7 +30,7 @@ powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 <command
 | `build` | `dotnet build src/SockTuner/SockTuner.csproj -c Release` |
 | `launch` | Starts the app **detached** and waits for its window |
 | `status` | pid / responding / RAM |
-| `tabs` | Lists the 14 navigation tabs; `*` marks the selected one |
+| `tabs` | Lists the navigation entries; `*` marks the selected one |
 | `select "<name>"` | Selects a tab by name (substring match) |
 | `shot [path]` | PNG of the window → `.claude/skills/run-socktuner/shots/` |
 | `probe` | Read-only inventory dump to JSON on the Desktop |
@@ -62,10 +62,20 @@ painted. A correct `NDIS & drivers` capture shows *"Driver-advertised NDIS prope
 and a grid of real keywords (`*InterruptModeration`, `*EEE`, `ITR`, `*FlowControl`,
 `*JumboPacket`) with current/default values.
 
-The 14 tabs: `Dashboard`, `Adapters`, `NDIS & drivers`, `Routes & DNS`,
-`Network profiles`, `Network bindings`, `Offloads`, `TCP settings`, `QoS policies`,
-`Winsock catalog`, `Gaming diagnostics`, `History & comparison`, `Preferences`,
-`Tuning plan`.
+The 20 tabs, in five groups. `tabs` also prints the group headings — `OVERVIEW`,
+`INVENTORY`, `MEASURE`, `ACT`, `RECORDS` — which are disabled `TabItem`s used as
+navigation scenery. They are not selectable: `select "INVENTORY"` fails by design.
+
+| Group | Tabs |
+| --- | --- |
+| OVERVIEW | `Dashboard` |
+| INVENTORY | `Adapters`, `NDIS & drivers`, `Routes & DNS`, `Network profiles`, `Network bindings`, `Offloads`, `TCP settings`, `QoS policies`, `Winsock catalog` |
+| MEASURE | `Gaming diagnostics`, `Throughput & bufferbloat`, `DNS resolvers` |
+| ACT | `Interfaces`, `Recommendations`, `Interrupt affinity`, `Tuning plan` |
+| RECORDS | `Tools & references`, `History & comparison`, `Preferences` |
+
+`Tuning plan` used to be last; it now sits with the other surfaces that act. The reference
+links moved out of `Preferences` into `Tools & references`.
 
 ## Inventory without the GUI
 
@@ -87,14 +97,15 @@ Committed probe corpora live in `alpha-tester-output/`.
 dotnet test SockTuner.sln
 ```
 
-480 pass, 7 skipped. The 7 skipped are read-only live-inventory checks against the real
-adapters; they are safe on a normal desktop and mutate nothing:
+659 pass, 12 skipped. The 12 skipped are read-only live-inventory checks against the real
+adapters and the two device-level settings; they are safe on a normal desktop and mutate
+nothing:
 
 ```bash
 SOCKTUNER_LIVE_INVENTORY=1 dotnet test SockTuner.sln
 ```
 
-480 pass, 0 skipped.
+671 pass, 0 skipped.
 
 ## Never run this on a real machine
 
@@ -112,6 +123,12 @@ deliberately exposes no command for it.
   moment earlier select the *wrong* tab, or miss the window entirely and land on whatever
   is behind it. The driver uses UIA `SelectionItemPattern.Select()` by name and is immune
   to this. Coordinate clicking failed three times in a row before the driver existed.
+- **A background process cannot raise a window by asking.** `SetForegroundWindow` returns
+  `true` and does nothing when the caller does not already own the foreground, so a shot
+  silently captured whatever browser was on top instead. `driver.ps1 shot` now shares the
+  input queue of the current foreground window for the length of the call
+  (`AttachThreadInput`), retries once, and **throws** rather than saving a screenshot of the
+  wrong window. If it throws, close or minimise what is covering the app.
 - **Screenshot tooling downscales.** A desktop-capture MCP may return an image scaled from
   3640x2144 to ~1833x1080, so coordinates read off that image are wrong by a ~1.99 factor.
   `driver.ps1 shot` captures the window rect at native size and sidesteps this.
@@ -131,4 +148,5 @@ deliberately exposes no command for it.
 | `Not built. Run: driver.ps1 build` | The Release exe is missing. Run `build`. |
 | `No tab matching '<x>'` | Run `tabs` for the exact names; matching is substring, case-insensitive. |
 | `Probe produced no JSON on the Desktop within 120s.` | Check for a stuck `SockTuner probe` process: `Get-Process SockTuner`. Kill it and retry. |
+| `Could not raise the SockTuner window; another window is on top…` | Something is covering the app and Windows refused the foreground handover. Minimise it, or click the SockTuner window once, then re-run `shot`. |
 | A leftover window titled `SockTuner probe` | An earlier probe attempt was interrupted. `powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 stop` clears all SockTuner processes. |

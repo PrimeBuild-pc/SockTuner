@@ -47,10 +47,15 @@ public partial class MainWindow : Window
     private readonly BottleneckLocator _bottleneck = new();
     private CancellationTokenSource? _throughputCancellation;
     private LoadedLatencyResult? _lastLoadedLatency;
+    private LoadedLatencyResult? _lastDownload;
+    private LoadedLatencyResult? _lastUpload;
+    private ImportedBufferbloatReport? _importedBufferbloat;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
+    private readonly ObservableCollection<InterfaceAdvice> _interfaceAdvice = [];
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
     private UserPreferences _preferences = new();
+    private int _busyCount;
     private object? _selectedInventoryItem;
     private System.Windows.Controls.DataGrid? _selectedInventoryGrid;
 
@@ -83,6 +88,9 @@ public partial class MainWindow : Window
         IrqPriorityComboBox.ItemsSource = Enum.GetValues<InterruptPriority>();
         IrqPriorityComboBox.SelectedItem = InterruptPriority.Undefined;
         IrqCoreList.ItemsSource = _coreChoices;
+        InterfaceAdviceGrid.ItemsSource = _interfaceAdvice;
+        InterfaceProfileComboBox.ItemsSource = InterfaceProfiles;
+        InterfaceProfileComboBox.SelectedIndex = 0;
         ReferenceLinkList.ItemsSource = ReferenceLinks.All;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
@@ -116,13 +124,63 @@ public partial class MainWindow : Window
         WriteStateText.ToolTip = accepted
             ? "Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible."
             : "Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.";
+        // The dashboard used to state flatly that mutations were disabled. That stopped being true
+        // when the transaction path was unlocked, and a stale reassurance is worse than none.
+        WorkflowWriteStateText.Text = accepted
+            ? "Changes are armed. Applying still needs elevation and a typed confirmation in the tuning plan."
+            : "Nothing is written until you accept the change consent in the tuning plan.";
     }
 
     private async void RefreshInventory_Click(object sender, RoutedEventArgs e) => await RefreshInventoryAsync();
 
+    /// <summary>
+    /// Shows the status-bar activity bar while anything long is running. A counter rather than a
+    /// flag because a diagnosis and a throughput run are separate surfaces that can overlap, and a
+    /// flag would clear the bar the moment the first of them finished. Clamped, so a
+    /// <c>finally</c> that unwinds a run which never started cannot drive it negative.
+    /// </summary>
+    private void SetBusy(bool isBusy)
+    {
+        _busyCount = Math.Max(0, _busyCount + (isBusy ? 1 : -1));
+        BusyBar.Visibility = _busyCount > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>F5 re-reads the inventory; Ctrl+F goes to the global search.</summary>
+    private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.F5)
+        {
+            e.Handled = true;
+            _ = RefreshInventoryAsync();
+        }
+        else if (e.Key == System.Windows.Input.Key.F &&
+                 e.KeyboardDevice.Modifiers == System.Windows.Input.ModifierKeys.Control)
+        {
+            e.Handled = true;
+            InventoryFilterText.SelectAll();
+            InventoryFilterText.Focus();
+        }
+    }
+
+    /// <summary>
+    /// One button for the three exports. WPF gives a Button no dropdown of its own, so its own
+    /// context menu is opened under it — no menu bar, no popup plumbing.
+    /// </summary>
+    private void ExportMenu_Click(object sender, RoutedEventArgs e)
+    {
+        if (ExportMenuButton.ContextMenu is not { } menu) return;
+        menu.PlacementTarget = ExportMenuButton;
+        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+        menu.IsOpen = true;
+    }
+
+    private void HealthGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) =>
+        OpenHealthSection_Click(sender, e);
+
     private async Task RefreshInventoryAsync()
     {
         StatusText.Text = "Reading Windows network inventory…";
+        SetBusy(true);
 
         try
         {
@@ -135,6 +193,10 @@ public partial class MainWindow : Window
         {
             StatusText.Text = $"Inventory failed: {exception.Message}";
             WriteLog("inventory.failed", exception.Message);
+        }
+        finally
+        {
+            SetBusy(false);
         }
     }
 
@@ -152,6 +214,7 @@ public partial class MainWindow : Window
         ShowHealthCheck(snapshot);
         _adapterRows = snapshot.Adapters;
         TuningPlan.SetAdapters(snapshot.Adapters);
+        ShowInterfaceAdvice();
         var dnsCandidates = snapshot.Adapters
             .Where(item => Guid.TryParse(item.Id, out _) && item.Kind == AdapterKind.Physical)
             .ToArray();
@@ -792,6 +855,7 @@ public partial class MainWindow : Window
 
     private void SetDiagnosticBusy(bool isBusy)
     {
+        SetBusy(isBusy);
         RunDiagnosticButton.IsEnabled = !isBusy;
         CancelDiagnosticButton.IsEnabled = isBusy;
         DiagnosticTargetText.IsEnabled = !isBusy;
@@ -991,6 +1055,8 @@ public partial class MainWindow : Window
             var utilization = BuildUtilization(beforeCounters, afterCounters, elapsed);
 
             _lastLoadedLatency = result;
+            if (result.Direction == TransferDirection.Download) _lastDownload = result;
+            else _lastUpload = result;
             ShowLoadedLatency(result, utilization);
             StatusText.Text = "Measurement complete.";
             WriteLog("throughput.completed", result.Summary);
@@ -1063,6 +1129,7 @@ public partial class MainWindow : Window
 
     private void SetThroughputBusy(bool isBusy)
     {
+        SetBusy(isBusy);
         RunThroughputButton.IsEnabled = !isBusy;
         CancelThroughputButton.IsEnabled = isBusy;
     }
@@ -1076,9 +1143,13 @@ public partial class MainWindow : Window
     /// </summary>
     private void BuildRecommendations_Click(object sender, RoutedEventArgs e)
     {
-        if (_lastReport is not { } report)
+        var report = _lastReport;
+        var measured = _lastDownload is not null || _lastUpload is not null;
+        if (report is null && !measured)
         {
-            RecommendationSummaryText.Text = "Run a diagnosis first: recommendations are derived from its findings, never invented.";
+            RecommendationSummaryText.Text =
+                "Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online "
+                + "bufferbloat result — recommendations come from a measurement, never from a preset alone.";
             return;
         }
 
@@ -1096,7 +1167,8 @@ public partial class MainWindow : Window
             // The receive-window advice is computed from this path, so it is only offered when a
             // throughput run actually measured one.
             TcpPathMeasurement? path = null;
-            if (_lastLoadedLatency is { } loaded && loaded.Load.BitsPerSecond > 0 && loaded.Idle.MedianMs is { } rtt)
+            var loadedForPath = _lastDownload ?? _lastUpload;
+            if (loadedForPath is { } loaded && loaded.Load.BitsPerSecond > 0 && loaded.Idle.MedianMs is { } rtt)
             {
                 path = new TcpPathMeasurement(
                     loaded.Load.BitsPerSecond,
@@ -1107,11 +1179,12 @@ public partial class MainWindow : Window
             var context = new RemediationContext(
                 adapterId,
                 capabilities,
-                report.PathMtu is { State: PathMtuState.IcmpBlackHole, Mtu: { } mtu } ? mtu : null,
+                report?.PathMtu is { State: PathMtuState.IcmpBlackHole, Mtu: { } mtu } ? mtu : null,
                 globals,
                 path);
 
-            var actions = RemediationPlanner.Plan(report.Findings, context).ToList();
+            var findings = report?.Findings ?? [];
+            var actions = RemediationPlanner.Plan(findings, context).ToList();
 
             // The use-case profile is a deliberate preset rather than a finding, so it is added
             // explicitly and only when there is an adapter whose advertised keywords can carry it.
@@ -1122,15 +1195,19 @@ public partial class MainWindow : Window
 
             RemediationGrid.ItemsSource = actions;
             SendToPlanButton.IsEnabled = false;
+            SendAllToPlanButton.IsEnabled = actions.Any(action => action.AppliesLocally);
 
             var wifi = ShowWifiRadio();
             ShowRouterGuidance(wifi);
 
             var local = actions.Count(action => action.AppliesLocally);
+            var basis = report is null
+                ? $"an imported {_importedBufferbloat?.SourceDisplay ?? "bufferbloat"} result"
+                : $"{findings.Count} finding(s)";
             RecommendationSummaryText.Text =
-                $"{actions.Count} action(s) from {report.Findings.Count} finding(s): {local} this machine can make, "
+                $"{actions.Count} action(s) from {basis}: {local} this machine can make, "
                 + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.";
-            WriteLog("recommendations.built", $"Actions={actions.Count}; Local={local}.");
+            WriteLog("recommendations.built", $"Actions={actions.Count}; Local={local}; Imported={report is null}.");
         }
         catch (Exception exception)
         {
@@ -1171,12 +1248,10 @@ public partial class MainWindow : Window
 
     private void ShowRouterGuidance(WifiRadioInfo? wifi)
     {
-        var download = _lastLoadedLatency is { Direction: TransferDirection.Download } ? _lastLoadedLatency : null;
-        var upload = _lastLoadedLatency is { Direction: TransferDirection.Upload } ? _lastLoadedLatency : null;
-        var items = RouterGuidance.For(new RouterGuidanceInput(download, upload, wifi));
+        var items = RouterGuidance.For(new RouterGuidanceInput(_lastDownload, _lastUpload, wifi));
         if (items.Count == 0)
         {
-            RouterGuidanceText.Text = _lastLoadedLatency is null
+            RouterGuidanceText.Text = _lastDownload is null && _lastUpload is null
                 ? "Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one."
                 : "Nothing measured here needs a router change.";
             return;
@@ -1231,6 +1306,7 @@ public partial class MainWindow : Window
 
         _dnsBenchmarkCancellation?.Dispose();
         _dnsBenchmarkCancellation = new CancellationTokenSource();
+        SetBusy(true);
         RunDnsBenchmarkButton.IsEnabled = false;
         CancelDnsBenchmarkButton.IsEnabled = true;
         DnsVerdictText.Text = "Measuring\u2026";
@@ -1277,6 +1353,7 @@ public partial class MainWindow : Window
         }
         finally
         {
+            SetBusy(false);
             RunDnsBenchmarkButton.IsEnabled = true;
             CancelDnsBenchmarkButton.IsEnabled = false;
         }
@@ -1427,6 +1504,291 @@ public partial class MainWindow : Window
 
     private void HealthGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
         OpenHealthSectionButton.IsEnabled = HealthGrid.SelectedItem is HealthFinding;
+
+
+    // ---- Network devices -------------------------------------------------------------------
+
+    /// <summary>
+    /// How aggressively to read the advice. This is the one judgement in the analyzer that is a
+    /// preference rather than a fact, so it is the one thing the profile controls; every other
+    /// rule — and the refusal to touch the carrying adapter — is the same either way.
+    /// </summary>
+    private sealed record InterfaceProfile(string DisplayName, bool SinglePathPreferred);
+
+    private static readonly IReadOnlyList<InterfaceProfile> InterfaceProfiles =
+    [
+        new("E-sports: one path only", true),
+        new("Balanced: keep spare paths", false)
+    ];
+
+    private bool SinglePathPreferred =>
+        (InterfaceProfileComboBox.SelectedItem as InterfaceProfile)?.SinglePathPreferred ?? true;
+
+    private void ShowInterfaceAdvice()
+    {
+        var selectedId = (InterfaceAdviceGrid.SelectedItem as InterfaceAdvice)?.Adapter.Id;
+        _interfaceAdvice.Clear();
+        foreach (var advice in InterfaceAdvisor.Advise(_adapterRows, SinglePathPreferred))
+        {
+            _interfaceAdvice.Add(advice);
+        }
+
+        InterfaceAdviceGrid.SelectedItem =
+            _interfaceAdvice.FirstOrDefault(item => item.Adapter.Id == selectedId);
+
+        var flagged = _interfaceAdvice.Count(item => item.Verdict == InterfaceVerdict.ConsiderDisabling);
+        var carrying = _interfaceAdvice.FirstOrDefault(item => item.Role == InterfaceRole.Carrying);
+        var hidden = _adapterRows.Count(InterfaceAdvisor.IsOutOfScope);
+        InterfaceSummaryAdviceText.Text = _interfaceAdvice.Count == 0
+            ? "Refresh the inventory to list network devices."
+            : $"{_interfaceAdvice.Count} network device(s); {hidden} filter and loopback pseudo-interface(s) hidden. "
+              + $"{flagged} worth considering for disabling. "
+              + (carrying is null
+                  ? "No interface currently carries a default route, so nothing is protected as the way back in."
+                  : $"{carrying.Name} carries the default route and is never offered for disabling.");
+        UpdateInterfaceActions();
+    }
+
+    private void InterfaceProfile_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded) return;
+        ShowInterfaceAdvice();
+    }
+
+    private void InterfaceAdvice_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
+        UpdateInterfaceActions();
+
+    /// <summary>
+    /// Which actions the selected device allows. Disabling is offered only where the analyzer said
+    /// so, which is what keeps the carrying adapter — and anything Windows owns — off the button.
+    /// </summary>
+    private void UpdateInterfaceActions()
+    {
+        var advice = InterfaceAdviceGrid.SelectedItem as InterfaceAdvice;
+        var isDevice = advice is not null && advice.Role != InterfaceRole.NotApplicable;
+        var isRealAdapter = isDevice && Guid.TryParse(advice!.Adapter.Id, out _);
+
+        DisableInterfaceButton.IsEnabled = isRealAdapter && advice!.CanDisable;
+        EnableInterfaceButton.IsEnabled = isRealAdapter && !advice!.Adapter.IsUp;
+        PowerOffInterfaceButton.IsEnabled = isRealAdapter;
+        PowerDefaultInterfaceButton.IsEnabled = isRealAdapter;
+
+        if (advice is null)
+        {
+            InterfaceDetailHeadingText.Text = "Select a device";
+            InterfaceDetailText.Text =
+                "The reason behind each verdict, and what disabling the device would cost, are shown here.";
+            return;
+        }
+
+        InterfaceDetailHeadingText.Text =
+            $"{advice.Name}  ·  {advice.KindDisplay}  ·  {advice.RoleDisplay}  ·  {advice.VerdictDisplay}";
+        InterfaceDetailText.Text =
+            $"{advice.Reason}{Environment.NewLine}{advice.Evidence}"
+            + $"{Environment.NewLine}Link {advice.Adapter.SpeedDisplay}, addresses {advice.Adapter.AddressesDisplay}, "
+            + $"gateways {advice.Adapter.GatewaysDisplay}.";
+    }
+
+    private void QueueDisableInterface_Click(object sender, RoutedEventArgs e) =>
+        QueueDeviceChange(AdapterStateSpecification.SettingId, AdapterStateSpecification.Disabled,
+            "disable", requiresFlagged: true);
+
+    private void QueueEnableInterface_Click(object sender, RoutedEventArgs e) =>
+        QueueDeviceChange(AdapterStateSpecification.SettingId, AdapterStateSpecification.Enabled,
+            "enable", requiresFlagged: false);
+
+    private void QueuePowerOff_Click(object sender, RoutedEventArgs e) =>
+        QueueDeviceChange(AdapterPowerSavingSpecification.SettingId,
+            AdapterPowerSavingSpecification.PowerManagementOff.ToString(),
+            "turn power management off on", requiresFlagged: false);
+
+    /// <summary>
+    /// Restoring the default removes the value rather than writing a zero, so a null proposal is
+    /// what this queues — the same thing the transaction engine treats as absent.
+    /// </summary>
+    private void QueuePowerDefault_Click(object sender, RoutedEventArgs e) =>
+        QueueDeviceChange(AdapterPowerSavingSpecification.SettingId, null,
+            "restore the power-management default on", requiresFlagged: false);
+
+    private void QueueDeviceChange(string settingId, string? value, string verb, bool requiresFlagged)
+    {
+        if (InterfaceAdviceGrid.SelectedItem is not InterfaceAdvice advice)
+        {
+            InterfaceActionStatusText.Text = "Select a device first.";
+            return;
+        }
+
+        // Re-checked at the moment of the click, not only when the button was drawn: the advice can
+        // have been rebuilt by a refresh since.
+        if (requiresFlagged && !advice.CanDisable)
+        {
+            InterfaceActionStatusText.Text =
+                $"{advice.Name} is not offered for disabling: {advice.Reason}";
+            return;
+        }
+
+        if (!Guid.TryParse(advice.Adapter.Id, out var adapterId))
+        {
+            InterfaceActionStatusText.Text = $"{advice.Name} has no adapter GUID to target.";
+            return;
+        }
+
+        var accepted = TuningPlan.ProposeDeviceChanges(
+            [new ChangeRequest(settingId, adapterId.ToString(), value, ChangeSource.Manual)]);
+        InterfaceActionStatusText.Text = accepted == 1
+            ? $"Queued: {verb} {advice.Name}. {TuningPlan.PendingDeviceChangeCount} device change(s) waiting. "
+              + "Nothing is written until you preview and confirm it in the tuning plan."
+            : $"Refused: this machine no longer offers {settingId} on {advice.Name}.";
+        WriteLog("interfaces.queued", $"Setting={settingId}; Adapter={adapterId}; Accepted={accepted}.");
+    }
+
+
+    // ---- External bufferbloat results ------------------------------------------------------
+
+    /// <summary>
+    /// Reads an online bufferbloat export and restates it as this app's own measurement, so a
+    /// result measured from outside the machine drives the same recommendations as a local run.
+    /// </summary>
+    private void ImportBufferbloatReport_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Import an online bufferbloat result",
+            Filter = "Bufferbloat results (*.csv;*.json)|*.csv;*.json|All files (*.*)|*.*",
+            CheckFileExists = true
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            var report = BufferbloatReportImporter.Load(dialog.FileName);
+            _importedBufferbloat = report;
+            _lastDownload = report.Download ?? _lastDownload;
+            _lastUpload = report.Upload ?? _lastUpload;
+            _lastLoadedLatency = report.Download ?? report.Upload ?? _lastLoadedLatency;
+
+            ShowImportedBufferbloat(report);
+            ImportedReportRecommendButton.IsEnabled = true;
+            StatusText.Text = $"Imported a {report.SourceDisplay} result.";
+            WriteLog("bufferbloat.imported",
+                $"Source={report.Source}; Test={report.TestId}; Derived={report.DerivedGrade}; Reported={report.ReportedGrade}.");
+        }
+        catch (Exception exception) when (exception is IOException or InvalidDataException
+                                          or ArgumentException or JsonException or UnauthorizedAccessException)
+        {
+            ImportedBufferbloatText.Text = $"Import refused: {exception.Message}";
+            ImportedReportRecommendButton.IsEnabled = false;
+            StatusText.Text = "Bufferbloat import failed.";
+            WriteLog("bufferbloat.import_failed", exception.Message);
+        }
+    }
+
+    private void ShowImportedBufferbloat(ImportedBufferbloatReport report)
+    {
+        var lines = new List<string>
+        {
+            $"{report.SourceDisplay} · test {report.TestId} · captured {report.CapturedAt:yyyy-MM-dd HH:mm}"
+                + (report.Provider is null ? string.Empty : $" · {report.Provider}")
+        };
+
+        foreach (var direction in new[] { report.Download, report.Upload })
+        {
+            if (direction is null) continue;
+            lines.Add($"• {direction.Summary}");
+        }
+
+        // The two grades are shown together on purpose. They are computed differently — this app
+        // takes the median increase, the sites quote a mean — so agreement is worth seeing, and a
+        // disagreement is worth investigating rather than papering over.
+        var derived = report.DerivedGrade is { } grade ? LoadedLatencyAnalyzer.Display(grade) : "not graded";
+        lines.Add(report.ReportedGrade is { } reported
+            ? $"• Grade: {derived} derived here from the file's own samples; the test itself reported {reported}."
+            : $"• Grade: {derived}, derived here from the file's own samples.");
+
+        lines.AddRange(report.Notes.Select(note => $"• {note}"));
+        ImportedBufferbloatText.Text = string.Join(Environment.NewLine, lines);
+        BufferbloatGradeText.Text = derived;
+        BufferbloatSummaryText.Text =
+            $"Imported from {report.SourceDisplay}. Latency increase under load is graded on the Waveform scale; "
+            + "it describes queue growth in front of the slowest link, not link speed.";
+    }
+
+    /// <summary>Builds the recommendations from the import and moves to the tab that shows them.</summary>
+    private void RecommendFromImport_Click(object sender, RoutedEventArgs e)
+    {
+        BuildRecommendations_Click(sender, e);
+        SelectTab("Recommendations");
+    }
+
+    /// <summary>
+    /// The automatic path: every action this machine can make, queued in one click. It stops where
+    /// the manual path stops — on the tuning plan — because the preview, the read-back check and
+    /// the typed confirmation are what make any of this reversible, and no button skips them.
+    /// </summary>
+    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e)
+    {
+        if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
+        {
+            StatusText.Text = "Build recommendations first.";
+            return;
+        }
+
+        var applicable = actions.Where(action => action.AppliesLocally).ToArray();
+        if (applicable.Length == 0)
+        {
+            StatusText.Text = "Nothing here is a change this machine can make.";
+            return;
+        }
+
+        var requested = 0;
+        var accepted = 0;
+        foreach (var action in applicable)
+        {
+            requested += action.Changes.Count;
+            accepted += TuningPlan.Propose(action.Changes);
+        }
+
+        StatusText.Text = accepted == requested
+            ? $"Sent {accepted} change(s) from {applicable.Length} action(s) to the tuning plan. "
+              + "Nothing is applied until you preview and confirm it there."
+            : $"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver.";
+        WriteLog("recommendations.sent_all", $"Actions={applicable.Length}; Accepted={accepted}/{requested}.");
+        if (accepted > 0) SelectTab("Tuning plan");
+    }
+
+    private void OpenTuningPlan_Click(object sender, RoutedEventArgs e) => SelectTab("Tuning plan");
+
+    /// <summary>
+    /// Opens a Windows management console. Both targets are fixed strings in this method — nothing
+    /// the user or a report supplies reaches a process start.
+    /// </summary>
+    private void LaunchWindowsConsole(string target, string description)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(target) { UseShellExecute = true });
+            StatusText.Text = $"Opened {description}.";
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            StatusText.Text = $"Could not open {description}: {exception.Message}";
+        }
+    }
+
+    private void OpenDeviceManager_Click(object sender, RoutedEventArgs e) =>
+        LaunchWindowsConsole("devmgmt.msc", "Device Manager");
+
+    private void OpenNetworkConnections_Click(object sender, RoutedEventArgs e) =>
+        LaunchWindowsConsole("ncpa.cpl", "Network Connections");
+
+    private void SelectTab(string header)
+    {
+        var tab = InventoryTabs.Items
+            .OfType<System.Windows.Controls.TabItem>()
+            .FirstOrDefault(item => string.Equals(item.Header?.ToString(), header, StringComparison.Ordinal));
+        if (tab is not null) InventoryTabs.SelectedItem = tab;
+    }
 
     private void OpenHealthSection_Click(object sender, RoutedEventArgs e)
     {
