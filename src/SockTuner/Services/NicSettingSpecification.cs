@@ -108,6 +108,11 @@ public static class SettingSpecifications
                 return new DnsServerSpecification();
             }
 
+            if (string.Equals(settingId, QosPolicySpecification.SettingId, StringComparison.Ordinal))
+            {
+                return new QosPolicySpecification();
+            }
+
             if (string.Equals(settingId, AdapterStateSpecification.SettingId, StringComparison.Ordinal))
             {
                 // Re-read every time: an adapter can be removed between preparing a plan and applying it.
@@ -149,6 +154,7 @@ public static class SettingSpecifications
             _ when settingId.StartsWith(CimPrefix, StringComparison.Ordinal) =>
                 CimGlobalSettingSpecification.Resolve(settingId, targetId, globals ?? []),
             DnsServerSpecification.SettingId => new DnsServerSpecification(),
+            QosPolicySpecification.SettingId => new QosPolicySpecification(),
             AdapterStateSpecification.SettingId =>
                 new AdapterStateSpecification(presentAdapters ?? new HashSet<Guid>()),
             AdapterPowerSavingSpecification.SettingId =>

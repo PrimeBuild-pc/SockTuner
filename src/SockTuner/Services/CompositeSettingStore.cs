@@ -19,7 +19,8 @@ public sealed class CompositeSettingStore : ISettingStore
         ISettingStore? dns = null,
         ISettingStore? interrupts = null,
         ISettingStore? adapterState = null,
-        ISettingStore? adapterPower = null)
+        ISettingStore? adapterPower = null,
+        ISettingStore? qos = null)
     {
         _registry = registry;
         Adapters = adapters;
@@ -30,6 +31,7 @@ public sealed class CompositeSettingStore : ISettingStore
         AdapterPower = adapterPower
             ?? new AdapterPowerSavingStore(new AdapterPowerSavingSpecification(
                 AdapterPowerSavingSpecification.ReadAdapterKeys()));
+        Qos = qos ?? new QosPolicyStore(new QosPolicySpecification());
     }
 
     // Built from the devices actually present, so the specification can refuse an instance ID that
@@ -54,6 +56,8 @@ public sealed class CompositeSettingStore : ISettingStore
 
     public ISettingStore AdapterPower { get; }
 
+    public ISettingStore Qos { get; }
+
     public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken) =>
         For(address).ReadAsync(address, cancellationToken);
 
@@ -65,6 +69,7 @@ public sealed class CompositeSettingStore : ISettingStore
         _ when address.SettingId.StartsWith(SettingSpecifications.NicPrefix, StringComparison.Ordinal) => Adapters,
         _ when address.SettingId.StartsWith(SettingSpecifications.CimPrefix, StringComparison.Ordinal) => Globals,
         DnsServerSpecification.SettingId => Dns,
+        QosPolicySpecification.SettingId => Qos,
         AdapterStateSpecification.SettingId => AdapterState,
         AdapterPowerSavingSpecification.SettingId => AdapterPower,
         InterruptAffinitySpecification.SettingId => Interrupts,

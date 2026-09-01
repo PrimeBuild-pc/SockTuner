@@ -398,6 +398,57 @@
                         <TextBlock Text="Windows QoS policy inventory" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="QosPolicySummaryText" Text="Reading StandardCimv2 QoS policies…"
                                    Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Mark one application's traffic" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="A DSCP mark is a request, not a reservation. It does nothing until something on the path is set up to honour it — in practice your own router, with a DSCP-aware queue discipline; most consumer ISPs rewrite or ignore the field beyond your access link. This is the half that makes SockTuner's layer_cake.qos advice usable: the policy writes the mark, the router acts on it."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="APPLICATION" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosApplicationText" Margin="0,6,0,0"
+                                                 Style="{StaticResource PlaceholderBox}" Tag="game.exe"
+                                                 ToolTip="The executable name Windows should match, or its full path"
+                                                 AutomationProperties.Name="Application to mark"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                        <TextBlock Text="PROTOCOL" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <ComboBox x:Name="QosProtocolComboBox" Margin="0,6,0,0"
+                                                  AutomationProperties.Name="Protocol"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                        <TextBlock Text="REMOTE PORTS" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosPortsText" Text="*" Margin="0,6,0,0"
+                                                 ToolTip="A port, a range such as 7000-8000, or * for all"
+                                                 AutomationProperties.Name="Remote ports"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Margin="0,0,12,0">
+                                        <TextBlock Text="DSCP" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosDscpText" Text="46" Margin="0,6,0,0"
+                                                 ToolTip="0 to 63. 46 is Expedited Forwarding, the conventional mark for interactive traffic."
+                                                 AutomationProperties.Name="DSCP value"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="4" Content="Queue policy" Click="QueueQosPolicy_Click"
+                                            VerticalAlignment="Bottom" Style="{StaticResource PrimaryButton}"/>
+                                </Grid>
+                                <TextBlock x:Name="QosActionStatusText" Text="Nothing queued."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="Remove a SockTuner policy" Click="QueueRemoveQosPolicy_Click"
+                                            Margin="0,0,8,0"
+                                            ToolTip="Queues the removal of the policy named for the application above. SockTuner only manages policies it created."/>
+                                    <Button Content="Go to tuning plan" Click="OpenTuningPlan_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     <DataGrid x:Name="QosPoliciesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -514,6 +565,42 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock x:Name="PlayabilityTickText" Text="" Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Did the change help?" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Applying a setting proves nothing on its own. Run a diagnosis, apply a plan, then re-run this identical diagnosis: the two are compared against what this path can actually resolve, so a difference smaller than the measurement's own noise is reported as no difference rather than as a win."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button x:Name="ReRunDiagnosticButton" Grid.Column="1" Content="Re-run and compare"
+                                            Click="ReRunAndCompare_Click" IsEnabled="False" VerticalAlignment="Top"
+                                            Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"
+                                            ToolTip="Repeats the diagnosis with exactly the parameters of the baseline run"/>
+                                    <Button x:Name="ClearBaselineButton" Grid.Column="2" Content="Forget baseline"
+                                            Click="ClearBaseline_Click" IsEnabled="False" VerticalAlignment="Top"/>
+                                </Grid>
+                                <TextBlock x:Name="VerificationHeadlineText" Text="No baseline yet."
+                                           FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="VerificationDetailText"
+                                           Text="Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="VerificationGrid" AutoGenerateColumns="False" Margin="0,12,0,0"
+                                          MaxHeight="200" RowHeight="NaN" MinRowHeight="36"
+                                          Style="{StaticResource ResultGrid}"
+                                          AutomationProperties.Name="Before and after the applied change">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Verdict" Binding="{Binding VerdictBadge}" Width="130"
+                                                            ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="160"/>
+                                        <DataGridTextColumn Header="Before and after" Binding="{Binding Display}" Width="*" MinWidth="220"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </StackPanel>
                         </Border>
 

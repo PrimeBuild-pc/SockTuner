@@ -51,6 +51,10 @@ public partial class MainWindow : Window
     private LoadedLatencyResult? _lastUpload;
     private ImportedBufferbloatReport? _importedBufferbloat;
     private IReadOnlyList<RouterGuidanceItem> _routerGuidance = [];
+
+    // The run that was current when a plan was applied. Held so the identical run afterwards has
+    // something to be compared against; this is the whole verify-after-apply loop.
+    private GamingDiagnosticReport? _baselineBeforeApply;
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private readonly ObservableCollection<InterfaceAdvice> _interfaceAdvice = [];
@@ -92,6 +96,8 @@ public partial class MainWindow : Window
         InterfaceAdviceGrid.ItemsSource = _interfaceAdvice;
         InterfaceProfileComboBox.ItemsSource = InterfaceProfiles;
         InterfaceProfileComboBox.SelectedIndex = 0;
+        QosProtocolComboBox.ItemsSource = new[] { "UDP", "TCP", "*" };
+        QosProtocolComboBox.SelectedIndex = 0;
         ReferenceLinkList.ItemsSource = ReferenceLinks.All;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
@@ -101,6 +107,7 @@ public partial class MainWindow : Window
             // Consent is accepted inside the plan view, so the badge is re-read after it acts.
             _preferences = AppPreferences.Load();
             ShowWriteState();
+            CaptureVerificationBaseline();
             await RefreshInventoryAsync();
         };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
@@ -389,7 +396,13 @@ public partial class MainWindow : Window
         ApplyInventoryFilter();
     }
 
-    private async void RunDiagnostic_Click(object sender, RoutedEventArgs e)
+    private async void RunDiagnostic_Click(object sender, RoutedEventArgs e) => await RunDiagnosticAsync();
+
+    /// <summary>
+    /// The diagnosis itself, awaitable so the verify-after-apply loop can run it and then read the
+    /// result rather than racing the handler that fired it.
+    /// </summary>
+    private async Task RunDiagnosticAsync()
     {
         var target = DiagnosticTargetText.Text.Trim();
         if (string.IsNullOrWhiteSpace(target))
@@ -1920,6 +1933,166 @@ public partial class MainWindow : Window
             StatusText.Text = $"Checklist export failed: {exception.Message}";
             WriteLog("checklist.export_failed", exception.Message);
         }
+    }
+
+    // ---- Did the change help? ---------------------------------------------------------------
+
+    /// <summary>
+    /// Freezes the last diagnosis as the baseline for the next one. Called when a plan is applied,
+    /// which is the only moment at which "before" is unambiguous.
+    /// </summary>
+    private void CaptureVerificationBaseline()
+    {
+        if (_lastReport is not { } report)
+        {
+            VerificationHeadlineText.Text = "No baseline: nothing was measured before this change";
+            VerificationDetailText.Text =
+                "A change was applied without a diagnosis to compare against, so whether it helped cannot be "
+                + "established from here. Run a diagnosis now, apply the next change, and this will have a before.";
+            return;
+        }
+
+        _baselineBeforeApply = report;
+        ReRunDiagnosticButton.IsEnabled = true;
+        ClearBaselineButton.IsEnabled = true;
+        VerificationGrid.ItemsSource = null;
+        VerificationHeadlineText.Text = "Baseline captured";
+        VerificationDetailText.Text =
+            $"The run against {report.RequestedTarget} at {report.StartedAt:HH:mm:ss} is the before. "
+            + "Re-run it with the same parameters to find out whether the change moved anything.";
+        WriteLog("verify.baseline", $"Target={report.RequestedTarget}; At={report.StartedAt:O}.");
+    }
+
+    private void ClearBaseline_Click(object sender, RoutedEventArgs e)
+    {
+        _baselineBeforeApply = null;
+        ReRunDiagnosticButton.IsEnabled = false;
+        ClearBaselineButton.IsEnabled = false;
+        VerificationGrid.ItemsSource = null;
+        VerificationHeadlineText.Text = "No baseline yet.";
+        VerificationDetailText.Text =
+            "Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically.";
+    }
+
+    /// <summary>
+    /// Repeats the baseline run with exactly its parameters and reports what moved. The parameters
+    /// are restored into the controls rather than passed around, so what runs is visibly the same
+    /// diagnosis rather than a hidden one.
+    /// </summary>
+    private async void ReRunAndCompare_Click(object sender, RoutedEventArgs e)
+    {
+        if (_baselineBeforeApply is not { } baseline)
+        {
+            VerificationHeadlineText.Text = "No baseline to compare against.";
+            return;
+        }
+
+        DiagnosticTargetText.Text = baseline.RequestedTarget;
+        DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All
+            .FirstOrDefault(profile => profile == baseline.Profile) ?? DiagnosticProfileComboBox.SelectedItem;
+        DiagnosticLoadComboBox.SelectedItem = baseline.LoadCondition;
+        DiagnosticPortText.Text = baseline.Connection?.Port is { } port ? port.ToString() : string.Empty;
+        if (baseline.Game is { } game)
+        {
+            DiagnosticGameComboBox.SelectedItem = _gameProfiles.FirstOrDefault(item => item == game)
+                ?? DiagnosticGameComboBox.SelectedItem;
+        }
+
+        VerificationHeadlineText.Text = "Re-running the baseline diagnosis…";
+        VerificationDetailText.Text = "Same target, same profile, same load condition, same port.";
+
+        await RunDiagnosticAsync();
+
+        if (_lastReport is not { } after || ReferenceEquals(after, baseline))
+        {
+            VerificationHeadlineText.Text = "The re-run did not complete, so nothing can be concluded.";
+            return;
+        }
+
+        ShowVerification(ApplyVerificationAnalyzer.Verify(baseline, after));
+    }
+
+    private void ShowVerification(ApplyVerification verification)
+    {
+        VerificationHeadlineText.Text = verification.Headline;
+        VerificationDetailText.Text = verification.Detail;
+        VerificationGrid.ItemsSource = verification.Metrics;
+        VerificationHeadlineText.Foreground = verification.Outcome switch
+        {
+            ApplyOutcome.Improved => (System.Windows.Media.Brush)FindResource("GoodBrush"),
+            ApplyOutcome.Worse => (System.Windows.Media.Brush)FindResource("DangerBrush"),
+            ApplyOutcome.Mixed => (System.Windows.Media.Brush)FindResource("WarningBrush"),
+            _ => (System.Windows.Media.Brush)FindResource("TextBrush")
+        };
+
+        if (verification.SuggestsRollback)
+        {
+            StatusText.Text = "The re-run measured a regression. The audit history in the tuning plan can roll it back.";
+        }
+
+        WriteLog("verify.completed", $"Outcome={verification.Outcome}.");
+    }
+
+    // ---- QoS policies -----------------------------------------------------------------------
+
+    /// <summary>
+    /// Queues a policy that marks one application's packets. Like every other write in this app it
+    /// goes to the tuning plan rather than being applied here, so it is previewed, confirmed,
+    /// verified by read-back and recorded where it can be rolled back.
+    /// </summary>
+    private void QueueQosPolicy_Click(object sender, RoutedEventArgs e)
+    {
+        var application = QosApplicationText.Text.Trim();
+        if (application.Length == 0)
+        {
+            QosActionStatusText.Text =
+                "Name the application to match. A policy with no application would mark everything this "
+                + "machine sends, which is not what prioritising a game means.";
+            return;
+        }
+
+        if (!int.TryParse(QosDscpText.Text.Trim(), out var dscp))
+        {
+            QosActionStatusText.Text = "The DSCP value must be a number between 0 and 63.";
+            return;
+        }
+
+        var value = new QosPolicyValue(
+            dscp,
+            application,
+            (QosProtocolComboBox.SelectedItem as string) ?? "*",
+            QosPortsText.Text.Trim() is { Length: > 0 } ports ? ports : "*");
+
+        QueueQos(QosPolicySpecification.NameFor(application), value.Canonical, $"mark {application} with DSCP {dscp}");
+    }
+
+    private void QueueRemoveQosPolicy_Click(object sender, RoutedEventArgs e)
+    {
+        var application = QosApplicationText.Text.Trim();
+        if (application.Length == 0)
+        {
+            QosActionStatusText.Text = "Name the application whose policy should be removed.";
+            return;
+        }
+
+        var name = QosPolicySpecification.NameFor(application);
+        QueueQos(name, null, $"remove the policy {name}");
+    }
+
+    /// <summary>
+    /// A null value queues the removal: absent is how "no policy" is expressed, and it is what a
+    /// rollback of a created policy restores.
+    /// </summary>
+    private void QueueQos(string name, string? value, string description)
+    {
+        var accepted = TuningPlan.ProposeDeviceChanges(
+            [new ChangeRequest(QosPolicySpecification.SettingId, name, value, ChangeSource.Manual)]);
+
+        QosActionStatusText.Text = accepted == 1
+            ? $"Queued: {description}. Nothing is written until you preview and confirm it in the tuning plan. "
+              + "A mark only does something once your router is configured to act on it."
+            : $"Refused: \u201c{name}\u201d is not a policy SockTuner can manage, or the values are not valid.";
+        WriteLog("qos.queued", $"Policy={name}; Remove={value is null}; Accepted={accepted}.");
     }
 
     private void OpenTuningPlan_Click(object sender, RoutedEventArgs e) => SelectTab("Tuning plan");
