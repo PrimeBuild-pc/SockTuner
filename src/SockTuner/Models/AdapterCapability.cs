@@ -71,6 +71,9 @@ public sealed record AdapterSettingCapability(
     public string CurrentDisplay => DisplayFor(CurrentValue);
     public string DefaultDisplay => DefaultValue is null ? "Unavailable" : DisplayFor(DefaultValue);
     public string AreasDisplay => Areas == TuningArea.None ? "Other" : Areas.ToString();
+
+    /// <summary>The risk with its glyph, so the column reads without colour. See <see cref="Badges"/>.</summary>
+    public string RiskBadge => $"{Badges.For(Risk)} {Risk}";
     public string ConstraintDisplay => IsEnumerated
         ? string.Join(", ", Choices.Select(choice => choice.Display))
         : IsNumericRange

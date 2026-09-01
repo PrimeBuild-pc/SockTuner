@@ -114,21 +114,56 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
                 $"socktuner-probe-{DateTime.Now:yyyyMMdd-HHmmss}.json");
             File.WriteAllText(path, SnapshotExporter.Serialize(snapshot, probe: true));
-            MessageBox.Show(
-                $"Probe report saved to:\n{path}\n\nNothing on this PC was changed. Share this file with the SockTuner team.",
+            Report(
                 "SockTuner probe",
-                MessageBoxButton.OK,
+                $"Probe report saved to:{Environment.NewLine}{path}{Environment.NewLine}{Environment.NewLine}"
+                + "Nothing on this PC was changed. Share this file with the SockTuner team.",
                 MessageBoxImage.Information);
             return 0;
         }
         catch (Exception exception)
         {
-            MessageBox.Show(
-                $"Probe failed: {exception.Message}",
-                "SockTuner probe",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
+            Report("SockTuner probe", $"Probe failed: {exception.Message}", MessageBoxImage.Error);
             return 1;
         }
     }
+
+    /// <summary>
+    /// Reports the outcome of a console-invoked mode. The README tells a contributor to run the
+    /// probe from a terminal, so the terminal is where the answer belongs: this writes there when
+    /// there is one to write to. The message box is kept for the person who double-clicked the exe
+    /// and has nowhere else to read it — that case has no console to attach to, which is exactly
+    /// the condition tested here.
+    /// </summary>
+    /// <remarks>
+    /// A WPF process is built without a console, so it has to borrow the parent's. When it cannot,
+    /// nothing has been written and the modal is the only remaining channel. This is also what
+    /// stopped an automated probe run from leaving a modal nobody could dismiss.
+    /// </remarks>
+    private static void Report(string title, string message, MessageBoxImage severity)
+    {
+        if (AttachConsole(AttachParentProcess))
+        {
+            try
+            {
+                var stream = Console.OpenStandardOutput();
+                using var writer = new StreamWriter(stream) { AutoFlush = true };
+                writer.WriteLine();
+                writer.WriteLine(message);
+                return;
+            }
+            catch (IOException)
+            {
+                // The parent's console went away between attaching and writing; fall through.
+            }
+        }
+
+        MessageBox.Show(message, title, MessageBoxButton.OK, severity);
+    }
+
+    private const int AttachParentProcess = -1;
+
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", SetLastError = true)]
+    [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+    private static extern bool AttachConsole(int processId);
 }

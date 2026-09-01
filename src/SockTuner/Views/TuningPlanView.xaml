@@ -76,7 +76,7 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Accepted values" Binding="{Binding Capability.ConstraintDisplay}" Width="*" MinWidth="150" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Risk" Binding="{Binding Capability.Risk}" Width="85" IsReadOnly="True"
+                    <DataGridTextColumn Header="Risk" Binding="{Binding Capability.RiskBadge}" Width="95" IsReadOnly="True"
                                         ElementStyle="{StaticResource RiskCellText}"/>
                 </DataGrid.Columns>
             </DataGrid>
@@ -112,7 +112,7 @@
                     <DataGridTextColumn Header="Setting" Binding="{Binding Definition.Title}" Width="190"/>
                     <DataGridTextColumn Header="Current" Binding="{Binding BeforeDisplay}" Width="115"/>
                     <DataGridTextColumn Header="Proposed" Binding="{Binding AfterDisplay}" Width="115"/>
-                    <DataGridTextColumn Header="Risk" Binding="{Binding Definition.Risk}" Width="85"
+                    <DataGridTextColumn Header="Risk" Binding="{Binding RiskBadge}" Width="95"
                                         ElementStyle="{StaticResource RiskCellText}"/>
                     <DataGridTextColumn Header="Evidence" Binding="{Binding Definition.Evidence}" Width="120"/>
                     <DataGridTextColumn Header="Restart" Binding="{Binding Definition.RestartRequirement}" Width="130"/>

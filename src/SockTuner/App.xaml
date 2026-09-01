@@ -53,43 +53,45 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Style.Triggers>
-                <Trigger Property="Text" Value="Worth fixing">
+                <Trigger Property="Text" Value="! Worth fixing">
                     <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Worth checking">
+                <Trigger Property="Text" Value="? Worth checking">
                     <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="For information">
+                <Trigger Property="Text" Value="i For information">
                     <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Good">
+                <Trigger Property="Text" Value="+ Good">
                     <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Playable, borderline">
+                <Trigger Property="Text" Value="~ Playable, borderline">
                     <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Not playable">
+                <Trigger Property="Text" Value="! Not playable">
                     <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Not measured">
+                <Trigger Property="Text" Value="- Not measured">
                     <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="Keep">
+                    <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
         <!-- Risk, where high is bad. Kept separate from the verdict style because the same three
              words mean the opposite thing in a confidence column. -->
-        <Style x:Key="RiskCellText" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
+        <Style x:Key="RiskCellText" TargetType="TextBlock" BasedOn="{StaticResource VerdictCellText}">
+            <Setter Property="TextWrapping" Value="NoWrap"/>
             <Style.Triggers>
-                <Trigger Property="Text" Value="High">
+                <Trigger Property="Text" Value="! High">
                     <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Medium">
+                <Trigger Property="Text" Value="~ Medium">
                     <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
                 </Trigger>
-                <Trigger Property="Text" Value="Low">
+                <Trigger Property="Text" Value="+ Low">
                     <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
                 </Trigger>
             </Style.Triggers>

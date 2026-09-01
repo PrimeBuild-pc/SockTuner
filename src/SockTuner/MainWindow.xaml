@@ -116,7 +116,7 @@
                                           SelectionChanged="HealthGrid_SelectionChanged"
                                           MouseDoubleClick="HealthGrid_MouseDoubleClick">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120"
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130"
                                                             ElementStyle="{StaticResource VerdictCellText}"/>
                                         <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130"
                                                             ElementStyle="{StaticResource WrapCellText}"/>
@@ -508,7 +508,7 @@
                                           Style="{StaticResource ResultGrid}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="110"/>
-                                        <DataGridTextColumn Header="Verdict" Binding="{Binding GradeDisplay}" Width="150" ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Verdict" Binding="{Binding GradeBadge}" Width="160" ElementStyle="{StaticResource VerdictCellText}"/>
                                         <DataGridTextColumn Header="Measured" Binding="{Binding Measured}" Width="2*" MinWidth="130"/>
                                         <DataGridTextColumn Header="Budget for this tick rate" Binding="{Binding Budget}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                     </DataGrid.Columns>
@@ -534,7 +534,7 @@
                                 <DataGrid x:Name="ImportedFindingsGrid" AutoGenerateColumns="False" MaxHeight="220" Margin="0,10,0,0"
                                           RowHeight="NaN" MinRowHeight="40" Visibility="Collapsed">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120" ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130" ElementStyle="{StaticResource VerdictCellText}"/>
                                         <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                         <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                         <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>

@@ -103,6 +103,8 @@ public partial class MainWindow : Window
             await RefreshInventoryAsync();
         };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
+        RestoreWindowGeometry();
+        Closing += (_, _) => SaveWindowGeometry();
         Loaded += async (_, _) =>
         {
             await RefreshInventoryAsync();
@@ -131,6 +133,60 @@ public partial class MainWindow : Window
             : "Nothing is written until you accept the change consent in the tuning plan.";
     }
 
+    /// <summary>
+    /// Puts the window back where it was left. A saved position is only honoured when it still
+    /// lands on a monitor that exists: a geometry from a display that has since been unplugged
+    /// would otherwise open the app somewhere the user cannot reach it, with no way to recover
+    /// short of editing the preferences file.
+    /// </summary>
+    private void RestoreWindowGeometry()
+    {
+        if (_preferences.Window is not { } geometry) return;
+
+        if (!geometry.FitsWithin(
+                SystemParameters.VirtualScreenLeft,
+                SystemParameters.VirtualScreenTop,
+                SystemParameters.VirtualScreenWidth,
+                SystemParameters.VirtualScreenHeight))
+        {
+            WriteLog("window.geometry_discarded", "Saved window geometry lands off every current monitor.");
+            return;
+        }
+
+        WindowStartupLocation = WindowStartupLocation.Manual;
+        Left = geometry.Left;
+        Top = geometry.Top;
+        Width = geometry.Width;
+        Height = geometry.Height;
+        if (geometry.Maximized) WindowState = WindowState.Maximized;
+    }
+
+    /// <summary>
+    /// Saves the restored size rather than the current one, so closing while maximised remembers
+    /// both the maximised state and the size to return to when it is un-maximised.
+    /// </summary>
+    private void SaveWindowGeometry()
+    {
+        try
+        {
+            var bounds = RestoreBounds;
+            if (bounds.IsEmpty || double.IsNaN(bounds.Width)) return;
+
+            _preferences = _preferences with
+            {
+                Window = new WindowGeometry(
+                    bounds.Left, bounds.Top, bounds.Width, bounds.Height,
+                    WindowState == WindowState.Maximized)
+            };
+            AppPreferences.Save(_preferences);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Losing the window position is not worth blocking a clean shutdown over.
+            WriteLog("window.geometry_save_failed", exception.Message);
+        }
+    }
+
     private async void RefreshInventory_Click(object sender, RoutedEventArgs e) => await RefreshInventoryAsync();
 
     /// <summary>
@@ -145,21 +201,78 @@ public partial class MainWindow : Window
         BusyBar.Visibility = _busyCount > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    /// <summary>F5 re-reads the inventory; Ctrl+F goes to the global search.</summary>
+    /// <summary>
+    /// F5 re-reads the inventory, Ctrl+F goes to the global search, Ctrl+K jumps to a section by
+    /// name, and Ctrl+1..9 select the first tab of each navigation group. Twenty sections is more
+    /// than a mouse should have to carry.
+    /// </summary>
     private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
+        var control = e.KeyboardDevice.Modifiers == System.Windows.Input.ModifierKeys.Control;
+
         if (e.Key == System.Windows.Input.Key.F5)
         {
             e.Handled = true;
             _ = RefreshInventoryAsync();
+            return;
         }
-        else if (e.Key == System.Windows.Input.Key.F &&
-                 e.KeyboardDevice.Modifiers == System.Windows.Input.ModifierKeys.Control)
+
+        if (control && e.Key == System.Windows.Input.Key.F)
         {
             e.Handled = true;
             InventoryFilterText.SelectAll();
             InventoryFilterText.Focus();
+            return;
         }
+
+        if (control && e.Key == System.Windows.Input.Key.K)
+        {
+            e.Handled = true;
+            ShowSectionJump();
+            return;
+        }
+
+        // Ctrl+1..9 over the selectable tabs, in the order the navigation shows them.
+        if (control && e.Key is >= System.Windows.Input.Key.D1 and <= System.Windows.Input.Key.D9)
+        {
+            var index = e.Key - System.Windows.Input.Key.D1;
+            var selectable = SelectableTabs();
+            if (index < selectable.Count)
+            {
+                e.Handled = true;
+                InventoryTabs.SelectedItem = selectable[index];
+            }
+        }
+    }
+
+    private List<System.Windows.Controls.TabItem> SelectableTabs() =>
+        [.. InventoryTabs.Items.OfType<System.Windows.Controls.TabItem>().Where(item => item.IsEnabled)];
+
+    /// <summary>
+    /// Jump to a section by typing part of its name. The global search box doubles as the input:
+    /// typing there and pressing Ctrl+K again moves to the first section whose name matches, which
+    /// keeps one text field rather than introducing a modal palette over a modal-free app.
+    /// </summary>
+    private void ShowSectionJump()
+    {
+        var typed = InventoryFilterText.Text.Trim();
+        if (typed.Length == 0)
+        {
+            InventoryFilterText.Focus();
+            StatusText.Text = "Type part of a section name, then press Ctrl+K again to jump to it.";
+            return;
+        }
+
+        var match = SelectableTabs().FirstOrDefault(item =>
+            item.Header?.ToString()?.Contains(typed, StringComparison.OrdinalIgnoreCase) == true);
+        if (match is null)
+        {
+            StatusText.Text = $"No section matching \u201c{typed}\u201d.";
+            return;
+        }
+
+        InventoryTabs.SelectedItem = match;
+        StatusText.Text = $"Jumped to {match.Header}.";
     }
 
     /// <summary>

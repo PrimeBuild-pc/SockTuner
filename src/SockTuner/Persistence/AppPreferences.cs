@@ -6,7 +6,31 @@ namespace SockTuner.Persistence;
 public sealed record UserPreferences(
     int LogFileMegabytes = 2,
     string? AcceptedWriteConsentVersion = null,
-    DateTimeOffset? WriteConsentAcceptedAt = null);
+    DateTimeOffset? WriteConsentAcceptedAt = null,
+    WindowGeometry? Window = null);
+
+/// <summary>
+/// Where the window was and how big, so a grid the user widened stays widened. Restored only when
+/// it still lands on a monitor that exists: a saved position from a display that has since been
+/// unplugged would otherwise open the app off-screen with no way to reach it.
+/// </summary>
+public sealed record WindowGeometry(double Left, double Top, double Width, double Height, bool Maximized)
+{
+    /// <summary>The window's own minimums, kept here so a corrupted file cannot shrink it away.</summary>
+    public const double MinimumWidth = 1040;
+    public const double MinimumHeight = 680;
+
+    public bool FitsWithin(double virtualLeft, double virtualTop, double virtualWidth, double virtualHeight)
+    {
+        // A generous overlap test rather than full containment: a window hanging slightly off the
+        // edge is normal and recoverable; one entirely on a monitor that is gone is not.
+        var right = virtualLeft + virtualWidth;
+        var bottom = virtualTop + virtualHeight;
+        return Width >= MinimumWidth && Height >= MinimumHeight
+            && Left + Width > virtualLeft + 80 && Left < right - 80
+            && Top + Height > virtualTop + 40 && Top < bottom - 40;
+    }
+}
 
 /// <summary>
 /// The user-facing acknowledgement that this alpha can change live network settings. It is a
@@ -68,6 +92,16 @@ public static class AppPreferences
         File.WriteAllText(path, JsonSerializer.Serialize(Validate(preferences), new JsonSerializerOptions { WriteIndented = true }));
     }
 
-    internal static UserPreferences Validate(UserPreferences preferences) =>
-        preferences with { LogFileMegabytes = Math.Clamp(preferences.LogFileMegabytes, 1, 64) };
+    internal static UserPreferences Validate(UserPreferences preferences) => preferences with
+    {
+        LogFileMegabytes = Math.Clamp(preferences.LogFileMegabytes, 1, 64),
+        Window = preferences.Window is { } window && double.IsFinite(window.Left) && double.IsFinite(window.Top)
+                 && double.IsFinite(window.Width) && double.IsFinite(window.Height)
+            ? window with
+            {
+                Width = Math.Max(window.Width, WindowGeometry.MinimumWidth),
+                Height = Math.Max(window.Height, WindowGeometry.MinimumHeight)
+            }
+            : null
+    };
 }

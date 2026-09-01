@@ -25,6 +25,9 @@ public sealed record HealthFinding(
         ChangeRisk.Medium => "Worth checking",
         _ => "For information"
     };
+
+    /// <summary>The same severity with its glyph, for the grid. See <see cref="Badges"/>.</summary>
+    public string SeverityBadge => $"{Badges.ForSeverity(Severity)} {SeverityDisplay}";
 }
 
 /// <summary>

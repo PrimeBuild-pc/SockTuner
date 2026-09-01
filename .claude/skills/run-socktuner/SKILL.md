@@ -74,6 +74,11 @@ navigation scenery. They are not selectable: `select "INVENTORY"` fails by desig
 | ACT | `Interfaces`, `Recommendations`, `Interrupt affinity`, `Tuning plan` |
 | RECORDS | `Tools & references`, `History & comparison`, `Preferences` |
 
+Keyboard: **F5** refreshes the inventory, **Ctrl+F** focuses the global search, **Ctrl+K**
+jumps to the section whose name matches what is typed there, and **Ctrl+1..9** select the
+first nine selectable tabs. The window remembers its size and position between runs, unless
+the saved position no longer lands on an attached monitor.
+
 `Tuning plan` used to be last; it now sits with the other surfaces that act. The reference
 links moved out of `Preferences` into `Tools & references`.
 
@@ -132,10 +137,11 @@ deliberately exposes no command for it.
 - **Screenshot tooling downscales.** A desktop-capture MCP may return an image scaled from
   3640x2144 to ~1833x1080, so coordinates read off that image are wrong by a ~1.99 factor.
   `driver.ps1 shot` captures the window rect at native size and sidesteps this.
-- **`--probe` ends on a modal.** The JSON is written *before* the message box appears, and
-  the box is a Win32 `#32770` whose buttons this build does not expose to UI Automation —
-  a UIA click never lands and the process is left holding a modal on the user's desktop.
-  The driver waits for the file, then stops that specific process.
+- **`--probe` used to end on a modal.** It now attaches to the calling console, prints the
+  report path there and exits on its own; the message box is kept only for someone who
+  double-clicked the exe and has no console to read. The driver still waits for the file
+  before returning, which is what makes it reliable, but it no longer has to kill a process
+  left holding a dialog nobody could dismiss.
 - **Probe takes longer than you expect.** A full inventory capture exceeded 6 s here, so a
   fixed sleep is not enough; the driver polls for up to 120 s.
 - **`pwsh` 7 cannot load `UIAutomationClient`.** Use `powershell.exe`.
