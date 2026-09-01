@@ -50,6 +50,7 @@ public partial class MainWindow : Window
     private LoadedLatencyResult? _lastDownload;
     private LoadedLatencyResult? _lastUpload;
     private ImportedBufferbloatReport? _importedBufferbloat;
+    private IReadOnlyList<RouterGuidanceItem> _routerGuidance = [];
     private readonly ObservableCollection<MonitorSample> _monitorSamples = [];
     private IReadOnlyList<AdapterInfo> _adapterRows = [];
     private readonly ObservableCollection<InterfaceAdvice> _interfaceAdvice = [];
@@ -1309,6 +1310,7 @@ public partial class MainWindow : Window
             RemediationGrid.ItemsSource = actions;
             SendToPlanButton.IsEnabled = false;
             SendAllToPlanButton.IsEnabled = actions.Any(action => action.AppliesLocally);
+            ExportChecklistButton.IsEnabled = actions.Count > 0;
 
             var wifi = ShowWifiRadio();
             ShowRouterGuidance(wifi);
@@ -1362,6 +1364,7 @@ public partial class MainWindow : Window
     private void ShowRouterGuidance(WifiRadioInfo? wifi)
     {
         var items = RouterGuidance.For(new RouterGuidanceInput(_lastDownload, _lastUpload, wifi));
+        _routerGuidance = items;
         if (items.Count == 0)
         {
             RouterGuidanceText.Text = _lastDownload is null && _lastUpload is null
@@ -1868,6 +1871,55 @@ public partial class MainWindow : Window
             : $"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver.";
         WriteLog("recommendations.sent_all", $"Actions={applicable.Length}; Accepted={accepted}/{requested}.");
         if (accepted > 0) SelectTab("Tuning plan");
+    }
+
+    /// <summary>
+    /// Writes the recommendations out as a checklist. The router half is the point: those changes
+    /// are made in another device's web interface or over SSH, where a panel inside this window is
+    /// no help at all.
+    /// </summary>
+    private void ExportChecklist_Click(object sender, RoutedEventArgs e)
+    {
+        if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
+        {
+            StatusText.Text = "Build recommendations first.";
+            return;
+        }
+
+        var dialog = new SaveFileDialog
+        {
+            Title = "Export the action checklist",
+            Filter = "Markdown (*.md)|*.md|All files (*.*)|*.*",
+            FileName = $"socktuner-checklist-{DateTime.Now:yyyyMMdd-HHmmss}.md"
+        };
+
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            var basis = new List<string>();
+            if (_importedBufferbloat is { } imported)
+            {
+                basis.Add($"Imported {imported.SourceDisplay}, test {imported.TestId}, captured {imported.CapturedAt:yyyy-MM-dd HH:mm}.");
+            }
+
+            foreach (var direction in new[] { _lastDownload, _lastUpload })
+            {
+                if (direction is not null) basis.Add(direction.Summary);
+            }
+
+            if (_lastReport is { } report) basis.Add($"Diagnosis of {report.RequestedTarget} at {report.StartedAt:yyyy-MM-dd HH:mm}.");
+
+            File.WriteAllText(dialog.FileName, ActionChecklistExporter.ToMarkdown(
+                [.. actions], _routerGuidance, string.Join(Environment.NewLine + Environment.NewLine, basis)));
+            StatusText.Text = $"Checklist exported to {dialog.FileName}.";
+            WriteLog("checklist.exported", $"Actions={actions.Count()}; Router={_routerGuidance.Count}.");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            StatusText.Text = $"Checklist export failed: {exception.Message}";
+            WriteLog("checklist.export_failed", exception.Message);
+        }
     }
 
     private void OpenTuningPlan_Click(object sender, RoutedEventArgs e) => SelectTab("Tuning plan");

@@ -995,7 +995,7 @@
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
                                 <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock Text="Changes this machine can make" FontSize="20" FontWeight="SemiBold"/>
                                         <TextBlock Text="Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
@@ -1006,7 +1006,10 @@
                                             ToolTip="Queues every action this machine can make. The plan still previews, verifies and records them, and applying is still a separate confirmed step."/>
                                     <Button x:Name="SendToPlanButton" Grid.Column="2" Content="Send selected"
                                             Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
-                                            ToolTip="Queues only the selected action"/>
+                                            Margin="0,0,8,0" ToolTip="Queues only the selected action"/>
+                                    <Button x:Name="ExportChecklistButton" Grid.Column="3" Content="Export checklist…"
+                                            Click="ExportChecklist_Click" VerticalAlignment="Top" IsEnabled="False"
+                                            ToolTip="Writes every action, including the router instructions and their OpenWrt commands, as a Markdown checklist"/>
                                 </Grid>
                                 <DataGrid x:Name="RemediationGrid" AutoGenerateColumns="False" MinHeight="150" RowHeight="NaN" MinRowHeight="40"
                                           Style="{StaticResource ResultGrid}"

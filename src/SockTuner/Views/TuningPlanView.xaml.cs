@@ -193,6 +193,37 @@ public partial class TuningPlanView : UserControl
         return accepted;
     }
 
+    /// <summary>
+    /// Reads back every setting this app has written and reports the ones something else has since
+    /// changed. Read-only: it opens the same stores the preview uses, in their read-only form.
+    /// </summary>
+    private void CheckDrift_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var store = new CompositeSettingStore(
+                WindowsRegistrySettingStore.CreateReadOnly(), new CimAdapterSettingStore());
+            var resolve = DeviceResolver();
+
+            var drift = SettingDriftAnalyzer.Compare(
+                _auditStore.Load(),
+                (settingId, targetId) =>
+                {
+                    var address = resolve(settingId, targetId).ResolveAddress(targetId);
+                    return store.ReadAsync(address, CancellationToken.None).GetAwaiter().GetResult();
+                });
+
+            DriftGrid.ItemsSource = drift;
+            DriftSummaryText.Text = SettingDriftAnalyzer.Summarise(drift);
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or ArgumentException
+                                          or KeyNotFoundException or System.IO.IOException)
+        {
+            DriftGrid.ItemsSource = null;
+            DriftSummaryText.Text = $"Drift check failed: {exception.Message}";
+        }
+    }
+
     private void ReloadCapabilities_Click(object sender, RoutedEventArgs e) => LoadCapabilities();
 
     private void Adapter_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadCapabilities();
