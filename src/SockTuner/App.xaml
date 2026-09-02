@@ -19,6 +19,10 @@
         <SolidColorBrush x:Key="WarningBrush" Color="#FFD166"/>
         <SolidColorBrush x:Key="WarningTextBrush" Color="#FFD166"/>
         <SolidColorBrush x:Key="WarningMutedBrush" Color="#332B00"/>
+        <!-- Verdict colours. A severity or a grade is the one column a user scans down, so it
+             carries colour; everything else stays neutral so the colour keeps its meaning. -->
+        <SolidColorBrush x:Key="DangerBrush" Color="#FF6B6B"/>
+        <SolidColorBrush x:Key="GoodBrush" Color="#6BD68A"/>
 
         <Style x:Key="AppWindowStyle" TargetType="Window">
             <Setter Property="Background" Value="{StaticResource PageBrush}"/>
@@ -40,6 +44,63 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="0"/>
             <Setter Property="Padding" Value="18"/>
+        </Style>
+
+        <!-- Verdict text inside a grid cell. One style serves both the health severities and the
+             playability grades: they are the two columns a user reads first. -->
+        <Style x:Key="VerdictCellText" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Style.Triggers>
+                <Trigger Property="Text" Value="! Worth fixing">
+                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="? Worth checking">
+                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="i For information">
+                    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="+ Good">
+                    <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="~ Playable, borderline">
+                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="! Not playable">
+                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="- Not measured">
+                    <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="Keep">
+                    <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Risk, where high is bad. Kept separate from the verdict style because the same three
+             words mean the opposite thing in a confidence column. -->
+        <Style x:Key="RiskCellText" TargetType="TextBlock" BasedOn="{StaticResource VerdictCellText}">
+            <Setter Property="TextWrapping" Value="NoWrap"/>
+            <Style.Triggers>
+                <Trigger Property="Text" Value="! High">
+                    <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="~ Medium">
+                    <Setter Property="Foreground" Value="{StaticResource WarningBrush}"/>
+                </Trigger>
+                <Trigger Property="Text" Value="+ Low">
+                    <Setter Property="Foreground" Value="{StaticResource GoodBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Long prose in a grid cell: an evidence line clipped mid-word tells the user nothing. -->
+        <Style x:Key="WrapCellText" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="Button">
@@ -178,6 +239,94 @@
             <Setter Property="MinHeight" Value="32"/>
             <Setter Property="CaretBrush" Value="{StaticResource TextBrush}"/>
             <Setter Property="SelectionBrush" Value="{StaticResource PrimaryBrush}"/>
+        </Style>
+
+        <!-- A search field with nothing in it and no label is a mystery box. WPF has no watermark,
+             so the placeholder is the control's Tag, shown only while the text is empty. -->
+        <Style x:Key="PlaceholderBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Chrome"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <TextBlock x:Name="Placeholder" Text="{TemplateBinding Tag}"
+                                           Margin="{TemplateBinding Padding}"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           VerticalAlignment="Center" IsHitTestVisible="False"
+                                           Visibility="Collapsed"/>
+                                <ScrollViewer x:Name="PART_ContentHost" Focusable="False"
+                                              Margin="{TemplateBinding Padding}"
+                                              VerticalAlignment="Center"
+                                              HorizontalScrollBarVisibility="Hidden"
+                                              VerticalScrollBarVisibility="Hidden"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter TargetName="Placeholder" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- A results grid with nothing in it is four column headers and a void. The card around
+             it already says why there is no result yet, so it hides until it has rows. -->
+        <Style x:Key="ResultGrid" TargetType="DataGrid" BasedOn="{StaticResource {x:Type DataGrid}}">
+            <Style.Triggers>
+                <Trigger Property="HasItems" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="ContextMenu">
+            <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="0,4">
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Chrome" Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Chrome" Property="Background" Value="{StaticResource PanelHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#7A7A7A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="ComboBoxItem">
@@ -354,18 +503,11 @@
                             <Border Background="{StaticResource NavigationBrush}"
                                     BorderBrush="{StaticResource BorderBrush}"
                                     BorderThickness="1">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition/>
-                                    </Grid.RowDefinitions>
-                                    <TextBlock Text="NAVIGATION" Margin="18,17,18,8"
-                                               Foreground="{StaticResource MutedTextBrush}"
-                                               FontSize="11" FontWeight="SemiBold"/>
-                                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                        <TabPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1"/>
-                                    </ScrollViewer>
-                                </Grid>
+                                <!-- The group headings inside the list say what this is; a
+                                     "NAVIGATION" caption above them only cost a row of height. -->
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,4,0,8">
+                                    <TabPanel IsItemsHost="True" KeyboardNavigation.TabIndex="1"/>
+                                </ScrollViewer>
                             </Border>
                             <ContentPresenter Grid.Column="1" Margin="24,0,0,0"
                                               Content="{TemplateBinding SelectedContent}"
@@ -383,7 +525,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="3,0,0,0"/>
-            <Setter Property="Padding" Value="15,13"/>
+            <Setter Property="Padding" Value="15,10"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Template">
@@ -417,6 +559,23 @@
             </Setter>
         </Style>
 
+        <!-- A non-selectable heading inside the navigation list. Eighteen flat entries is a list to
+             search; grouped, it is a list to read. Disabled is what makes the TabControl skip it
+             for both mouse and keyboard — it is scenery, not a destination. -->
+        <Style x:Key="NavGroupHeader" TargetType="TabItem">
+            <Setter Property="IsEnabled" Value="False"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <TextBlock Text="{TemplateBinding Header}" Margin="18,16,18,6"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   FontSize="10" FontWeight="SemiBold"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style TargetType="DataGrid">
             <Setter Property="Background" Value="{StaticResource PanelBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
@@ -444,10 +603,27 @@
             <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
         </Style>
 
+        <!-- These grids are wider than any window, so text columns clip. Every text cell carries its
+             own full value as a tooltip: the alternative is a user dragging a horizontal scrollbar
+             to read the end of a sentence. Template cells have no Content.Text, so the binding
+             quietly yields no tooltip, and an empty cell suppresses it rather than popping a blank. -->
         <Style TargetType="DataGridCell">
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <!-- Rows are no longer a fixed height once cells wrap or hold a combo box, so text
+                 that stayed pinned to the top drifted out of line with its own row. -->
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}"/>
+            <Setter Property="ToolTipService.ShowDuration" Value="30000"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}" Value="">
+                    <Setter Property="ToolTip" Value="{x:Null}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding RelativeSource={RelativeSource Self}, Path=Content.Text}" Value="—">
+                    <Setter Property="ToolTip" Value="{x:Null}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <Style TargetType="DataGridRow">

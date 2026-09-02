@@ -1,0 +1,190 @@
+====== WAVEFORM.COM BUFFERBLOAT TEST RESULTS======
+
+Test Version,1.0.9
+Test ID,00000000-0000-4000-8000-000000000001
+Unix Time,1750000000000
+
+====== RESULTS SUMMARY ======
+Bufferbloat Grade,B
+
+====== RESULTS SUMMARY ======
+Mean Unloaded Latency (ms),10
+Increase In Mean Latency During Download Test (ms),2
+Increase In Mean During Upload Test (ms),35
+
+Download speed (Mbps),100.5
+Upload speed (Mbps),20.25
+
+====== LATENCY TEST DETAIL ======
+Unloaded - Median Latency (ms),10
+During Download - Median Latency (ms),12
+During Upload - Median Latency (ms),45
+
+===== BUFFERBLOAT IMPACT ======
+Low Latency Gaming,PASS,FAIL
+
+====== UNLOADED LATENCY MEASUREMENTS (ms) ======
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+8.0
+9.0
+10.0
+11.0
+12.0
+
+====== DOWNLOAD STAGE LATENCY MEASUREMENTS (ms) ======
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+10.0
+11.0
+12.0
+13.0
+14.0
+
+====== UPLOAD STAGE LATENCY MEASUREMENTS (ms) ======
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0
+43.0
+44.0
+45.0
+46.0
+47.0

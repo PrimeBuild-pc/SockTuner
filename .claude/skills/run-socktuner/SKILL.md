@@ -30,7 +30,7 @@ powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 <command
 | `build` | `dotnet build src/SockTuner/SockTuner.csproj -c Release` |
 | `launch` | Starts the app **detached** and waits for its window |
 | `status` | pid / responding / RAM |
-| `tabs` | Lists the 14 navigation tabs; `*` marks the selected one |
+| `tabs` | Lists the navigation entries; `*` marks the selected one |
 | `select "<name>"` | Selects a tab by name (substring match) |
 | `shot [path]` | PNG of the window → `.claude/skills/run-socktuner/shots/` |
 | `probe` | Read-only inventory dump to JSON on the Desktop |
@@ -62,10 +62,25 @@ painted. A correct `NDIS & drivers` capture shows *"Driver-advertised NDIS prope
 and a grid of real keywords (`*InterruptModeration`, `*EEE`, `ITR`, `*FlowControl`,
 `*JumboPacket`) with current/default values.
 
-The 14 tabs: `Dashboard`, `Adapters`, `NDIS & drivers`, `Routes & DNS`,
-`Network profiles`, `Network bindings`, `Offloads`, `TCP settings`, `QoS policies`,
-`Winsock catalog`, `Gaming diagnostics`, `History & comparison`, `Preferences`,
-`Tuning plan`.
+The 20 tabs, in five groups. `tabs` also prints the group headings — `OVERVIEW`,
+`INVENTORY`, `MEASURE`, `ACT`, `RECORDS` — which are disabled `TabItem`s used as
+navigation scenery. They are not selectable: `select "INVENTORY"` fails by design.
+
+| Group | Tabs |
+| --- | --- |
+| OVERVIEW | `Dashboard` |
+| INVENTORY | `Adapters`, `NDIS & drivers`, `Routes & DNS`, `Network profiles`, `Network bindings`, `Offloads`, `TCP settings`, `QoS policies`, `Winsock catalog` |
+| MEASURE | `Gaming diagnostics`, `Throughput & bufferbloat`, `DNS resolvers` |
+| ACT | `Interfaces`, `Recommendations`, `Interrupt affinity`, `Tuning plan` |
+| RECORDS | `Tools & references`, `History & comparison`, `Preferences` |
+
+Keyboard: **F5** refreshes the inventory, **Ctrl+F** focuses the global search, **Ctrl+K**
+jumps to the section whose name matches what is typed there, and **Ctrl+1..9** select the
+first nine selectable tabs. The window remembers its size and position between runs, unless
+the saved position no longer lands on an attached monitor.
+
+`Tuning plan` used to be last; it now sits with the other surfaces that act. The reference
+links moved out of `Preferences` into `Tools & references`.
 
 ## Inventory without the GUI
 
@@ -87,21 +102,46 @@ Committed probe corpora live in `alpha-tester-output/`.
 dotnet test SockTuner.sln
 ```
 
-480 pass, 7 skipped. The 7 skipped are read-only live-inventory checks against the real
-adapters; they are safe on a normal desktop and mutate nothing:
+659 pass, 12 skipped. The 12 skipped are read-only live-inventory checks against the real
+adapters and the two device-level settings; they are safe on a normal desktop and mutate
+nothing:
 
 ```bash
 SOCKTUNER_LIVE_INVENTORY=1 dotnet test SockTuner.sln
 ```
 
-480 pass, 0 skipped.
+671 pass, 0 skipped.
 
-## Never run this on a real machine
+## Never run these on a real machine
 
-`SockTuner.exe --verify-tcp-writes` **writes to the live TCP stack**. It is gated behind
-`SOCKTUNER_VM_WRITE_TEST=1` precisely so a mistyped `--probe` cannot trigger it. It
-belongs in a disposable VM only (Hyper-V images live under `D:\VmLab`). The driver
-deliberately exposes no command for it.
+`--verify-tcp-writes` **writes to the live TCP stack** and `--verify-device-writes`
+**enables and disables a real adapter, writes PnPCapabilities and creates a QoS policy**.
+Both are gated behind `SOCKTUNER_VM_WRITE_TEST=1` so a mistyped `--probe` cannot trigger
+them, and both belong in a disposable VM only. The driver deliberately exposes no command
+for either.
+
+### Running a write validation in the VM
+
+`D:\VmLab\SockTuner-Win11-Base` is the guest. Checkpoint first, then:
+
+```powershell
+$vm   = Get-VM | ? Name -eq 'SockTuner-Win11-Base'      # -Name fails, see gotcha below
+$cred = Get-Credential                                   # the guest account
+$vm | Copy-VMFile -SourcePath <published exe> -DestinationPath 'C:\SockTunerValidate\SockTuner.exe' `
+                  -CreateFullPath -FileSource Host -Force
+Invoke-Command -VMId $vm.Id -Credential $cred -ScriptBlock {
+    $env:SOCKTUNER_VM_WRITE_TEST = '1'
+    Start-Process 'C:\SockTunerValidate\SockTuner.exe' -ArgumentList '--verify-device-writes'
+    # then poll the guest Desktop for socktuner-device-write-verification-*.json
+}
+```
+
+**Do not trust the report alone.** It only checks each setting's own value. Compare the
+guest's registry and adapter state either side of the run: that is what caught an empty
+`…\Windows\QoS` container being left behind by a rollback that the report called clean.
+
+The guest needs a second network adapter (`Add-VMNetworkAdapter`) or the enable/disable
+path is skipped — the run refuses to disable the adapter carrying the default route.
 
 ## Gotchas
 
@@ -112,16 +152,34 @@ deliberately exposes no command for it.
   moment earlier select the *wrong* tab, or miss the window entirely and land on whatever
   is behind it. The driver uses UIA `SelectionItemPattern.Select()` by name and is immune
   to this. Coordinate clicking failed three times in a row before the driver existed.
+- **A background process cannot raise a window by asking.** `SetForegroundWindow` returns
+  `true` and does nothing when the caller does not already own the foreground, so a shot
+  silently captured whatever browser was on top instead. `driver.ps1 shot` now shares the
+  input queue of the current foreground window for the length of the call
+  (`AttachThreadInput`), retries once, and **throws** rather than saving a screenshot of the
+  wrong window. If it throws, close or minimise what is covering the app.
 - **Screenshot tooling downscales.** A desktop-capture MCP may return an image scaled from
   3640x2144 to ~1833x1080, so coordinates read off that image are wrong by a ~1.99 factor.
   `driver.ps1 shot` captures the window rect at native size and sidesteps this.
-- **`--probe` ends on a modal.** The JSON is written *before* the message box appears, and
-  the box is a Win32 `#32770` whose buttons this build does not expose to UI Automation —
-  a UIA click never lands and the process is left holding a modal on the user's desktop.
-  The driver waits for the file, then stops that specific process.
+- **`--probe` used to end on a modal.** It now attaches to the calling console, prints the
+  report path there and exits on its own; the message box is kept only for someone who
+  double-clicked the exe and has no console to read. The driver still waits for the file
+  before returning, which is what makes it reliable, but it no longer has to kill a process
+  left holding a dialog nobody could dismiss.
 - **Probe takes longer than you expect.** A full inventory capture exceeded 6 s here, so a
   fixed sleep is not enough; the driver polls for up to 120 s.
 - **`pwsh` 7 cannot load `UIAutomationClient`.** Use `powershell.exe`.
+- **A stale VM registration breaks every `-Name` Hyper-V cmdlet on this host.** `Get-VM`,
+  `Checkpoint-VM -Name`, `Copy-VMFile -Name` and friends enumerate all VMs first, hit the
+  broken registration and throw "the object was not found" — while still returning the good
+  VMs. Get the object and pipe it instead: `Get-VM | ? Name -eq '…' | Copy-VMFile …`.
+- **PowerShell Direct runs over VMBus, not the network.** That is what makes it safe to
+  disable an adapter in the guest from the host: the session survives losing all guest
+  networking. It does need guest credentials; there is no passwordless path.
+- **A console-mode run has no console over PowerShell Direct.** `--probe` and the verify
+  modes attach to the caller's console when there is one and fall back to a message box when
+  there is not — and over PSDirect there is not, so the modal blocks forever. Start the
+  process detached and poll for the JSON, which is written before the message appears.
 
 ## Troubleshooting
 
@@ -131,4 +189,5 @@ deliberately exposes no command for it.
 | `Not built. Run: driver.ps1 build` | The Release exe is missing. Run `build`. |
 | `No tab matching '<x>'` | Run `tabs` for the exact names; matching is substring, case-insensitive. |
 | `Probe produced no JSON on the Desktop within 120s.` | Check for a stuck `SockTuner probe` process: `Get-Process SockTuner`. Kill it and retry. |
+| `Could not raise the SockTuner window; another window is on top…` | Something is covering the app and Windows refused the foreground handover. Minimise it, or click the SockTuner window once, then re-run `shot`. |
 | A leftover window titled `SockTuner probe` | An earlier probe attempt was interrupted. `powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 stop` clears all SockTuner processes. |

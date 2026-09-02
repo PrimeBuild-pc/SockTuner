@@ -4,7 +4,7 @@
         xmlns:views="clr-namespace:SockTuner.Views"
         Title="SockTuner" Icon="Assets/SockTuner.ico" Height="820" Width="1320" MinHeight="680" MinWidth="1040"
         WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}"
-        UseLayoutRounding="True" SnapsToDevicePixels="True">
+        UseLayoutRounding="True" SnapsToDevicePixels="True" PreviewKeyDown="Window_PreviewKeyDown">
     <Grid Margin="28,22,28,18" Background="{StaticResource PageBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,21 +14,35 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <StackPanel>
-                <TextBlock Text="SockTuner" FontSize="30" FontWeight="Light"/>
-                <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,3,0,0"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="130"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="SockTuner" FontSize="26" FontWeight="Light"/>
+                <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0"/>
             </StackPanel>
-            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                <TextBox x:Name="InventoryFilterText" Width="170" Margin="0,0,8,0" VerticalContentAlignment="Center"
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox x:Name="InventoryFilterText" Width="210" Margin="0,0,8,0"
+                         Style="{StaticResource PlaceholderBox}" Tag="Search all inventory  (Ctrl+F)"
                          TextChanged="InventoryFilter_TextChanged" AutomationProperties.Name="Search all inventory"/>
-                <Button Content="Copy selected" Click="CopyInventorySelected_Click" Margin="0,0,8,0"/>
-                <Button Content="Export snapshot" Click="ExportSnapshot_Click" Margin="0,0,8,0"/>
-                <Button Content="Export support snapshot" Click="ExportSupportSnapshot_Click" Margin="0,0,8,0"/>
-                <Button Content="Export logs" Click="ExportLogs_Click" Margin="0,0,12,0"/>
+                <Button Content="Refresh" Click="RefreshInventory_Click" Margin="0,0,8,0"
+                        Style="{StaticResource PrimaryButton}" ToolTip="Re-read the whole Windows network inventory  (F5)"
+                        AutomationProperties.Name="Refresh network inventory"/>
+                <Button Content="Copy row" Click="CopyInventorySelected_Click" Margin="0,0,8,0"
+                        ToolTip="Copies the selected inventory row as JSON"/>
+                <!-- Three exports that are each used once a session do not each deserve a button
+                     the width of the primary action. -->
+                <Button x:Name="ExportMenuButton" Content="Export  ▾" Click="ExportMenu_Click" Margin="0,0,12,0"
+                        AutomationProperties.Name="Export menu">
+                    <Button.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Export snapshot…" Click="ExportSnapshot_Click"/>
+                            <MenuItem Header="Export support snapshot…" Click="ExportSupportSnapshot_Click"/>
+                            <MenuItem Header="Export logs…" Click="ExportLogs_Click"/>
+                        </ContextMenu>
+                    </Button.ContextMenu>
+                </Button>
                 <Border Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
                         BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
                     <TextBlock x:Name="WriteStateText" Text="INVENTORY ONLY" Foreground="{StaticResource PrimaryTextBrush}"
@@ -39,7 +53,8 @@
         </Grid>
 
         <TabControl x:Name="InventoryTabs" Grid.Row="2" SelectionChanged="InventoryTabs_SelectionChanged">
-            <TabItem Header="Dashboard">
+            <TabItem Header="OVERVIEW" Style="{StaticResource NavGroupHeader}"/>
+            <TabItem Header="Dashboard" IsSelected="True">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Grid>
@@ -93,13 +108,22 @@
                                     <Button Grid.Column="1" x:Name="OpenHealthSectionButton" Content="Open the section that fixes this"
                                             Click="OpenHealthSection_Click" IsEnabled="False" VerticalAlignment="Top"/>
                                 </Grid>
+                                <!-- These rows are the point of the dashboard, so they wrap instead of
+                                     clipping: an evidence line cut at "Configured: 8.8.8.8, 8.8.4.4, 19"
+                                     is worse than no line at all. Double-click opens the fixing section. -->
                                 <DataGrid x:Name="HealthGrid" AutoGenerateColumns="False" MinHeight="120" Margin="0,12,0,0"
-                                          SelectionChanged="HealthGrid_SelectionChanged">
+                                          RowHeight="NaN" MinRowHeight="40"
+                                          SelectionChanged="HealthGrid_SelectionChanged"
+                                          MouseDoubleClick="HealthGrid_MouseDoubleClick">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120"/>
-                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*"/>
-                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
-                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*"/>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130"
+                                                            ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
                                         <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -108,8 +132,8 @@
 
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="2*" MinWidth="130"/>
+                                <ColumnDefinition Width="*" MinWidth="130"/>
                             </Grid.ColumnDefinitions>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
@@ -136,7 +160,7 @@
                                     <TextBlock Text="2  Diagnose each network boundary" Margin="0,8" TextWrapping="Wrap"/>
                                     <TextBlock Text="3  Preview a typed change plan" Margin="0,8"/>
                                     <TextBlock Text="4  Snapshot, apply, verify, roll back" Margin="0,8" TextWrapping="Wrap"/>
-                                    <TextBlock Text="Mutations remain disabled in this preview build." Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
+                                    <TextBlock x:Name="WorkflowWriteStateText" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -144,6 +168,7 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="INVENTORY" Style="{StaticResource NavGroupHeader}"/>
             <TabItem Header="Adapters">
                 <Grid Margin="0,20,0,0">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/></Grid.RowDefinitions>
@@ -152,25 +177,22 @@
                             <ColumnDefinition/>
                             <ColumnDefinition Width="220"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="Network adapters" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock Text="Stable identity, state, link speed, addresses, gateways, and protocol support." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Margin="12,0">
-                            <TextBlock Text="SEARCH" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                            <TextBox x:Name="AdapterFilterText" TextChanged="AdapterFilter_TextChanged" Margin="0,5,0,0"
-                                     AutomationProperties.Name="Filter network adapters"/>
-                        </StackPanel>
-                        <Button Grid.Column="2" Content="Copy selected" Click="CopyAdapter_Click" VerticalAlignment="Bottom" Margin="0,0,8,0"/>
-                        <Button Grid.Column="3" Content="Refresh inventory" Click="RefreshInventory_Click" VerticalAlignment="Bottom"
-                                Style="{StaticResource PrimaryButton}" AutomationProperties.Name="Refresh network inventory"/>
+                        <TextBox x:Name="AdapterFilterText" Grid.Column="1" Margin="12,0" VerticalAlignment="Bottom"
+                                 Style="{StaticResource PlaceholderBox}" Tag="Filter adapters"
+                                 TextChanged="AdapterFilter_TextChanged"
+                                 AutomationProperties.Name="Filter network adapters"/>
+                        <Button Grid.Column="2" Content="Copy as text" Click="CopyAdapter_Click" VerticalAlignment="Bottom"
+                                ToolTip="Copies the selected adapter as tab-separated text"/>
                     </Grid>
                     <DataGrid x:Name="AdaptersGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
-                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
+                            <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="100"/>
                             <DataGridTextColumn Header="Kind" Binding="{Binding AdapterKindDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding InterfaceType}" Width="140"/>
@@ -180,7 +202,7 @@
                             <DataGridTextColumn Header="NDIS" Binding="{Binding NdisPropertyCountDisplay}" Width="105"/>
                             <DataGridTextColumn Header="Protocols" Binding="{Binding ProtocolsDisplay}" Width="110"/>
                             <DataGridTextColumn Header="Inventory" Binding="{Binding InventoryStatus}" Width="160"/>
-                            <DataGridTextColumn Header="Addresses" Binding="{Binding AddressesDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Addresses" Binding="{Binding AddressesDisplay}" Width="2*" MinWidth="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -194,14 +216,14 @@
                         <StackPanel>
                             <TextBlock Text="Driver-advertised NDIS properties" FontSize="22" FontWeight="SemiBold"/>
                             <TextBlock x:Name="NdisSummaryText" Text="Reading native driver metadata…"
-                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Margin="12,0">
-                            <TextBlock Text="SEARCH" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                            <TextBox x:Name="NdisFilterText" TextChanged="NdisFilter_TextChanged" Margin="0,5,0,0"
-                                     AutomationProperties.Name="Filter NDIS properties"/>
-                        </StackPanel>
-                        <Button Grid.Column="2" Content="Copy selected" Click="CopyNdisProperty_Click" VerticalAlignment="Bottom"/>
+                        <TextBox x:Name="NdisFilterText" Grid.Column="1" Margin="12,0" VerticalAlignment="Bottom"
+                                 Style="{StaticResource PlaceholderBox}" Tag="Filter keywords"
+                                 TextChanged="NdisFilter_TextChanged"
+                                 AutomationProperties.Name="Filter NDIS properties"/>
+                        <Button Grid.Column="2" Content="Copy as text" Click="CopyNdisProperty_Click" VerticalAlignment="Bottom"
+                                ToolTip="Copies the selected property as tab-separated text"/>
                     </Grid>
                     <DataGrid x:Name="NdisPropertiesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -212,7 +234,7 @@
                             <DataGridTextColumn Header="Current" Binding="{Binding Current}" Width="110"/>
                             <DataGridTextColumn Header="Default" Binding="{Binding Default}" Width="100"/>
                             <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="90"/>
-                            <DataGridTextColumn Header="Driver-advertised values" Binding="{Binding ValidValues}" Width="2*"/>
+                            <DataGridTextColumn Header="Driver-advertised values" Binding="{Binding ValidValues}" Width="2*" MinWidth="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -227,7 +249,7 @@
                     <StackPanel>
                         <TextBlock Text="IP route table" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="RouteSummaryText" Text="Reading native route inventory…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="RoutesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -257,8 +279,8 @@
                             <DataGridTextColumn Header="Sent" Binding="{Binding SentDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Receive issues" Binding="{Binding ReceiveIssuesDisplay}" Width="180"/>
                             <DataGridTextColumn Header="Send issues" Binding="{Binding SendIssuesDisplay}" Width="180"/>
-                            <DataGridTextColumn Header="Gateways" Binding="{Binding GatewaysDisplay}" Width="2*"/>
-                            <DataGridTextColumn Header="DNS servers" Binding="{Binding DnsDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Gateways" Binding="{Binding GatewaysDisplay}" Width="2*" MinWidth="130"/>
+                            <DataGridTextColumn Header="DNS servers" Binding="{Binding DnsDisplay}" Width="2*" MinWidth="130"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
@@ -270,7 +292,7 @@
                     <StackPanel>
                         <TextBlock Text="Windows network profiles" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="NetworkProfileSummaryText" Text="Reading Network List Manager…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="NetworkProfilesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -278,7 +300,7 @@
                             <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="140"/>
                             <DataGridTextColumn Header="Domain" Binding="{Binding DomainType}" Width="150"/>
                             <DataGridTextColumn Header="Status" Binding="{Binding StatusDisplay}" Width="110"/>
-                            <DataGridTextColumn Header="Connectivity" Binding="{Binding ConnectivityDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Connectivity" Binding="{Binding ConnectivityDisplay}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="180"/>
                             <DataGridTextColumn Header="Adapter ID" Binding="{Binding AdapterId}" Width="260"/>
                             <DataGridTextColumn Header="Network ID" Binding="{Binding NetworkId}" Width="260"/>
@@ -293,13 +315,13 @@
                     <StackPanel>
                         <TextBlock Text="Adapter protocol and filter bindings" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="BindingSummaryText" Text="Reading StandardCimv2 binding state…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="BindingsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="150"/>
                             <DataGridTextColumn Header="Interface description" Binding="{Binding InterfaceDescription}" Width="220"/>
-                            <DataGridTextColumn Header="Component" Binding="{Binding DisplayName}" Width="2*"/>
+                            <DataGridTextColumn Header="Component" Binding="{Binding DisplayName}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Component ID" Binding="{Binding ComponentId}" Width="150"/>
                             <DataGridTextColumn Header="State" Binding="{Binding StateDisplay}" Width="90"/>
                             <DataGridTextColumn Header="Class" Binding="{Binding ComponentClassName}" Width="120"/>
@@ -319,11 +341,11 @@
                     <StackPanel>
                         <TextBlock Text="RSS, RSC and hardware offload state" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="OffloadSummaryText" Text="Reading StandardCimv2 offload state…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="GlobalOffloadsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" MaxHeight="190" AlternationCount="2">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Global feature" Binding="{Binding Feature}" Width="2*"/>
+                            <DataGridTextColumn Header="Global feature" Binding="{Binding Feature}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="State" Binding="{Binding State}" Width="160"/>
                             <DataGridTextColumn Header="Raw value" Binding="{Binding RawValue}" Width="100"/>
                         </DataGrid.Columns>
@@ -333,9 +355,9 @@
                             <DataGridTextColumn Header="Adapter" Binding="{Binding AdapterName}" Width="160"/>
                             <DataGridTextColumn Header="Feature" Binding="{Binding Feature}" Width="100"/>
                             <DataGridTextColumn Header="State" Binding="{Binding State}" Width="120"/>
-                            <DataGridTextColumn Header="IPv4" Binding="{Binding Ipv4State}" Width="2*"/>
-                            <DataGridTextColumn Header="IPv6" Binding="{Binding Ipv6State}" Width="2*"/>
-                            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="2*"/>
+                            <DataGridTextColumn Header="IPv4" Binding="{Binding Ipv4State}" Width="2*" MinWidth="130"/>
+                            <DataGridTextColumn Header="IPv6" Binding="{Binding Ipv6State}" Width="2*" MinWidth="130"/>
+                            <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Adapter ID" Binding="{Binding AdapterId}" Width="260"/>
                             <DataGridTextColumn Header="Interface description" Binding="{Binding InterfaceDescription}" Width="220"/>
                         </DataGrid.Columns>
@@ -349,7 +371,7 @@
                     <StackPanel>
                         <TextBlock Text="TCP templates and effective policy" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="TcpSettingSummaryText" Text="Reading StandardCimv2 TCP settings…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="TcpSettingsGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -375,7 +397,58 @@
                     <StackPanel>
                         <TextBlock Text="Windows QoS policy inventory" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="QosPolicySummaryText" Text="Reading StandardCimv2 QoS policies…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,14,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Mark one application's traffic" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="A DSCP mark is a request, not a reservation. It does nothing until something on the path is set up to honour it — in practice your own router, with a DSCP-aware queue discipline; most consumer ISPs rewrite or ignore the field beyond your access link. This is the half that makes SockTuner's layer_cake.qos advice usable: the policy writes the mark, the router acts on it."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="110"/>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Margin="0,0,12,0">
+                                        <TextBlock Text="APPLICATION" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosApplicationText" Margin="0,6,0,0"
+                                                 Style="{StaticResource PlaceholderBox}" Tag="game.exe"
+                                                 ToolTip="The executable name Windows should match, or its full path"
+                                                 AutomationProperties.Name="Application to mark"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                        <TextBlock Text="PROTOCOL" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <ComboBox x:Name="QosProtocolComboBox" Margin="0,6,0,0"
+                                                  AutomationProperties.Name="Protocol"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2" Margin="0,0,12,0">
+                                        <TextBlock Text="REMOTE PORTS" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosPortsText" Text="*" Margin="0,6,0,0"
+                                                 ToolTip="A port, a range such as 7000-8000, or * for all"
+                                                 AutomationProperties.Name="Remote ports"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="3" Margin="0,0,12,0">
+                                        <TextBlock Text="DSCP" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                        <TextBox x:Name="QosDscpText" Text="46" Margin="0,6,0,0"
+                                                 ToolTip="0 to 63. 46 is Expedited Forwarding, the conventional mark for interactive traffic."
+                                                 AutomationProperties.Name="DSCP value"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="4" Content="Queue policy" Click="QueueQosPolicy_Click"
+                                            VerticalAlignment="Bottom" Style="{StaticResource PrimaryButton}"/>
+                                </Grid>
+                                <TextBlock x:Name="QosActionStatusText" Text="Nothing queued."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <Button Content="Remove a SockTuner policy" Click="QueueRemoveQosPolicy_Click"
+                                            Margin="0,0,8,0"
+                                            ToolTip="Queues the removal of the policy named for the application above. SockTuner only manages policies it created."/>
+                                    <Button Content="Go to tuning plan" Click="OpenTuningPlan_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                     <DataGrid x:Name="QosPoliciesGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
@@ -383,8 +456,8 @@
                             <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="150"/>
                             <DataGridTextColumn Header="Profile" Binding="{Binding ProfileDisplay}" Width="90"/>
                             <DataGridTextColumn Header="Precedence" Binding="{Binding Precedence}" Width="90"/>
-                            <DataGridTextColumn Header="Conditions" Binding="{Binding ConditionsDisplay}" Width="3*"/>
-                            <DataGridTextColumn Header="Actions" Binding="{Binding ActionsDisplay}" Width="2*"/>
+                            <DataGridTextColumn Header="Conditions" Binding="{Binding ConditionsDisplay}" Width="3*" MinWidth="130"/>
+                            <DataGridTextColumn Header="Actions" Binding="{Binding ActionsDisplay}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="100"/>
                         </DataGrid.Columns>
                     </DataGrid>
@@ -397,12 +470,12 @@
                     <StackPanel>
                         <TextBlock Text="Winsock protocol providers" FontSize="22" FontWeight="SemiBold"/>
                         <TextBlock x:Name="WinsockSummaryText" Text="Reading native Winsock catalog…"
-                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <DataGrid x:Name="WinsockProvidersGrid" SelectionChanged="InventoryGrid_SelectionChanged" Grid.Row="2" AutoGenerateColumns="False" AlternationCount="2">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Catalog ID" Binding="{Binding CatalogEntryId}" Width="90"/>
-                            <DataGridTextColumn Header="Provider" Binding="{Binding Name}" Width="2*"/>
+                            <DataGridTextColumn Header="Provider" Binding="{Binding Name}" Width="2*" MinWidth="130"/>
                             <DataGridTextColumn Header="Family" Binding="{Binding AddressFamilyDisplay}" Width="90"/>
                             <DataGridTextColumn Header="Socket" Binding="{Binding SocketTypeDisplay}" Width="100"/>
                             <DataGridTextColumn Header="Protocol" Binding="{Binding ProtocolDisplay}" Width="100"/>
@@ -414,13 +487,14 @@
                 </Grid>
             </TabItem>
 
+            <TabItem Header="MEASURE" Style="{StaticResource NavGroupHeader}"/>
             <TabItem Header="Gaming diagnostics">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*" MinWidth="130"/>
                                     <ColumnDefinition Width="140"/>
                                     <ColumnDefinition Width="190"/>
                                     <ColumnDefinition Width="130"/>
@@ -429,8 +503,10 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="GAME OR REGIONAL ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="DiagnosticTargetText" Text="" Margin="0,6,0,0" ToolTip="Host name or IP address"
+                                    <TextBlock Text="ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DiagnosticTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                             Tag="Host name or IP"
+                                             ToolTip="The game server or regional endpoint to measure. A host name or an IP address."
                                              AutomationProperties.Name="Game or regional endpoint"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
@@ -458,7 +534,8 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="4" Margin="0,0,12,0">
                                     <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" ToolTip="Only verifies TCP connection setup"
+                                    <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                             Tag="e.g. 7777" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
                                 <Button x:Name="RunDiagnosticButton" Grid.Column="5" Content="Run diagnosis" Click="RunDiagnostic_Click"
@@ -478,15 +555,52 @@
                                 <TextBlock x:Name="PlayabilityHeadlineText" Text="Not run" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="PlayabilityDetailText" Text="Run a diagnosis to judge the game endpoint against a tick rate."
                                            Margin="0,8,0,0" TextWrapping="Wrap"/>
-                                <DataGrid x:Name="PlayabilityMetricsGrid" AutoGenerateColumns="False" Margin="0,12,0,0" MaxHeight="150">
+                                <DataGrid x:Name="PlayabilityMetricsGrid" AutoGenerateColumns="False" Margin="0,12,0,0" MaxHeight="190" RowHeight="NaN" MinRowHeight="40"
+                                          Style="{StaticResource ResultGrid}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="110"/>
-                                        <DataGridTextColumn Header="Verdict" Binding="{Binding GradeDisplay}" Width="150"/>
-                                        <DataGridTextColumn Header="Measured" Binding="{Binding Measured}" Width="2*"/>
-                                        <DataGridTextColumn Header="Budget for this tick rate" Binding="{Binding Budget}" Width="2*"/>
+                                        <DataGridTextColumn Header="Verdict" Binding="{Binding GradeBadge}" Width="160" ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Measured" Binding="{Binding Measured}" Width="2*" MinWidth="130"/>
+                                        <DataGridTextColumn Header="Budget for this tick rate" Binding="{Binding Budget}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock x:Name="PlayabilityTickText" Text="" Foreground="{StaticResource MutedTextBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Did the change help?" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock Text="Applying a setting proves nothing on its own. Run a diagnosis, apply a plan, then re-run this identical diagnosis: the two are compared against what this path can actually resolve, so a difference smaller than the measurement's own noise is reported as no difference rather than as a win."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button x:Name="ReRunDiagnosticButton" Grid.Column="1" Content="Re-run and compare"
+                                            Click="ReRunAndCompare_Click" IsEnabled="False" VerticalAlignment="Top"
+                                            Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"
+                                            ToolTip="Repeats the diagnosis with exactly the parameters of the baseline run"/>
+                                    <Button x:Name="ClearBaselineButton" Grid.Column="2" Content="Forget baseline"
+                                            Click="ClearBaseline_Click" IsEnabled="False" VerticalAlignment="Top"/>
+                                </Grid>
+                                <TextBlock x:Name="VerificationHeadlineText" Text="No baseline yet."
+                                           FontSize="16" FontWeight="SemiBold" Margin="0,12,0,0" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="VerificationDetailText"
+                                           Text="Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                <DataGrid x:Name="VerificationGrid" AutoGenerateColumns="False" Margin="0,12,0,0"
+                                          MaxHeight="200" RowHeight="NaN" MinRowHeight="36"
+                                          Style="{StaticResource ResultGrid}"
+                                          AutomationProperties.Name="Before and after the applied change">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Verdict" Binding="{Binding VerdictBadge}" Width="130"
+                                                            ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="160"/>
+                                        <DataGridTextColumn Header="Before and after" Binding="{Binding Display}" Width="*" MinWidth="220"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
                             </StackPanel>
                         </Border>
 
@@ -504,13 +618,13 @@
                                             Click="UseReportTarget_Click" IsEnabled="False" VerticalAlignment="Top"/>
                                 </Grid>
                                 <TextBlock x:Name="ImportedReportText" Text="No report imported." Margin="0,10,0,0" TextWrapping="Wrap"/>
-                                <DataGrid x:Name="ImportedFindingsGrid" AutoGenerateColumns="False" MaxHeight="180" Margin="0,10,0,0"
-                                          Visibility="Collapsed">
+                                <DataGrid x:Name="ImportedFindingsGrid" AutoGenerateColumns="False" MaxHeight="220" Margin="0,10,0,0"
+                                          RowHeight="NaN" MinRowHeight="40" Visibility="Collapsed">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityDisplay}" Width="120"/>
-                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*"/>
-                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
-                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*"/>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130" ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                         <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
@@ -595,16 +709,16 @@
                                         <DataGridTextColumn Header="RTT ms" Binding="{Binding RoundTripTimeMs}" Width="90"/>
                                         <DataGridCheckBoxColumn Header="Spike" Binding="{Binding IsSpike}" Width="65"/>
                                         <DataGridTextColumn Header="State" Binding="{Binding FailureKind}" Width="140"/>
-                                        <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Detail}" Width="2*" MinWidth="130"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock Text="Repeated route samples" FontSize="18" FontWeight="SemiBold" Margin="0,16,0,8"/>
                                 <DataGrid x:Name="RouteSamplesGrid" AutoGenerateColumns="False" MinHeight="120">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp}" Width="190"/>
-                                        <DataGridTextColumn Header="Hops" Binding="{Binding HopsDisplay}" Width="3*"/>
+                                        <DataGridTextColumn Header="Hops" Binding="{Binding HopsDisplay}" Width="3*" MinWidth="130"/>
                                         <DataGridTextColumn Header="State" Binding="{Binding FailureKind}" Width="120"/>
-                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*" MinWidth="130"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>
@@ -619,13 +733,14 @@
                                     <Button Content="Export report HTML" Click="ExportReportHtml_Click" Margin="0,0,8,0"/>
                                     <Button Content="Export redacted HTML" Click="ExportRedactedReportHtml_Click"/>
                                 </StackPanel>
-                                <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" MinHeight="190">
+                                <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" MinHeight="190" RowHeight="NaN" MinRowHeight="40"
+                                          Style="{StaticResource ResultGrid}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Scope" Binding="{Binding Scope}" Width="120"/>
                                         <DataGridTextColumn Header="Confidence" Binding="{Binding Confidence}" Width="100"/>
-                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="1.3*"/>
-                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*"/>
-                                        <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="2*"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="1.3*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>
@@ -641,7 +756,7 @@
                                         <DataGridTextColumn Header="Address" Binding="{Binding Target}" Width="180"/>
                                         <DataGridTextColumn Header="Result" Binding="{Binding ResultDisplay}" Width="130"/>
                                         <DataGridTextColumn Header="State" Binding="{Binding Kind}" Width="120"/>
-                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*"/>
+                                        <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*" MinWidth="130"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>
@@ -656,8 +771,8 @@
                         <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*" MinWidth="130"/>
+                                    <ColumnDefinition Width="*" MinWidth="130"/>
                                     <ColumnDefinition Width="120"/>
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="130"/>
@@ -666,13 +781,15 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Margin="0,0,12,0">
                                     <TextBlock Text="THROUGHPUT ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="ThroughputEndpointText" Margin="0,6,0,0"
+                                    <TextBox x:Name="ThroughputEndpointText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                             Tag="Host you may load"
                                              ToolTip="Host that accepts a sustained transfer, for example a speed-test host you control"
                                              AutomationProperties.Name="Throughput endpoint"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
                                     <TextBlock Text="LATENCY TARGET" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="LoadedLatencyTargetText" Margin="0,6,0,0"
+                                    <TextBox x:Name="LoadedLatencyTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                             Tag="Host to ping"
                                              ToolTip="Pinged idle and again under load to measure queue growth"
                                              AutomationProperties.Name="Latency target"/>
                                 </StackPanel>
@@ -697,6 +814,28 @@
 
                         <TextBlock Text="This moves real data over your connection and will saturate it for the duration. Nothing is written to Windows or the adapter. Choose an endpoint you are allowed to load."
                                    Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Import an online bufferbloat result" FontSize="18" FontWeight="SemiBold"/>
+                                        <TextBlock Text="An online test measures the queue from outside your machine, over a path SockTuner cannot reach itself. Import the raw export and it is graded by the same code as a local run — from the file's own per-sample latencies, not from the letter the site printed — and it then feeds the recommendations and the router shaping advice exactly as a local run would."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock Text="Accepts the Waveform CSV export and a JSON report carrying per-sample latencies."
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="Import result…" Click="ImportBufferbloatReport_Click"
+                                            VerticalAlignment="Top" Margin="0,0,8,0"/>
+                                    <Button x:Name="ImportedReportRecommendButton" Grid.Column="2" Content="Build recommendations"
+                                            Click="RecommendFromImport_Click" IsEnabled="False" VerticalAlignment="Top"
+                                            Style="{StaticResource PrimaryButton}"/>
+                                </Grid>
+                                <TextBlock x:Name="ImportedBufferbloatText" Text="No external result imported."
+                                           Margin="0,10,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
@@ -737,15 +876,16 @@
                         <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*" MinWidth="130"/>
                                     <ColumnDefinition Width="130"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="EXTRA RESOLVERS (COMMA SEPARATED, OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBox x:Name="DnsExtraResolversText" Margin="0,6,0,0"
-                                             ToolTip="Added to the well-known list and to whatever this machine is already using"
+                                    <TextBlock Text="EXTRA RESOLVERS (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <TextBox x:Name="DnsExtraResolversText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                             Tag="1.1.1.1, 9.9.9.9"
+                                             ToolTip="Comma separated. Added to the well-known list and to whatever this machine is already using"
                                              AutomationProperties.Name="Extra resolvers"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
@@ -775,13 +915,13 @@
                                 <TextBlock Text="Ranked by median lookup time. A resolver that answers fast is not automatically the right choice: filtering, privacy and who operates it matter as much as latency." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
                                 <DataGrid x:Name="DnsResolverGrid" AutoGenerateColumns="False" MinHeight="200">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Resolver" Binding="{Binding Resolver.Display}" Width="2*"/>
+                                        <DataGridTextColumn Header="Resolver" Binding="{Binding Resolver.Display}" Width="2*" MinWidth="130"/>
                                         <DataGridTextColumn Header="Median ms" Binding="{Binding MedianMs, StringFormat=N1}" Width="100"/>
                                         <DataGridTextColumn Header="Min" Binding="{Binding MinimumMs, StringFormat=N1}" Width="80"/>
                                         <DataGridTextColumn Header="Max" Binding="{Binding MaximumMs, StringFormat=N1}" Width="80"/>
                                         <DataGridTextColumn Header="Answered" Binding="{Binding Answered}" Width="90"/>
                                         <DataGridTextColumn Header="Queries" Binding="{Binding Queries}" Width="80"/>
-                                        <DataGridTextColumn Header="Result" Binding="{Binding Summary}" Width="3*"/>
+                                        <DataGridTextColumn Header="Result" Binding="{Binding Summary}" Width="3*" MinWidth="130"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>
@@ -794,7 +934,7 @@
                                            Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*" MinWidth="130"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
@@ -818,19 +958,111 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Recommendations">
+            <TabItem Header="ACT" Style="{StaticResource NavGroupHeader}"/>
+            <TabItem Header="Interfaces">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Border Style="{StaticResource Card}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Margin="0,0,18,0">
+                                    <TextBlock Text="Network devices" FontSize="22" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Every interface this machine has, what it is doing right now, and what it costs to leave it up. The adapter carrying the default route is never offered for disabling: it is the way back in."
+                                               Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Bottom">
+                                    <TextBlock Text="PROFILE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                    <ComboBox x:Name="InterfaceProfileComboBox" Width="230" Margin="0,6,0,0"
+                                              SelectionChanged="InterfaceProfile_SelectionChanged"
+                                              AutomationProperties.Name="Interface profile">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <Button Grid.Column="2" Content="Open Device Manager" Click="OpenDeviceManager_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,0"
+                                        ToolTip="Opens devmgmt.msc. Nothing is changed by opening it."/>
+                                <Button Grid.Column="3" Content="Open connections" Click="OpenNetworkConnections_Click"
+                                        VerticalAlignment="Bottom"
+                                        ToolTip="Opens the Windows Network Connections folder (ncpa.cpl)"/>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock x:Name="InterfaceSummaryAdviceText" Text="Refresh the inventory to list network devices."
+                                   Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+                        <DataGrid x:Name="InterfaceAdviceGrid" AutoGenerateColumns="False" Margin="0,10,0,0"
+                                  MinHeight="220" MaxHeight="330" RowHeight="NaN" MinRowHeight="40"
+                                  SelectionChanged="InterfaceAdvice_SelectionChanged"
+                                  AutomationProperties.Name="Network devices and advice">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150"/>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="150"/>
+                                <DataGridTextColumn Header="Kind" Binding="{Binding KindDisplay}" Width="100"/>
+                                <DataGridTextColumn Header="Role" Binding="{Binding RoleDisplay}" Width="130"/>
+                                <DataGridTextColumn Header="Advice" Binding="{Binding VerdictDisplay}" Width="150"
+                                                    ElementStyle="{StaticResource VerdictCellText}"/>
+                                <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="*" MinWidth="170"
+                                                    ElementStyle="{StaticResource WrapCellText}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Border Style="{StaticResource Card}" Margin="0,10,0,0" Padding="14,12">
+                            <StackPanel>
+                                <TextBlock x:Name="InterfaceDetailHeadingText" Text="Select a device" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="InterfaceDetailText" Foreground="{StaticResource MutedTextBrush}"
+                                           Text="The reason behind each verdict, and what disabling the device would cost, are shown here."
+                                           TextWrapping="Wrap" Margin="0,6,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Act on the selected device" FontSize="18" FontWeight="SemiBold"/>
+                                <TextBlock Text="Nothing here writes anything on its own. Each button queues one typed change on the tuning plan, where it is previewed against the live state, confirmed by hand, verified by read-back and recorded so it can be rolled back."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <WrapPanel>
+                                    <Button x:Name="DisableInterfaceButton" Content="Queue: disable adapter"
+                                            Click="QueueDisableInterface_Click" IsEnabled="False" Margin="0,0,8,8"
+                                            ToolTip="Only offered for a device this profile flags, and never for the adapter carrying the default route"/>
+                                    <Button x:Name="EnableInterfaceButton" Content="Queue: enable adapter"
+                                            Click="QueueEnableInterface_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                                    <Button x:Name="PowerOffInterfaceButton" Content="Queue: no power saving"
+                                            Click="QueuePowerOff_Click" IsEnabled="False" Margin="0,0,8,8"
+                                            ToolTip="Clears both power-management checkboxes on this adapter. Takes effect when the adapter next restarts."/>
+                                    <Button x:Name="PowerDefaultInterfaceButton" Content="Queue: restore power default"
+                                            Click="QueuePowerDefault_Click" IsEnabled="False" Margin="0,0,8,8"
+                                            ToolTip="Removes the override so the driver own INF decides again"/>
+                                    <Button x:Name="OpenPlanButton" Content="Go to tuning plan" Click="OpenTuningPlan_Click"
+                                            Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                                </WrapPanel>
+                                <TextBlock x:Name="InterfaceActionStatusText" Text="Nothing queued."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Recommendations">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <Border Style="{StaticResource Card}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MinWidth="130"/>
                                     <ColumnDefinition Width="240"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Margin="0,0,12,0">
                                     <TextBlock Text="WHAT THIS CONNECTION IS FOR" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
-                                    <TextBlock Text="Recommendations are derived from the last diagnosis and the last bufferbloat run. Run those first; nothing here measures anything by itself." Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                    <TextBlock Text="Recommendations are derived from a measurement: the last diagnosis, the last bufferbloat run, or an online bufferbloat result imported on the Throughput tab. Run or import one first; nothing here measures anything by itself." Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
                                     <TextBlock Text="USE-CASE PROFILE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
@@ -850,24 +1082,33 @@
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
                                 <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                     <StackPanel>
                                         <TextBlock Text="Changes this machine can make" FontSize="20" FontWeight="SemiBold"/>
                                         <TextBlock Text="Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <Button x:Name="SendToPlanButton" Grid.Column="1" Content="Send selected to tuning plan"
-                                            Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"/>
+                                    <Button x:Name="SendAllToPlanButton" Grid.Column="1" Content="Send all to tuning plan"
+                                            Click="SendAllRecommendationsToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
+                                            Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"
+                                            ToolTip="Queues every action this machine can make. The plan still previews, verifies and records them, and applying is still a separate confirmed step."/>
+                                    <Button x:Name="SendToPlanButton" Grid.Column="2" Content="Send selected"
+                                            Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
+                                            Margin="0,0,8,0" ToolTip="Queues only the selected action"/>
+                                    <Button x:Name="ExportChecklistButton" Grid.Column="3" Content="Export checklist…"
+                                            Click="ExportChecklist_Click" VerticalAlignment="Top" IsEnabled="False"
+                                            ToolTip="Writes every action, including the router instructions and their OpenWrt commands, as a Markdown checklist"/>
                                 </Grid>
-                                <DataGrid x:Name="RemediationGrid" AutoGenerateColumns="False" MinHeight="150"
+                                <DataGrid x:Name="RemediationGrid" AutoGenerateColumns="False" MinHeight="150" RowHeight="NaN" MinRowHeight="40"
+                                          Style="{StaticResource ResultGrid}"
                                           SelectionChanged="RemediationGrid_SelectionChanged">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="2*"/>
+                                        <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                         <DataGridTextColumn Header="Segment" Binding="{Binding Segment}" Width="130"/>
                                         <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="140"/>
-                                        <DataGridTextColumn Header="Changes" Binding="{Binding ChangesDisplay}" Width="2*"/>
-                                        <DataGridTextColumn Header="Expected effect" Binding="{Binding ExpectedEffect}" Width="2*"/>
-                                        <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*"/>
-                                        <DataGridTextColumn Header="How to verify" Binding="{Binding Verification}" Width="2*"/>
+                                        <DataGridTextColumn Header="Changes" Binding="{Binding ChangesDisplay}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Expected effect" Binding="{Binding ExpectedEffect}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="How to verify" Binding="{Binding Verification}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                                     </DataGrid.Columns>
                                 </DataGrid>
                             </StackPanel>
@@ -903,7 +1144,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*" MinWidth="130"/>
                                     </Grid.ColumnDefinitions>
                                     <CheckBox x:Name="IrqNetworkOnlyCheck" Content="Network devices only" IsChecked="True"
                                               VerticalAlignment="Center" Margin="0,0,18,0" Click="IrqFilter_Changed"
@@ -922,9 +1163,9 @@
                                 <DataGrid x:Name="IrqDeviceGrid" AutoGenerateColumns="False" MinHeight="160" MaxHeight="260"
                                           SelectionChanged="IrqDeviceGrid_SelectionChanged">
                                     <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Device" Binding="{Binding FriendlyName}" Width="3*"/>
+                                        <DataGridTextColumn Header="Device" Binding="{Binding FriendlyName}" Width="3*" MinWidth="130"/>
                                         <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="110"/>
-                                        <DataGridTextColumn Header="Current placement" Binding="{Binding StateDisplay}" Width="2*"/>
+                                        <DataGridTextColumn Header="Current placement" Binding="{Binding StateDisplay}" Width="2*" MinWidth="130"/>
                                         <DataGridTextColumn Header="Priority" Binding="{Binding Priority}" Width="100"/>
                                         <DataGridTextColumn Header="MSI" Binding="{Binding MsiDisplay}" Width="90"/>
                                     </DataGrid.Columns>
@@ -957,7 +1198,7 @@
                                         <ColumnDefinition Width="220"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="160"/>
-                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*" MinWidth="130"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="Policy" VerticalAlignment="Center" Margin="0,0,10,0"/>
                                     <ComboBox x:Name="IrqPolicyComboBox" Grid.Column="1" Margin="0,0,18,0"
@@ -985,46 +1226,18 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="History &amp; comparison">
-                <Grid Margin="0,20,0,0">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/></StackPanel>
-                        <Button Grid.Column="1" Content="Compare selected" Click="CompareHistory_Click" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Content="Trend selected" Click="TrendHistory_Click" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Content="Check drift" Click="CheckDrift_Click" Margin="0,0,8,0"
-                                HorizontalAlignment="Right" ToolTip="Compares the most recent runs against older ones to show whether this connection has drifted"/>
-                        <Button Grid.Column="3" Content="Export selected redacted" Click="ExportHistory_Click" Margin="0,0,8,0"/>
-                        <Button Grid.Column="4" Content="Delete selected" Click="DeleteHistory_Click"/>
-                    </Grid>
-                    <DataGrid x:Name="HistoryGrid" Grid.Row="2" AutoGenerateColumns="False" SelectionMode="Extended">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Saved" Binding="{Binding SavedAt}" Width="190"/>
-                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*"/>
-                            <DataGridTextColumn Header="Profile" Binding="{Binding Profile}" Width="110"/>
-                            <DataGridTextColumn Header="Game summary" Binding="{Binding GameSummary}" Width="3*"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <TextBlock x:Name="ComparisonText" Grid.Row="4" Text="No comparison selected." TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}"/>
-                </Grid>
+            <TabItem Header="Tuning plan">
+                <views:TuningPlanView x:Name="TuningPlan"/>
             </TabItem>
 
-            <TabItem Header="Preferences">
-                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Stretch">
-                    <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
-                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
-                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left">
-                        <TextBlock Text="Log file size" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ComboBox x:Name="LogRetentionComboBox" Width="150" SelectionChanged="LogRetention_SelectionChanged"
-                                  AutomationProperties.Name="Maximum log file size"/>
-                        <TextBlock Text="MB per file" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource MutedTextBrush}"/>
-                    </StackPanel>
-                    <TextBlock x:Name="PreferenceStatusText" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0"/>
-
-
-                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+            <TabItem Header="RECORDS" Style="{StaticResource NavGroupHeader}"/>
+            <TabItem Header="Tools &amp; references">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Tools and references" FontSize="22" FontWeight="SemiBold"/>
+                        <TextBlock Text="The measurements worth checking a SockTuner result against, and the tools this app deliberately does not replace."
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                        <Border Style="{StaticResource Card}" Margin="0,14,0,0">
                             <StackPanel>
                                 <TextBlock Text="Reference tools and reading" FontSize="18" FontWeight="SemiBold"/>
                                 <TextBlock Text="Opened in your browser. SockTuner bundles no third-party binaries and downloads nothing: these are where to get the tools it does not replace, and the measurement services worth checking a result against."
@@ -1045,19 +1258,72 @@
                                            Foreground="{StaticResource MutedTextBrush}"/>
                             </StackPanel>
                         </Border>
-                </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="Tuning plan">
-                <views:TuningPlanView x:Name="TuningPlan"/>
+            <TabItem Header="History &amp; comparison">
+                <Grid Margin="0,20,0,0">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
+                        <!-- One row, one panel. Two of these buttons used to share Grid.Column="2"
+                             and drew on top of each other. -->
+                        <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                            <Button Content="Compare selected" Click="CompareHistory_Click" Margin="8,0,0,4"/>
+                            <Button Content="Trend selected" Click="TrendHistory_Click" Margin="8,0,0,4"/>
+                            <Button Content="Check drift" Click="CheckDrift_Click" Margin="8,0,0,4"
+                                    ToolTip="Compares the most recent runs against older ones to show whether this connection has drifted"/>
+                            <Button Content="Export redacted" Click="ExportHistory_Click" Margin="8,0,0,4"
+                                    ToolTip="Exports the selected runs with addresses removed"/>
+                            <Button Content="Delete selected" Click="DeleteHistory_Click" Margin="8,0,0,4"/>
+                        </WrapPanel>
+                    </Grid>
+                    <DataGrid x:Name="HistoryGrid" Grid.Row="2" AutoGenerateColumns="False" SelectionMode="Extended">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Saved" Binding="{Binding SavedAt}" Width="190"/>
+                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*" MinWidth="130"/>
+                            <DataGridTextColumn Header="Profile" Binding="{Binding Profile}" Width="110"/>
+                            <DataGridTextColumn Header="Game summary" Binding="{Binding GameSummary}" Width="3*" MinWidth="130"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock x:Name="ComparisonText" Grid.Row="4" Text="No comparison selected." TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}"/>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Preferences">
+                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Stretch">
+                    <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
+                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
+                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left">
+                        <TextBlock Text="Log file size" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="LogRetentionComboBox" Width="150" SelectionChanged="LogRetention_SelectionChanged"
+                                  AutomationProperties.Name="Maximum log file size"/>
+                        <TextBlock Text="MB per file" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{StaticResource MutedTextBrush}"/>
+                    </StackPanel>
+                    <TextBlock x:Name="PreferenceStatusText" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0"/>
+
+
+                </StackPanel>
             </TabItem>
         </TabControl>
 
         <Grid Grid.Row="3" Margin="0,14,0,0">
-            <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-            <TextBlock x:Name="StatusText" Text="Ready" Foreground="{StaticResource MutedTextBrush}"/>
-            <TextBlock x:Name="LogStatusText" Grid.Column="1" Foreground="{StaticResource WarningBrush}" Margin="0,0,18,0"/>
-            <TextBlock Grid.Column="2" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/><ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <!-- The status line said what had started but never that it was still going. -->
+            <ProgressBar x:Name="BusyBar" Width="90" Height="3" Margin="0,0,10,0" IsIndeterminate="True"
+                         Visibility="Collapsed" VerticalAlignment="Center" BorderThickness="0"
+                         Background="{StaticResource PanelBrush}" Foreground="{StaticResource PrimaryBrush}"
+                         AutomationProperties.Name="Working"/>
+            <TextBlock x:Name="StatusText" Grid.Column="1" Text="Ready" Foreground="{StaticResource MutedTextBrush}"
+                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+            <TextBlock x:Name="LogStatusText" Grid.Column="2" Foreground="{StaticResource WarningBrush}" Margin="0,0,18,0"/>
+            <TextBlock Grid.Column="3" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

@@ -26,6 +26,9 @@ public sealed record MetricVerdict(
     string Explanation)
 {
     public string GradeDisplay => PlayabilityVerdict.Display(Grade);
+
+    /// <summary>The same verdict with its glyph, for the grid. See <see cref="Badges"/>.</summary>
+    public string GradeBadge => $"{Badges.For(Grade)} {GradeDisplay}";
 }
 
 /// <summary>

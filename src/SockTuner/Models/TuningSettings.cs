@@ -159,6 +159,9 @@ public sealed record PlannedChange(
     public string BeforeDisplay => Before.Exists ? Before.Value : "Missing";
     public string AfterDisplay => After.Exists ? After.Value : "Remove value";
 
+    /// <summary>The risk with its glyph, so the column reads without colour. See <see cref="Badges"/>.</summary>
+    public string RiskBadge => $"{Badges.For(Definition.Risk)} {Definition.Risk}";
+
     /// <summary>
     /// High-risk or experimental changes need a deliberate, typed confirmation rather than a
     /// single click: they can sever connectivity or rest on undocumented behaviour.

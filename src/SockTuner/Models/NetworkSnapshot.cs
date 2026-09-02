@@ -36,6 +36,19 @@ public sealed record AdapterInfo(
     IReadOnlyList<IpInterfaceInfo>? IpInterfaces = null)
 {
     public string SpeedDisplay => FormatSpeed(SpeedBitsPerSecond);
+    public bool IsUp => Status == OperationalStatus.Up;
+
+    /// <summary>A configured gateway is what makes this interface a candidate for the default route.</summary>
+    public bool HasDefaultRoute => Gateways.Count > 0;
+
+    /// <summary>
+    /// The best route metric across address families, which is what Windows compares when two
+    /// interfaces both offer a default route. Null when the IP interface inventory is unavailable.
+    /// </summary>
+    public uint? RouteMetric => IpInterfaces is { Count: > 0 } interfaces
+        ? interfaces.Min(item => item.Metric)
+        : null;
+
     public string DriverDisplay => Driver is null ? "Unavailable" : $"{Driver.Provider} {Driver.Version}".Trim();
     public AdapterKind Kind => ClassifyAdapter(InterfaceType, Driver, SupportsIPv4, SupportsIPv6);
     public string AdapterKindDisplay => Kind.ToString();

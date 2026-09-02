@@ -88,6 +88,7 @@ public static class SettingSpecifications
         IReadOnlyList<AdapterSettingCapability>? adapters = null;
         IReadOnlyList<GlobalSettingCapability>? globals = null;
         Models.InterruptAffinityInventoryResult? interrupts = null;
+        IReadOnlyDictionary<Guid, string>? adapterKeys = null;
         return (settingId, targetId) =>
         {
             if (settingId.StartsWith(NicPrefix, StringComparison.Ordinal))
@@ -107,6 +108,23 @@ public static class SettingSpecifications
                 return new DnsServerSpecification();
             }
 
+            if (string.Equals(settingId, QosPolicySpecification.SettingId, StringComparison.Ordinal))
+            {
+                return new QosPolicySpecification();
+            }
+
+            if (string.Equals(settingId, AdapterStateSpecification.SettingId, StringComparison.Ordinal))
+            {
+                // Re-read every time: an adapter can be removed between preparing a plan and applying it.
+                return new AdapterStateSpecification(AdapterStateSpecification.PresentAdapters());
+            }
+
+            if (string.Equals(settingId, AdapterPowerSavingSpecification.SettingId, StringComparison.Ordinal))
+            {
+                adapterKeys ??= AdapterPowerSavingSpecification.ReadAdapterKeys();
+                return new AdapterPowerSavingSpecification(adapterKeys);
+            }
+
             if (string.Equals(settingId, InterruptAffinitySpecification.SettingId, StringComparison.Ordinal))
             {
                 interrupts ??= Collection.InterruptAffinityInventory.Read(onlyInteresting: false);
@@ -119,9 +137,16 @@ public static class SettingSpecifications
         };
     }
 
+    /// <summary>
+    /// Resolver over capabilities the caller already holds. The device-level settings need the
+    /// adapters and class keys this machine actually has; a caller that does not supply them gets
+    /// a resolver that refuses those settings rather than one that guesses a registry path.
+    /// </summary>
     public static SettingSpecificationResolver From(
         IReadOnlyList<AdapterSettingCapability> capabilities,
-        IReadOnlyList<GlobalSettingCapability>? globals = null) =>
+        IReadOnlyList<GlobalSettingCapability>? globals = null,
+        IReadOnlySet<Guid>? presentAdapters = null,
+        IReadOnlyDictionary<Guid, string>? adapterKeys = null) =>
         (settingId, targetId) => settingId switch
         {
             _ when settingId.StartsWith(NicPrefix, StringComparison.Ordinal) =>
@@ -129,6 +154,11 @@ public static class SettingSpecifications
             _ when settingId.StartsWith(CimPrefix, StringComparison.Ordinal) =>
                 CimGlobalSettingSpecification.Resolve(settingId, targetId, globals ?? []),
             DnsServerSpecification.SettingId => new DnsServerSpecification(),
+            QosPolicySpecification.SettingId => new QosPolicySpecification(),
+            AdapterStateSpecification.SettingId =>
+                new AdapterStateSpecification(presentAdapters ?? new HashSet<Guid>()),
+            AdapterPowerSavingSpecification.SettingId =>
+                new AdapterPowerSavingSpecification(adapterKeys ?? new Dictionary<Guid, string>()),
             InterruptAffinitySpecification.SettingId => new InterruptAffinitySpecification(
                 Environment.ProcessorCount, new HashSet<string>([targetId ?? string.Empty], StringComparer.OrdinalIgnoreCase)),
             _ => SettingCatalog.Get(settingId)
