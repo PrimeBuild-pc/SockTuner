@@ -136,6 +136,15 @@ public sealed class AdapterDeviceSettingTests
             () => store.ReadAsync(foreign, CancellationToken.None));
     }
 
+    [Theory]
+    [InlineData("024")]
+    [InlineData("0024")]
+    [InlineData("+24")]
+    public void ANonCanonicalPowerValueIsRefused(string value) =>
+        // The store writes a DWORD and reads back the shortest form, so "024" would pass validation
+        // and then fail read-back verification for no reason a user could act on.
+        Assert.Throws<ArgumentOutOfRangeException>(() => Power().Validate(value));
+
     [Fact]
     public async Task AnAdapterStateCannotBeRemoved()
     {

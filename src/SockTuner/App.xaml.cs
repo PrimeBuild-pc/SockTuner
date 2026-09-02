@@ -147,6 +147,7 @@ public partial class App : Application
             var lines = new List<string> { report.Verdict, string.Empty };
             lines.AddRange(report.Outcomes.Select(outcome => "  " + outcome.Summary));
             lines.AddRange(report.Skipped.Select(skip => "  skipped: " + skip));
+            lines.AddRange(report.Notes.Select(note => "  note: " + note));
             lines.Add(string.Empty);
             lines.Add("Report saved to: " + path);
 

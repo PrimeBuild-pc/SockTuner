@@ -54,18 +54,38 @@ public sealed class SettingDriftAnalyzerTests
     }
 
     [Fact]
-    public void ARollbackReplacesTheApplyAsTheExpectation()
+    public void AfterARollbackTheRestoredValueIsWhatShouldStillBeThere()
     {
-        // SockTuner put the value back on purpose. The restored value is what should be there now;
-        // treating the earlier apply as the expectation would report the app's own rollback as drift.
-        var drift = Assert.Single(SettingDriftAnalyzer.Compare(
-            [
-                Entry(TransactionAuditOutcome.ApplySucceeded, Monday, Change("nic.*EEE", "1", "0")),
-                Entry(TransactionAuditOutcome.RollbackSucceeded, Monday.AddHours(1), Change("nic.*EEE", "0", "1"))
-            ],
-            Reads(("nic.*EEE", "1"))));
+        // A rollback audit entry stores the apply's own snapshot, unreversed: Before is what the
+        // rollback put back, After is the value it undid. Reading After for both outcomes inverted
+        // every verdict after a rollback — the restored value was called drift and the undone value
+        // was called holding, which is exactly backwards.
+        var audit = new[]
+        {
+            Entry(TransactionAuditOutcome.ApplySucceeded, Monday, Change("nic.*EEE", "1", "0")),
+            Entry(TransactionAuditOutcome.RollbackSucceeded, Monday.AddHours(1), Change("nic.*EEE", "1", "0"))
+        };
 
-        Assert.Equal(DriftState.Holding, drift.State);
+        // The machine holds "1" again, which is what the rollback restored.
+        var restored = Assert.Single(SettingDriftAnalyzer.Compare(audit, Reads(("nic.*EEE", "1"))));
+        Assert.Equal(DriftState.Holding, restored.State);
+        Assert.Equal("1", restored.ExpectedDisplay);
+
+        // And if something put the applied value back afterwards, that is the drift.
+        var drifted = Assert.Single(SettingDriftAnalyzer.Compare(audit, Reads(("nic.*EEE", "0"))));
+        Assert.Equal(DriftState.Drifted, drifted.State);
+    }
+
+    [Fact]
+    public void AWindowsReadFailureBecomesAResultRatherThanAbortingTheReport()
+    {
+        // One unreadable setting must not take the whole report with it.
+        var drift = Assert.Single(SettingDriftAnalyzer.Compare(
+            [Entry(TransactionAuditOutcome.ApplySucceeded, Monday, Change("nic.*EEE", "1", "0"))],
+            (_, _) => throw new UnauthorizedAccessException("Requested registry access is not allowed.")));
+
+        Assert.Equal(DriftState.Unreadable, drift.State);
+        Assert.Contains("not allowed", drift.Error!, StringComparison.Ordinal);
     }
 
     [Fact]

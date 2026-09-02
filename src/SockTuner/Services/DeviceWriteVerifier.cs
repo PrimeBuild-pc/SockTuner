@@ -23,6 +23,7 @@ public sealed record DeviceWriteVerificationReport(
     DateTimeOffset RunAt,
     IReadOnlyList<DeviceWriteOutcome> Outcomes,
     IReadOnlyList<string> Skipped,
+    IReadOnlyList<string> Notes,
     string Verdict);
 
 /// <summary>
@@ -62,6 +63,7 @@ public sealed class DeviceWriteVerifier
 
         var outcomes = new List<DeviceWriteOutcome>();
         var skipped = new List<string>();
+        var notes = new List<string>();
 
         // 1. A QoS policy: created, verified, removed. Nothing on the machine depends on it.
         var policyName = QosPolicySpecification.NameFor(CanaryApplication);
@@ -72,6 +74,15 @@ public sealed class DeviceWriteVerifier
                 QosPolicySpecification.ExpeditedForwarding, CanaryApplication, "UDP", "50000-50001").Canonical,
             store,
             cancellationToken));
+
+        // Stated rather than discovered: removing a policy leaves the shared container behind, and a
+        // reader comparing the registry either side of this run will see it. Saying so here is the
+        // difference between a known imperfection and an unexplained one.
+        notes.Add(
+            $@"Removing a QoS policy leaves the shared HKLM\{QosPolicySpecification.PolicyRoot} container "
+            + "in place when it ends up empty. It is created as part of writing the first policy and is "
+            + "inert, and this app cannot tell a container it created from one that was already there, so "
+            + "it is deliberately not deleted.");
 
         // 2. Power management on a real adapter. It does not drop the link when written; the driver
         //    picks it up at its next restart, which this run deliberately does not trigger.
@@ -121,7 +132,7 @@ public sealed class DeviceWriteVerifier
         }
 
         return new DeviceWriteVerificationReport(
-            DateTimeOffset.Now, outcomes, skipped, Summarise(outcomes, skipped));
+            DateTimeOffset.Now, outcomes, skipped, notes, Summarise(outcomes, skipped));
     }
 
     private async Task<DeviceWriteOutcome> AttemptAsync(

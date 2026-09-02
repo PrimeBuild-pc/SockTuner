@@ -88,7 +88,10 @@ public static class SettingDriftAnalyzer
                     Matches(expected.Value, actual) ? DriftState.Holding : DriftState.Drifted));
             }
             catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
-                                              or KeyNotFoundException or NotSupportedException)
+                                              or KeyNotFoundException or NotSupportedException
+                                              or UnauthorizedAccessException or System.IO.IOException
+                                              or System.Management.ManagementException
+                                              or System.Runtime.InteropServices.COMException)
             {
                 // A keyword the driver no longer advertises reads as an error rather than as a
                 // value. That is itself worth reporting: the setting is gone, not merely different.
@@ -116,8 +119,17 @@ public static class SettingDriftAnalyzer
         {
             foreach (var change in entry.Changes)
             {
+                // A rollback entry stores the original plan, unreversed: SaveRollback persists the
+                // apply's own snapshot, and RestoreAsync writes each change's Before. So after a
+                // successful rollback the machine holds Before, not After. Reading After for both
+                // outcomes inverted every verdict that followed a rollback — it called the restored
+                // value drift and called the undone value "holding".
+                var established = entry.Outcome == TransactionAuditOutcome.RollbackSucceeded
+                    ? change.Before
+                    : change.After;
+
                 latest[(change.SettingId, change.TargetId)] =
-                    (new StoredSettingValue(change.After.Exists, change.After.Value), entry.RecordedAt);
+                    (new StoredSettingValue(established.Exists, established.Value), entry.RecordedAt);
             }
         }
 

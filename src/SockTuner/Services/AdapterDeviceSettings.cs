@@ -106,11 +106,19 @@ public sealed class AdapterStateSpecification : ISettingSpecification
 public sealed class AdapterStateStore : ISettingStore
 {
     private readonly ManagementScope _scope;
+    private readonly AdapterStateSpecification _specification;
 
     public AdapterStateStore()
         : this(new ManagementScope(WindowsAdapterCapabilityInventory.NamespacePath)) { }
 
-    internal AdapterStateStore(ManagementScope scope) => _scope = scope;
+    internal AdapterStateStore(ManagementScope scope)
+        : this(scope, new AdapterStateSpecification(AdapterStateSpecification.PresentAdapters())) { }
+
+    internal AdapterStateStore(ManagementScope scope, AdapterStateSpecification specification)
+    {
+        _scope = scope;
+        _specification = specification;
+    }
 
     public Task<StoredSettingValue> ReadAsync(SettingAddress address, CancellationToken cancellationToken)
     {
@@ -141,6 +149,24 @@ public sealed class AdapterStateStore : ISettingStore
         if (!enable && !string.Equals(value.Value, AdapterStateSpecification.Disabled, StringComparison.Ordinal))
         {
             throw new ArgumentOutOfRangeException(nameof(value), $"Unknown adapter state '{value.Value}'.");
+        }
+
+        // Re-resolved in the writing process, as the sibling stores do: checking only the setting
+        // id would let a forged address name any adapter WMI can match.
+        if (_specification.ResolveAddress(address.TargetId) != address)
+        {
+            throw new InvalidOperationException("The adapter state address does not match the resolved adapter.");
+        }
+
+        // The refusal to cut the machine off belongs here, not only in the surface that offers the
+        // change. SECURITY.md has the elevated worker treat its caller as compromised, so a rule
+        // enforced only by the UI is not enforced at all: a crafted request naming the adapter that
+        // currently holds a default route would otherwise be honoured.
+        if (!enable && CarriesDefaultRoute(address.TargetId))
+        {
+            throw new InvalidOperationException(
+                "Refusing to disable the adapter that currently holds a default route: it is how this "
+                + "machine reaches the network.");
         }
 
         using var adapter = FindAdapter(address);
@@ -211,6 +237,17 @@ public sealed class AdapterStateStore : ISettingStore
 
         return match ?? throw new InvalidOperationException($"Adapter {expected} is no longer present.");
     }
+
+    /// <summary>
+    /// Whether this adapter currently offers a default route. Read from the live interface list at
+    /// the moment of the write rather than from anything the plan carried.
+    /// </summary>
+    private static bool CarriesDefaultRoute(string? targetId) =>
+        Guid.TryParse(targetId, out var adapterId)
+        && NetworkInterface.GetAllNetworkInterfaces().Any(item =>
+            Guid.TryParse(item.Id, out var id) && id == adapterId
+            && item.OperationalStatus == OperationalStatus.Up
+            && item.GetIPProperties().GatewayAddresses.Count > 0);
 
     private static void EnsureOwned(SettingAddress address)
     {
@@ -298,6 +335,15 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
             throw new ArgumentOutOfRangeException(
                 nameof(value),
                 $"PnPCapabilities {bits} sets bits outside the documented power-management mask {KnownBits}.");
+        }
+
+        // "024" and "24" are the same number and different strings. The store writes a DWORD and
+        // reads back the shortest form, so a non-canonical value would pass validation and then
+        // fail read-back verification for no reason a user could act on.
+        if (!string.Equals(bits.ToString(CultureInfo.InvariantCulture), value, StringComparison.Ordinal))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(value), $"'{value}' is not canonical; write it as {bits}.");
         }
     }
 
