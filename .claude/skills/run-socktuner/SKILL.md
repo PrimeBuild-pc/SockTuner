@@ -112,12 +112,36 @@ SOCKTUNER_LIVE_INVENTORY=1 dotnet test SockTuner.sln
 
 671 pass, 0 skipped.
 
-## Never run this on a real machine
+## Never run these on a real machine
 
-`SockTuner.exe --verify-tcp-writes` **writes to the live TCP stack**. It is gated behind
-`SOCKTUNER_VM_WRITE_TEST=1` precisely so a mistyped `--probe` cannot trigger it. It
-belongs in a disposable VM only (Hyper-V images live under `D:\VmLab`). The driver
-deliberately exposes no command for it.
+`--verify-tcp-writes` **writes to the live TCP stack** and `--verify-device-writes`
+**enables and disables a real adapter, writes PnPCapabilities and creates a QoS policy**.
+Both are gated behind `SOCKTUNER_VM_WRITE_TEST=1` so a mistyped `--probe` cannot trigger
+them, and both belong in a disposable VM only. The driver deliberately exposes no command
+for either.
+
+### Running a write validation in the VM
+
+`D:\VmLab\SockTuner-Win11-Base` is the guest. Checkpoint first, then:
+
+```powershell
+$vm   = Get-VM | ? Name -eq 'SockTuner-Win11-Base'      # -Name fails, see gotcha below
+$cred = Get-Credential                                   # the guest account
+$vm | Copy-VMFile -SourcePath <published exe> -DestinationPath 'C:\SockTunerValidate\SockTuner.exe' `
+                  -CreateFullPath -FileSource Host -Force
+Invoke-Command -VMId $vm.Id -Credential $cred -ScriptBlock {
+    $env:SOCKTUNER_VM_WRITE_TEST = '1'
+    Start-Process 'C:\SockTunerValidate\SockTuner.exe' -ArgumentList '--verify-device-writes'
+    # then poll the guest Desktop for socktuner-device-write-verification-*.json
+}
+```
+
+**Do not trust the report alone.** It only checks each setting's own value. Compare the
+guest's registry and adapter state either side of the run: that is what caught an empty
+`…\Windows\QoS` container being left behind by a rollback that the report called clean.
+
+The guest needs a second network adapter (`Add-VMNetworkAdapter`) or the enable/disable
+path is skipped — the run refuses to disable the adapter carrying the default route.
 
 ## Gotchas
 
@@ -145,6 +169,17 @@ deliberately exposes no command for it.
 - **Probe takes longer than you expect.** A full inventory capture exceeded 6 s here, so a
   fixed sleep is not enough; the driver polls for up to 120 s.
 - **`pwsh` 7 cannot load `UIAutomationClient`.** Use `powershell.exe`.
+- **A stale VM registration breaks every `-Name` Hyper-V cmdlet on this host.** `Get-VM`,
+  `Checkpoint-VM -Name`, `Copy-VMFile -Name` and friends enumerate all VMs first, hit the
+  broken registration and throw "the object was not found" — while still returning the good
+  VMs. Get the object and pipe it instead: `Get-VM | ? Name -eq '…' | Copy-VMFile …`.
+- **PowerShell Direct runs over VMBus, not the network.** That is what makes it safe to
+  disable an adapter in the guest from the host: the session survives losing all guest
+  networking. It does need guest credentials; there is no passwordless path.
+- **A console-mode run has no console over PowerShell Direct.** `--probe` and the verify
+  modes attach to the caller's console when there is one and fall back to a message box when
+  there is not — and over PSDirect there is not, so the modal blocks forever. Start the
+  process detached and poll for the JSON, which is written before the message appears.
 
 ## Troubleshooting
 

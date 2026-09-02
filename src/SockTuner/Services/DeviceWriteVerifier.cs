@@ -76,13 +76,15 @@ public sealed class DeviceWriteVerifier
         // 2. Power management on a real adapter. It does not drop the link when written; the driver
         //    picks it up at its next restart, which this run deliberately does not trigger.
         var keys = AdapterPowerSavingSpecification.ReadAdapterKeys();
+        // Any adapter with a class key, not only a physical one: the setting is the key, and a VM
+        // has no physical NIC at all, which is where this is validated.
         var powerTarget = adapters
-            .Where(adapter => adapter.Kind == AdapterKind.Physical && Guid.TryParse(adapter.Id, out _))
+            .Where(adapter => Guid.TryParse(adapter.Id, out _))
             .FirstOrDefault(adapter => keys.ContainsKey(Guid.Parse(adapter.Id)));
 
         if (powerTarget is null)
         {
-            skipped.Add("Adapter power management: no physical adapter with a network class key was found.");
+            skipped.Add("Adapter power management: no adapter with a network class key was found.");
         }
         else
         {

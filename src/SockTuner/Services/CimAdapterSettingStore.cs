@@ -76,7 +76,9 @@ public sealed class CimAdapterSettingStore : ISettingStore
             {
                 using (var adapter = FindAdapter(adapterId))
                 {
-                    adapter.InvokeMethod("Restart", null);
+                    // Restart is declared as Restart(Instance CmdletOutput), so it needs a built
+                    // parameters object; passing null throws before WMI is ever reached.
+                    AdapterStateStore.InvokeAdapterMethod(adapter, "Restart");
                 }
 
                 if (!await WaitForStatusAsync(adapterId, previousStatus, cancellationToken))
@@ -139,8 +141,21 @@ public sealed class CimAdapterSettingStore : ISettingStore
                 $"The driver no longer advertises {address.ValueName} on adapter {adapterId}.");
     }
 
+    /// <summary>
+    /// Deliberately <c>SELECT *</c> and not a projection.
+    /// </summary>
+    /// <remarks>
+    /// A WQL projection that omits the key properties returns objects whose <c>__PATH</c> is empty,
+    /// and <see cref="System.Management.ManagementObject.InvokeMethod(string, object[])"/> on a
+    /// pathless object throws "Operation is not valid due to the current state of the object". The
+    /// keys here are CreationClassName, DeviceID, SystemCreationClassName and SystemName, so any
+    /// narrower select silently breaks every method call on the result. Verified on Windows 11
+    /// 26200: the projection yields <c>__PATH = ""</c> and the full row yields the real path.
+    /// </remarks>
+    internal const string AdapterQuery = "SELECT * FROM MSFT_NetAdapter";
+
     private ManagementObject FindAdapter(Guid adapterId) => Find(
-        "SELECT InterfaceGuid FROM MSFT_NetAdapter",
+        AdapterQuery,
         "InterfaceGuid",
         adapterId.ToString("B").ToUpperInvariant())
         ?? throw new InvalidOperationException($"Adapter {adapterId} is no longer present.");

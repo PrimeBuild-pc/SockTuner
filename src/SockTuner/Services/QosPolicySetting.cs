@@ -250,8 +250,25 @@ public sealed class QosPolicyStore : ISettingStore
         {
             // Removing the key, not blanking its values: a policy left behind with empty fields is
             // still a policy to everything that enumerates this hive.
-            using var root = Registry.LocalMachine.OpenSubKey(QosPolicySpecification.PolicyRoot, writable: true);
-            root?.DeleteSubKeyTree(address.TargetId!, throwOnMissingSubKey: false);
+            bool containerIsNowEmpty;
+            using (var root = Registry.LocalMachine.OpenSubKey(QosPolicySpecification.PolicyRoot, writable: true))
+            {
+                if (root is null) return Task.CompletedTask;
+                root.DeleteSubKeyTree(address.TargetId!, throwOnMissingSubKey: false);
+                containerIsNowEmpty = root.SubKeyCount == 0 && root.ValueCount == 0;
+            }
+
+            // Writing the first policy creates this container as part of the path, so a rollback
+            // that only removed the policy left a key behind that was not there before — caught by
+            // comparing a VM's registry either side of a validation run, not by the read-back check,
+            // which only ever looks at the setting's own value. A key holding no subkeys and no
+            // values carries no information, so removing it cannot lose anything; a container with
+            // anything at all in it is left alone.
+            if (containerIsNowEmpty)
+            {
+                Registry.LocalMachine.DeleteSubKey(QosPolicySpecification.PolicyRoot, throwOnMissingSubKey: false);
+            }
+
             return Task.CompletedTask;
         }
 

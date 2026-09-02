@@ -144,17 +144,54 @@ public sealed class AdapterStateStore : ISettingStore
         }
 
         using var adapter = FindAdapter(address);
-        adapter.InvokeMethod(enable ? "Enable" : "Disable", null);
+        InvokeAdapterMethod(adapter, enable ? "Enable" : "Disable");
         return Task.CompletedTask;
     }
+
+
+    /// <summary>
+    /// Invokes an MSFT_NetAdapter method the way <c>System.Management</c> requires.
+    /// </summary>
+    /// <remarks>
+    /// Enable, Disable and Restart are each declared as taking a parameter — <c>CmdletOutput</c> —
+    /// so the two-argument <c>InvokeMethod(name, null)</c> throws a NullReferenceException before it
+    /// reaches WMI at all. The parameters object has to be built from the class definition even when
+    /// nothing is being passed in. Verified on Windows 11 26200, where the class reports
+    /// <c>Disable(Instance CmdletOutput)</c>.
+    /// A non-zero ReturnValue is raised rather than ignored: a method that reports failure while the
+    /// call itself succeeds would otherwise look like a write that worked.
+    /// </remarks>
+    internal static void InvokeAdapterMethod(ManagementObject adapter, string method)
+    {
+        using var inParameters = adapter.GetMethodParameters(method);
+        using var result = adapter.InvokeMethod(method, inParameters, new InvokeMethodOptions());
+
+        if (result?["ReturnValue"] is { } returned
+            && Convert.ToInt32(returned, CultureInfo.InvariantCulture) is var code and not 0)
+        {
+            throw new InvalidOperationException($"{method} returned {code}.");
+        }
+    }
+
+    /// <summary>
+    /// Deliberately <c>SELECT *</c> and not a projection.
+    /// </summary>
+    /// <remarks>
+    /// A WQL projection that omits the key properties returns objects whose <c>__PATH</c> is empty,
+    /// and <see cref="System.Management.ManagementObject.InvokeMethod(string, object[])"/> on a
+    /// pathless object throws "Operation is not valid due to the current state of the object". The
+    /// keys here are CreationClassName, DeviceID, SystemCreationClassName and SystemName, so any
+    /// narrower select silently breaks every method call on the result. Verified on Windows 11
+    /// 26200: the projection yields <c>__PATH = ""</c> and the full row yields the real path.
+    /// </remarks>
+    internal const string AdapterQuery = "SELECT * FROM MSFT_NetAdapter";
 
     private ManagementObject FindAdapter(SettingAddress address)
     {
         var expected = address.TargetId
             ?? throw new InvalidOperationException($"{address.SettingId} has no adapter target.");
 
-        using var searcher = new ManagementObjectSearcher(
-            _scope, new ObjectQuery("SELECT InterfaceGuid, InterfaceAdminStatus FROM MSFT_NetAdapter"));
+        using var searcher = new ManagementObjectSearcher(_scope, new ObjectQuery(AdapterQuery));
         using var results = searcher.Get();
         ManagementObject? match = null;
         foreach (ManagementObject item in results)
