@@ -138,17 +138,17 @@
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0">
                                 <StackPanel>
                                     <TextBlock Text="System baseline" FontSize="18" FontWeight="SemiBold"/>
-                                    <TextBlock Text="Current read-only system facts. No setting is changed during discovery." Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,18"/>
+                                    <TextBlock Text="Current read-only system facts. No setting is changed during discovery." Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,18"/>
                                     <Grid>
-                                        <Grid.ColumnDefinitions><ColumnDefinition Width="150"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" MinWidth="150"/><ColumnDefinition/></Grid.ColumnDefinitions>
                                         <Grid.RowDefinitions><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                        <TextBlock Text="Operating system" Foreground="{StaticResource MutedTextBrush}" Margin="0,5"/>
+                                        <TextBlock Text="Operating system" Foreground="{StaticResource MutedTextBrush}" Margin="0,5,16,5"/>
                                         <TextBlock x:Name="OsText" Grid.Column="1" Text="Loading…" Margin="0,5"/>
-                                        <TextBlock Grid.Row="1" Text="Build" Foreground="{StaticResource MutedTextBrush}" Margin="0,5"/>
+                                        <TextBlock Grid.Row="1" Text="Build" Foreground="{StaticResource MutedTextBrush}" Margin="0,5,16,5"/>
                                         <TextBlock x:Name="BuildText" Grid.Row="1" Grid.Column="1" Text="—" Margin="0,5"/>
-                                        <TextBlock Grid.Row="2" Text="Computer" Foreground="{StaticResource MutedTextBrush}" Margin="0,5"/>
+                                        <TextBlock Grid.Row="2" Text="Computer" Foreground="{StaticResource MutedTextBrush}" Margin="0,5,16,5"/>
                                         <TextBlock x:Name="MachineText" Grid.Row="2" Grid.Column="1" Text="—" Margin="0,5"/>
-                                        <TextBlock Grid.Row="3" Text="Captured" Foreground="{StaticResource MutedTextBrush}" Margin="0,5"/>
+                                        <TextBlock Grid.Row="3" Text="Captured" Foreground="{StaticResource MutedTextBrush}" Margin="0,5,16,5"/>
                                         <TextBlock x:Name="CapturedText" Grid.Row="3" Grid.Column="1" Text="—" Margin="0,5"/>
                                     </Grid>
                                 </StackPanel>
@@ -1294,6 +1294,16 @@
 
             <TabItem Header="Preferences">
                 <StackPanel Margin="0,20,0,0" HorizontalAlignment="Stretch">
+                    <TextBlock Text="Language" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="Interface language. Measurements, findings and log entries stay in English."
+                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
+                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left" Margin="0,0,0,26">
+                        <TextBlock Text="Display language" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="LanguageComboBox" Width="200"
+                                  SelectionChanged="Language_SelectionChanged"
+                                  AutomationProperties.Name="Display language"/>
+                    </StackPanel>
+
                     <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
                     <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
                                Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>

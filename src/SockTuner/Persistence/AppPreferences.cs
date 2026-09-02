@@ -7,7 +7,9 @@ public sealed record UserPreferences(
     int LogFileMegabytes = 2,
     string? AcceptedWriteConsentVersion = null,
     DateTimeOffset? WriteConsentAcceptedAt = null,
-    WindowGeometry? Window = null);
+    WindowGeometry? Window = null,
+    /// <summary>Null means "follow Windows", which is what an install that was never told wants.</summary>
+    string? Language = null);
 
 /// <summary>
 /// Where the window was and how big, so a grid the user widened stays widened. Restored only when

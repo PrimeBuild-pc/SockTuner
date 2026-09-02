@@ -220,7 +220,7 @@ public partial class TuningPlanView : UserControl
                                           or KeyNotFoundException or System.IO.IOException)
         {
             DriftGrid.ItemsSource = null;
-            DriftSummaryText.Text = $"Drift check failed: {exception.Message}";
+            DriftSummaryText.Text = Loc.F($"Drift check failed: {exception.Message}");
         }
     }
 
@@ -242,17 +242,17 @@ public partial class TuningPlanView : UserControl
     {
         if (CapabilityGrid.SelectedItem is not CapabilityRow row)
         {
-            CapabilityDetailHeadingText.Text = "Select a property";
+            CapabilityDetailHeadingText.Text = Loc.T("Select a property");
             CapabilityDetailText.Text =
-                "Its keyword, what it trades against, and everything the driver will accept are shown here.";
+                Loc.T("Its keyword, what it trades against, and everything the driver will accept are shown here.");
             return;
         }
 
         var capability = row.Capability;
         CapabilityDetailHeadingText.Text =
-            $"{capability.DisplayName}  ·  {capability.Keyword}  ·  {capability.Risk} risk  ·  {capability.AreasDisplay}";
+            Loc.F($"{capability.DisplayName}  ·  {capability.Keyword}  ·  {capability.Risk} risk  ·  {capability.AreasDisplay}");
         CapabilityDetailText.Text =
-            $"Accepted: {capability.ConstraintDisplay}{Environment.NewLine}Trade-off: {capability.TradeOff}";
+            Loc.F($"Accepted: {capability.ConstraintDisplay}{Environment.NewLine}Trade-off: {capability.TradeOff}");
     }
 
     private void LoadCapabilities()
@@ -270,7 +270,7 @@ public partial class TuningPlanView : UserControl
         if (AdapterComboBox.SelectedItem is not AdapterInfo adapter
             || !Guid.TryParse(adapter.Id, out var adapterId))
         {
-            CapabilitySummaryText.Text = "Select an adapter to list its driver-advertised properties.";
+            CapabilitySummaryText.Text = Loc.T("Select an adapter to list its driver-advertised properties.");
             return;
         }
 
@@ -282,10 +282,10 @@ public partial class TuningPlanView : UserControl
         }
 
         CapabilitySummaryText.Text = forAdapter.Length == 0
-            ? $"{adapter.Name} advertises no writable advanced properties. This is normal for virtual and filter adapters."
-            : $"{_rows.Count} of {forAdapter.Length} advertised propert(ies) match “{preset.Name}”. "
-              + $"{forAdapter.Count(item => item.IsModifiedFromDefault)} currently differ from the driver default."
-              + (_capabilityError is null ? string.Empty : $" Partial inventory: {_capabilityError}");
+            ? Loc.F($"{adapter.Name} advertises no writable advanced properties. This is normal for virtual and filter adapters.")
+            : Loc.F($"{_rows.Count} of {forAdapter.Length} advertised propert(ies) match “{preset.Name}”. "
+              + $"{forAdapter.Count(item => item.IsModifiedFromDefault)} currently differ from the driver default.")
+              + (_capabilityError is null ? string.Empty : Loc.F($" Partial inventory: {_capabilityError}"));
     }
 
     private void Discard_Click(object sender, RoutedEventArgs e)
@@ -328,9 +328,9 @@ public partial class TuningPlanView : UserControl
             ApplyButton.IsEnabled = _preparedPlan.Changes.Count > 0;
             var remote = RemoteSessionGuard.WarningFor(_preparedPlan.Changes);
             SetStatus(
-                $"Dry run at {_preparedPlan.CreatedAt:T}: {_preparedPlan.Changes.Count} effective change(s). "
-                + "Applying restarts each affected adapter, which briefly drops its link."
-                + (needsConfirmation ? $" Type {ConfirmationWord} to confirm high-risk or experimental changes." : string.Empty)
+                Loc.F($"Dry run at {_preparedPlan.CreatedAt:T}: {_preparedPlan.Changes.Count} effective change(s). "
+                + $"Applying restarts each affected adapter, which briefly drops its link.")
+                + (needsConfirmation ? Loc.F($" Type {ConfirmationWord} to confirm high-risk or experimental changes.") : string.Empty)
                 + (remote is null ? string.Empty : Environment.NewLine + remote));
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException
@@ -353,8 +353,8 @@ public partial class TuningPlanView : UserControl
             && !string.Equals(ConfirmationText.Text.Trim(), ConfirmationWord, StringComparison.Ordinal))
         {
             SetStatus(remoteWarning is null
-                ? $"This plan contains high-risk or experimental changes; type {ConfirmationWord} to confirm."
-                : $"{remoteWarning} Type {ConfirmationWord} to confirm anyway.");
+                ? Loc.F($"This plan contains high-risk or experimental changes; type {ConfirmationWord} to confirm.")
+                : Loc.F($"{remoteWarning} Type {ConfirmationWord} to confirm anyway."));
             return;
         }
 
@@ -378,13 +378,13 @@ public partial class TuningPlanView : UserControl
     {
         if (TransactionAuditGrid.SelectedItem is not TransactionAuditEntry entry)
         {
-            SetStatus("Select an audit entry to roll back.");
+            SetStatus(Loc.T("Select an audit entry to roll back."));
             return;
         }
 
         if (entry.Outcome != TransactionAuditOutcome.ApplySucceeded)
         {
-            SetStatus("Only a successful apply can be rolled back.");
+            SetStatus(Loc.T("Only a successful apply can be rolled back."));
             return;
         }
 
@@ -408,7 +408,7 @@ public partial class TuningPlanView : UserControl
 
     private async Task RunWorkerAsync(ElevatedWorkerRequest request, string operation)
     {
-        SetStatus($"{operation} requested. Approve the Windows elevation prompt to continue…");
+        SetStatus(Loc.F($"{operation} requested. Approve the Windows elevation prompt to continue…"));
         ApplyButton.IsEnabled = false;
         try
         {
@@ -424,7 +424,7 @@ public partial class TuningPlanView : UserControl
         catch (Exception exception) when (exception is InvalidOperationException or TimeoutException
                                           or System.IO.IOException or System.Text.Json.JsonException)
         {
-            SetStatus($"{operation} failed: {exception.Message}");
+            SetStatus(Loc.F($"{operation} failed: {exception.Message}"));
             AppLog.Write($"tuning.{operation.ToLowerInvariant()}_failed", exception.Message);
         }
         finally
@@ -445,13 +445,13 @@ public partial class TuningPlanView : UserControl
         if (WriteConsent.IsAccepted(preferences)) return true;
 
         if (MessageBox.Show(
-                WriteConsent.Text,
-                "Enable live network changes",
+                Loc.T(WriteConsent.Text),
+                Loc.T("Enable live network changes"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning,
                 MessageBoxResult.No) != MessageBoxResult.Yes)
         {
-            SetStatus("Live changes stay disabled until the alpha risk notice is accepted.");
+            SetStatus(Loc.T("Live changes stay disabled until the alpha risk notice is accepted."));
             return false;
         }
 
@@ -462,7 +462,7 @@ public partial class TuningPlanView : UserControl
         }
         catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException)
         {
-            SetStatus($"Consent could not be saved: {exception.Message}");
+            SetStatus(Loc.F($"Consent could not be saved: {exception.Message}"));
             return false;
         }
     }

@@ -42,6 +42,10 @@ public partial class App : Application
             return;
         }
 
+        // Before the window is built: UiTranslator rewrites what XAML produced, so the language
+        // has to be settled first. The console modes above stay English — they answer a terminal.
+        Loc.Use(AppPreferences.Load().Language);
+
         MainWindow = new MainWindow();
         MainWindow.Show();
     }

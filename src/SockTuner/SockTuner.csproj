@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Resource Include="Assets\SockTuner.ico" />
+    <EmbeddedResource Include="Assets\i18n\translations.json" />
     <PackageReference Include="System.Management" Version="10.0.11" />
   </ItemGroup>
 
