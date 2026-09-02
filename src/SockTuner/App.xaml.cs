@@ -30,6 +30,12 @@ public partial class App : Application
             return;
         }
 
+        if (e.Args.Length == 1 && string.Equals(e.Args[0], VerifyDeviceWritesArgument, StringComparison.Ordinal))
+        {
+            Shutdown(RunDeviceWriteVerification());
+            return;
+        }
+
         if (e.Args.Length != 0)
         {
             Shutdown(2);
@@ -41,6 +47,7 @@ public partial class App : Application
     }
 
     internal const string VerifyTcpWritesArgument = "--verify-tcp-writes";
+    internal const string VerifyDeviceWritesArgument = "--verify-device-writes";
 
     /// <summary>
     /// Set to 1 in the guest to arm the write verification. The argument alone is not enough: this
@@ -98,6 +105,62 @@ public partial class App : Application
                 $"Write verification failed: {exception.Message}",
                 "SockTuner write verification",
                 MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// VM-only. Applies each device-level setting for real and puts it back, through the same
+    /// transaction engine the tuning plan uses. Disabling an adapter is only attempted against one
+    /// that carries no default route, so a validation run cannot cut off the machine it validates.
+    /// </summary>
+    private static int RunDeviceWriteVerification()
+    {
+        if (!string.Equals(Environment.GetEnvironmentVariable(VerifyTcpWritesGate), "1", StringComparison.Ordinal))
+        {
+            Report(
+                "SockTuner device write verification",
+                "This mode writes to live device settings and is for a disposable VM only."
+                + Environment.NewLine + $"Set {VerifyTcpWritesGate}=1 in the guest to arm it.",
+                MessageBoxImage.Warning);
+            return 2;
+        }
+
+        try
+        {
+            var snapshot = new SystemInventoryService().Capture();
+            var store = new CompositeSettingStore(
+                WindowsRegistrySettingStore.CreateWritable(), new CimAdapterSettingStore());
+            var verifier = new DeviceWriteVerifier(new SettingTransactionService(SettingSpecifications.Live()));
+
+            var report = verifier
+                .RunAsync(snapshot.Adapters, store, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult();
+
+            var path = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
+                $"socktuner-device-write-verification-{DateTime.Now:yyyyMMdd-HHmmss}.json");
+            File.WriteAllText(path, SnapshotExporter.SerializeDeviceWriteVerification(report));
+
+            var lines = new List<string> { report.Verdict, string.Empty };
+            lines.AddRange(report.Outcomes.Select(outcome => "  " + outcome.Summary));
+            lines.AddRange(report.Skipped.Select(skip => "  skipped: " + skip));
+            lines.Add(string.Empty);
+            lines.Add("Report saved to: " + path);
+
+            Report(
+                "SockTuner device write verification",
+                string.Join(Environment.NewLine, lines),
+                report.Outcomes.All(outcome => outcome.Restored) ? MessageBoxImage.Information : MessageBoxImage.Error);
+            return report.Outcomes.All(outcome => outcome.Restored) ? 0 : 3;
+        }
+        catch (Exception exception)
+        {
+            Report(
+                "SockTuner device write verification",
+                $"Device write verification failed: {exception.Message}",
                 MessageBoxImage.Error);
             return 1;
         }

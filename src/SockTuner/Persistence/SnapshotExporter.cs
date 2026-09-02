@@ -39,6 +39,20 @@ public static class SnapshotExporter
         report
     }, Options);
 
+    /// <summary>
+    /// The device write-verification report. Adapter targets are GUIDs, which identify an interface
+    /// on this machine and nothing about the person using it, so there is nothing to redact.
+    /// </summary>
+    public static string SerializeDeviceWriteVerification(DeviceWriteVerificationReport report) =>
+        JsonSerializer.Serialize(new
+        {
+            schemaVersion = 1,
+            toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
+            exportedAt = DateTimeOffset.Now,
+            windowsBuild = Environment.OSVersion.Version.ToString(),
+            report
+        }, Options);
+
     internal static NetworkSnapshot Redact(NetworkSnapshot snapshot, bool probe = false)
     {
         var adapterNames = snapshot.Adapters
