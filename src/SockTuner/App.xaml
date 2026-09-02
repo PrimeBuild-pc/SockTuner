@@ -27,7 +27,7 @@
         <Style x:Key="AppWindowStyle" TargetType="Window">
             <Setter Property="Background" Value="{StaticResource PageBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontFamily" Value="Segoe UI, Microsoft YaHei UI, Segoe UI Emoji"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
             <Setter Property="UseLayoutRounding" Value="True"/>

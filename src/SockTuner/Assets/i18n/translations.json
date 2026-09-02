@@ -1,0 +1,3177 @@
+{
+ "  Captured {0:yyyy-MM-dd HH:mm}.": {
+  "es": "  Capturado el {0:yyyy-MM-dd HH:mm}.",
+  "ru": "  Записано {0:yyyy-MM-dd HH:mm}.",
+  "zh-Hans": "  采集时间 {0:yyyy-MM-dd HH:mm}。"
+ },
+ "  Reported grades: ": {
+  "es": "  Notas informadas: ",
+  "ru": "  Заявленные оценки: ",
+  "zh-Hans": "  报告的评级："
+ },
+ " Partial inventory: {0}": {
+  "es": " Inventario parcial: {0}",
+  "ru": " Инвентаризация неполная: {0}",
+  "zh-Hans": " 清单不完整：{0}"
+ },
+ " Type {0} to confirm high-risk or experimental changes.": {
+  "es": " Escriba {0} para confirmar los cambios de alto riesgo o experimentales.",
+  "ru": " Введите {0}, чтобы подтвердить изменения с высоким риском или экспериментальные.",
+  "zh-Hans": " 输入 {0} 以确认高风险或实验性更改。"
+ },
+ "0 to 63. 46 is Expedited Forwarding, the conventional mark for interactive traffic.": {
+  "es": "De 0 a 63. 46 es Expedited Forwarding, la marca habitual para el tráfico interactivo.",
+  "ru": "От 0 до 63. 46 — Expedited Forwarding, обычная метка для интерактивного трафика.",
+  "zh-Hans": "0 到 63。46 是 Expedited Forwarding，交互流量的惯用标记。"
+ },
+ "1  Inspect the current state": {
+  "es": "1  Inspeccionar el estado actual",
+  "ru": "1  Осмотреть текущее состояние",
+  "zh-Hans": "1  查看当前状态"
+ },
+ "2  Diagnose each network boundary": {
+  "es": "2  Diagnosticar cada frontera de la red",
+  "ru": "2  Проверить каждую границу сети",
+  "zh-Hans": "2  逐段诊断网络边界"
+ },
+ "3  Preview a typed change plan": {
+  "es": "3  Previsualizar un plan de cambios tipado",
+  "ru": "3  Просмотреть типизированный план изменений",
+  "zh-Hans": "3  预览带类型的变更计划"
+ },
+ "4  Snapshot, apply, verify, roll back": {
+  "es": "4  Instantánea, aplicar, verificar, revertir",
+  "ru": "4  Снимок, применение, проверка, откат",
+  "zh-Hans": "4  快照、应用、验证、回滚"
+ },
+ "A DSCP mark is a request, not a reservation. It does nothing until something on the path is set up to honour it — in practice your own router, with a DSCP-aware queue discipline; most consumer ISPs rewrite or ignore the field beyond your access link. This is the half that makes SockTuner's layer_cake.qos advice usable: the policy writes the mark, the router acts on it.": {
+  "es": "Una marca DSCP es una petición, no una reserva. No hace nada hasta que algo del camino esté configurado para respetarla: en la práctica su propio router, con una disciplina de cola que entienda DSCP; la mayoría de los ISP domésticos reescriben o ignoran el campo más allá de su enlace de acceso. Esta es la mitad que hace utilizable el consejo layer_cake.qos de SockTuner: la política escribe la marca, el router actúa sobre ella.",
+  "ru": "Метка DSCP — это просьба, а не резервирование. Она ничего не даёт, пока что-то на пути не настроено её учитывать — на практике ваш собственный роутер с дисциплиной очереди, понимающей DSCP; большинство домашних провайдеров переписывают или игнорируют это поле за пределами вашей линии доступа. Это та половина, которая делает совет layer_cake.qos применимым: политика ставит метку, роутер на неё реагирует.",
+  "zh-Hans": "DSCP 标记是一种请求，而不是预留。除非路径上有设备被配置为遵守它，否则它不起任何作用——实际上就是你自己的路由器，配合能识别 DSCP 的队列规则；多数家用 ISP 会在接入链路之外重写或忽略该字段。这正是让 SockTuner 的 layer_cake.qos 建议可用的另一半：策略写入标记，路由器据此处理。"
+ },
+ "A change was applied without a diagnosis to compare against, so whether it helped cannot be established from here. Run a diagnosis now, apply the next change, and this will have a before.": {
+  "es": "Se aplicó un cambio sin un diagnóstico con el que comparar, así que desde aquí no se puede establecer si ayudó. Ejecute un diagnóstico ahora, aplique el siguiente cambio y entonces habrá un antes.",
+  "ru": "Изменение применено без диагностики для сравнения, поэтому отсюда нельзя установить, помогло ли оно. Запустите диагностику сейчас, примените следующее изменение — и появится точка «до».",
+  "zh-Hans": "此次更改在没有可比对的诊断的情况下应用，因此无法从这里判断它是否有帮助。现在运行一次诊断，再应用下一次更改，就会有“之前”的基准。"
+ },
+ "A packet capture knows the one thing this app cannot work out on its own: which server the game actually talked to, and how its packets were spaced. Import the report and SockTuner measures that endpoint itself rather than taking the numbers on trust.": {
+  "es": "Una captura de paquetes sabe lo único que esta aplicación no puede deducir por sí sola: con qué servidor habló realmente el juego y cómo se espaciaron sus paquetes. Importe el informe y SockTuner medirá ese extremo por su cuenta en vez de dar por buenas las cifras.",
+  "ru": "Захват пакетов знает то единственное, что приложение не может выяснить само: с каким сервером на самом деле общалась игра и с какими интервалами шли пакеты. Импортируйте отчёт — и SockTuner сам измерит эту конечную точку, а не примет цифры на веру.",
+  "zh-Hans": "抓包文件知道本应用自己无法推断的一件事：游戏实际连接了哪台服务器，以及数据包的间隔如何。导入报告后，SockTuner 会自行测量该端点，而不是直接采信其中的数字。"
+ },
+ "A port, a range such as 7000-8000, or * for all": {
+  "es": "Un puerto, un rango como 7000-8000, o * para todos",
+  "ru": "Порт, диапазон вида 7000-8000 или * для всех",
+  "zh-Hans": "一个端口、区间（如 7000-8000），或用 * 表示全部"
+ },
+ "A worthwhile resolver was found; applying automatically…": {
+  "es": "Se encontró un resolutor que merece la pena; aplicando automáticamente…",
+  "ru": "Найден заслуживающий внимания DNS-сервер; применяется автоматически…",
+  "zh-Hans": "找到了值得切换的解析器，正在自动应用…"
+ },
+ "ACT": {
+  "es": "ACTUAR",
+  "ru": "ДЕЙСТВИЯ",
+  "zh-Hans": "操作"
+ },
+ "ACTIVE ADAPTERS": {
+  "es": "ADAPTADORES ACTIVOS",
+  "ru": "АКТИВНЫЕ АДАПТЕРЫ",
+  "zh-Hans": "活动适配器"
+ },
+ "ALPHA · LIVE CHANGES": {
+  "es": "ALFA · CAMBIOS EN VIVO",
+  "ru": "АЛЬФА · ИЗМЕНЕНИЯ В БОЮ",
+  "zh-Hans": "ALPHA · 实时更改"
+ },
+ "APPLICATION": {
+  "es": "APLICACIÓN",
+  "ru": "ПРИЛОЖЕНИЕ",
+  "zh-Hans": "应用程序"
+ },
+ "Accepted values": {
+  "es": "Valores aceptados",
+  "ru": "Допустимые значения",
+  "zh-Hans": "可接受的值"
+ },
+ "Accepted: {0}{1}Trade-off: {2}": {
+  "es": "Aceptado: {0}{1}Contrapartida: {2}",
+  "ru": "Принято: {0}{1}Компромисс: {2}",
+  "zh-Hans": "已接受：{0}{1}代价：{2}"
+ },
+ "Accepts the Waveform CSV export and a JSON report carrying per-sample latencies.": {
+  "es": "Acepta la exportación CSV de Waveform y un informe JSON con las latencias por muestra.",
+  "ru": "Принимает CSV-экспорт Waveform и JSON-отчёт с задержками по каждой выборке.",
+  "zh-Hans": "接受 Waveform 的 CSV 导出，以及带有逐样本延迟的 JSON 报告。"
+ },
+ "Act on the selected device": {
+  "es": "Actuar sobre el dispositivo seleccionado",
+  "ru": "Действия с выбранным устройством",
+  "zh-Hans": "对所选设备执行操作"
+ },
+ "Action": {
+  "es": "Acción",
+  "ru": "Действие",
+  "zh-Hans": "操作"
+ },
+ "Actions": {
+  "es": "Acciones",
+  "ru": "Действия",
+  "zh-Hans": "操作"
+ },
+ "Adapter": {
+  "es": "Adaptador",
+  "ru": "Адаптер",
+  "zh-Hans": "适配器"
+ },
+ "Adapter ID": {
+  "es": "ID del adaptador",
+  "ru": "ID адаптера",
+  "zh-Hans": "适配器 ID"
+ },
+ "Adapter protocol and filter bindings": {
+  "es": "Enlaces de protocolo y filtro del adaptador",
+  "ru": "Привязки протоколов и фильтров адаптера",
+  "zh-Hans": "适配器的协议与筛选器绑定"
+ },
+ "Adapter to change": {
+  "es": "Adaptador a cambiar",
+  "ru": "Изменяемый адаптер",
+  "zh-Hans": "要更改的适配器"
+ },
+ "Adapter to tune": {
+  "es": "Adaptador a ajustar",
+  "ru": "Настраиваемый адаптер",
+  "zh-Hans": "要调优的适配器"
+ },
+ "Adapter tuning": {
+  "es": "Ajuste del adaptador",
+  "ru": "Настройка адаптера",
+  "zh-Hans": "适配器调优"
+ },
+ "Adapters": {
+  "es": "Adaptadores",
+  "ru": "Адаптеры",
+  "zh-Hans": "适配器"
+ },
+ "Address": {
+  "es": "Dirección",
+  "ru": "Адрес",
+  "zh-Hans": "地址"
+ },
+ "Addresses": {
+  "es": "Direcciones",
+  "ru": "Адреса",
+  "zh-Hans": "地址"
+ },
+ "Advice": {
+  "es": "Consejo",
+  "ru": "Рекомендация",
+  "zh-Hans": "建议"
+ },
+ "An online test measures the queue from outside your machine, over a path SockTuner cannot reach itself. Import the raw export and it is graded by the same code as a local run — from the file's own per-sample latencies, not from the letter the site printed — and it then feeds the recommendations and the router shaping advice exactly as a local run would.": {
+  "es": "Una prueba en línea mide la cola desde fuera de su equipo, por un camino que SockTuner no puede recorrer. Importe la exportación en bruto y se calificará con el mismo código que una ejecución local —a partir de las latencias por muestra del propio archivo, no de la letra que imprimió el sitio— y luego alimentará las recomendaciones y el consejo de conformado del router igual que una ejecución local.",
+  "ru": "Онлайн-тест измеряет очередь снаружи вашей машины, по пути, до которого SockTuner сам не дотягивается. Импортируйте исходный экспорт — он будет оценён тем же кодом, что и локальный прогон: по задержкам отдельных выборок из самого файла, а не по букве, которую напечатал сайт, — и затем ляжет в основу рекомендаций и советов по шейпингу на роутере точно так же, как локальный прогон.",
+  "zh-Hans": "在线测试是从你的机器之外测量队列的，走的是 SockTuner 自身无法到达的路径。导入原始导出文件后，它会由与本地测量相同的代码评级——依据文件中逐样本的延迟数据，而不是网站打印出的那个等级——随后像本地测量一样，用于生成建议和路由器整形建议。"
+ },
+ "Answered": {
+  "es": "Respondidas",
+  "ru": "Отвечено",
+  "zh-Hans": "已应答"
+ },
+ "Application to mark": {
+  "es": "Aplicación a marcar",
+  "ru": "Приложение для маркировки",
+  "zh-Hans": "要标记的应用程序"
+ },
+ "Applied through the supported Windows API on the selected adapter, snapshotted first and reversible from the tuning plan's history. Reverting restores exactly what was there, including DHCP-assigned resolvers.": {
+  "es": "Se aplica mediante la API de Windows admitida sobre el adaptador seleccionado, con instantánea previa y reversible desde el historial del plan de ajuste. Revertir restaura exactamente lo que había, incluidos los resolutores asignados por DHCP.",
+  "ru": "Применяется через поддерживаемый API Windows к выбранному адаптеру, со снимком до изменения и возможностью отката из истории плана настройки. Откат восстанавливает ровно то, что было, включая DNS-серверы, полученные по DHCP.",
+  "zh-Hans": "通过受支持的 Windows API 应用到所选适配器，事先创建快照，可从调优计划的历史记录中回滚。回滚会精确恢复原有配置，包括由 DHCP 下发的解析器。"
+ },
+ "Apply": {
+  "es": "Aplicar",
+  "ru": "Применить",
+  "zh-Hans": "应用"
+ },
+ "Apply a resolver": {
+  "es": "Aplicar un resolutor",
+  "ru": "Применить DNS-сервер",
+  "zh-Hans": "应用解析器"
+ },
+ "Apply fastest resolver": {
+  "es": "Aplicar el resolutor más rápido",
+  "ru": "Применить самый быстрый DNS-сервер",
+  "zh-Hans": "应用最快的解析器"
+ },
+ "Apply the fastest resolver automatically": {
+  "es": "Aplicar automáticamente el resolutor más rápido",
+  "ru": "Автоматически применять самый быстрый DNS-сервер",
+  "zh-Hans": "自动应用最快的解析器"
+ },
+ "Apply the fastest resolver automatically when a benchmark finds a worthwhile one": {
+  "es": "Aplicar automáticamente el resolutor más rápido cuando una medición encuentre uno que merezca la pena",
+  "ru": "Автоматически применять самый быстрый DNS-сервер, если измерение найдёт заслуживающий этого",
+  "zh-Hans": "当基准测试找到值得切换的解析器时自动应用"
+ },
+ "Apply to this device": {
+  "es": "Aplicar a este dispositivo",
+  "ru": "Применить к этому устройству",
+  "zh-Hans": "应用到此设备"
+ },
+ "Applying a setting proves nothing on its own. Run a diagnosis, apply a plan, then re-run this identical diagnosis: the two are compared against what this path can actually resolve, so a difference smaller than the measurement's own noise is reported as no difference rather than as a win.": {
+  "es": "Aplicar un ajuste no demuestra nada por sí solo. Ejecute un diagnóstico, aplique un plan y vuelva a ejecutar ese mismo diagnóstico: ambos se comparan con lo que este camino puede resolver realmente, así que una diferencia menor que el propio ruido de la medición se informa como ninguna diferencia, no como una mejora.",
+  "ru": "Применение настройки само по себе ничего не доказывает. Запустите диагностику, примените план, затем повторите ту же самую диагностику: результаты сравниваются с тем, что этот путь способен различить, поэтому разница меньше собственного шума измерения сообщается как отсутствие разницы, а не как выигрыш.",
+  "zh-Hans": "仅仅应用一项设置本身证明不了什么。先运行一次诊断，应用计划，然后重复完全相同的诊断：两者会与该路径实际能分辨的精度作比较，因此小于测量自身噪声的差异会报告为“无差异”，而不是收益。"
+ },
+ "Approve the Windows elevation prompt to continue…": {
+  "es": "Apruebe el aviso de elevación de Windows para continuar…",
+  "ru": "Подтвердите запрос повышения прав Windows, чтобы продолжить…",
+  "zh-Hans": "请批准 Windows 的提升权限提示以继续…"
+ },
+ "Assign processors": {
+  "es": "Asignar procesadores",
+  "ru": "Назначить процессоры",
+  "zh-Hans": "分配处理器"
+ },
+ "Auto-tuning": {
+  "es": "Ajuste automático",
+  "ru": "Автонастройка",
+  "zh-Hans": "自动调整"
+ },
+ "Automatic custom": {
+  "es": "Automático personalizado",
+  "ru": "Автоматически, вручную",
+  "zh-Hans": "自动（自定义）"
+ },
+ "Average": {
+  "es": "Media",
+  "ru": "Среднее",
+  "zh-Hans": "平均"
+ },
+ "Baseline captured": {
+  "es": "Línea base capturada",
+  "ru": "Базовый замер сохранён",
+  "zh-Hans": "已采集基线"
+ },
+ "Before and after": {
+  "es": "Antes y después",
+  "ru": "До и после",
+  "zh-Hans": "前后对比"
+ },
+ "Before and after the applied change": {
+  "es": "Antes y después del cambio aplicado",
+  "ru": "До и после применённого изменения",
+  "zh-Hans": "所应用更改的前后对比"
+ },
+ "Benchmark failed: {0}": {
+  "es": "La medición falló: {0}",
+  "ru": "Измерение не удалось: {0}",
+  "zh-Hans": "基准测试失败：{0}"
+ },
+ "Benchmark resolvers": {
+  "es": "Medir resolutores",
+  "ru": "Измерить DNS-серверы",
+  "zh-Hans": "测试解析器"
+ },
+ "Benchmarking {0} resolver(s)…": {
+  "es": "Midiendo {0} resolutor(es)…",
+  "ru": "Измеряется DNS-серверов: {0}…",
+  "zh-Hans": "正在测试 {0} 个解析器…"
+ },
+ "Bind name": {
+  "es": "Nombre de enlace",
+  "ru": "Имя привязки",
+  "zh-Hans": "绑定名称"
+ },
+ "Budget for this tick rate": {
+  "es": "Presupuesto para esta tasa de tick",
+  "ru": "Бюджет для этой частоты тиков",
+  "zh-Hans": "该 tick 率下的预算"
+ },
+ "Bufferbloat grade": {
+  "es": "Nota de bufferbloat",
+  "ru": "Оценка bufferbloat",
+  "zh-Hans": "缓冲膨胀评级"
+ },
+ "Bufferbloat import failed.": {
+  "es": "Falló la importación de bufferbloat.",
+  "ru": "Импорт результата bufferbloat не удался.",
+  "zh-Hans": "缓冲膨胀结果导入失败。"
+ },
+ "Bufferbloat results (*.csv;*.json)|*.csv;*.json|All files (*.*)|*.*": {
+  "es": "Resultados de bufferbloat (*.csv;*.json)|*.csv;*.json|Todos los archivos (*.*)|*.*",
+  "ru": "Результаты bufferbloat (*.csv;*.json)|*.csv;*.json|Все файлы (*.*)|*.*",
+  "zh-Hans": "缓冲膨胀结果 (*.csv;*.json)|*.csv;*.json|所有文件 (*.*)|*.*"
+ },
+ "Build": {
+  "es": "Compilación",
+  "ru": "Сборка",
+  "zh-Hans": "版本"
+ },
+ "Build recommendations": {
+  "es": "Generar recomendaciones",
+  "ru": "Составить рекомендации",
+  "zh-Hans": "生成建议"
+ },
+ "Build recommendations first.": {
+  "es": "Genere primero las recomendaciones.",
+  "ru": "Сначала составьте рекомендации.",
+  "zh-Hans": "请先生成建议。"
+ },
+ "CHANGES ARMED": {
+  "es": "CAMBIOS ARMADOS",
+  "ru": "ИЗМЕНЕНИЯ РАЗРЕШЕНЫ",
+  "zh-Hans": "更改已解锁"
+ },
+ "Cancel": {
+  "es": "Cancelar",
+  "ru": "Отмена",
+  "zh-Hans": "取消"
+ },
+ "Cancelled": {
+  "es": "Cancelado",
+  "ru": "Отменено",
+  "zh-Hans": "已取消"
+ },
+ "Cancelled before every resolver was measured.": {
+  "es": "Cancelado antes de medir todos los resolutores.",
+  "ru": "Отменено до того, как были измерены все DNS-серверы.",
+  "zh-Hans": "在测完所有解析器之前已取消。"
+ },
+ "Capture report (*.json)|*.json|All files (*.*)|*.*": {
+  "es": "Informe de captura (*.json)|*.json|Todos los archivos (*.*)|*.*",
+  "ru": "Отчёт захвата (*.json)|*.json|Все файлы (*.*)|*.*",
+  "zh-Hans": "抓包报告 (*.json)|*.json|所有文件 (*.*)|*.*"
+ },
+ "Captured": {
+  "es": "Capturado",
+  "ru": "Снято",
+  "zh-Hans": "采集时间"
+ },
+ "Catalog ID": {
+  "es": "ID de catálogo",
+  "ru": "ID каталога",
+  "zh-Hans": "目录 ID"
+ },
+ "Category": {
+  "es": "Categoría",
+  "ru": "Категория",
+  "zh-Hans": "类别"
+ },
+ "Chain": {
+  "es": "Cadena",
+  "ru": "Цепочка",
+  "zh-Hans": "链"
+ },
+ "Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible.": {
+  "es": "Consentimiento de cambios aceptado. Aplicar sigue requiriendo elevación, una vista previa y una confirmación escrita, y todo cambio queda registrado en una instantánea y es reversible.",
+  "ru": "Согласие на изменения принято. Для применения по-прежнему нужны повышение прав, предпросмотр и подтверждение вводом, а каждое изменение сохраняется в снимке и обратимо.",
+  "zh-Hans": "已接受更改同意声明。应用仍需要提升权限、预览和键入确认，且每次更改都会创建快照并可回滚。"
+ },
+ "Changes": {
+  "es": "Cambios",
+  "ru": "Изменения",
+  "zh-Hans": "更改"
+ },
+ "Changes are armed. Applying still needs elevation and a typed confirmation in the tuning plan.": {
+  "es": "Los cambios están armados. Aplicar sigue requiriendo elevación y una confirmación escrita en el plan de ajuste.",
+  "ru": "Изменения разрешены. Для применения по-прежнему нужны повышение прав и подтверждение вводом в плане настройки.",
+  "zh-Hans": "更改已解锁。应用时仍需在调优计划中提升权限并键入确认。"
+ },
+ "Changes only the router can make": {
+  "es": "Cambios que solo puede hacer el router",
+  "ru": "Изменения, доступные только роутеру",
+  "zh-Hans": "只有路由器才能做的更改"
+ },
+ "Changes this machine can make": {
+  "es": "Cambios que puede hacer este equipo",
+  "ru": "Изменения, доступные этому компьютеру",
+  "zh-Hans": "本机可以做的更改"
+ },
+ "Characteristics": {
+  "es": "Características",
+  "ru": "Характеристики",
+  "zh-Hans": "特性"
+ },
+ "Check drift": {
+  "es": "Comprobar deriva",
+  "ru": "Проверить расхождения",
+  "zh-Hans": "检查偏移"
+ },
+ "Check for drift": {
+  "es": "Comprobar la deriva",
+  "ru": "Проверить расхождения",
+  "zh-Hans": "检查配置偏移"
+ },
+ "Checklist export failed: {0}": {
+  "es": "Falló la exportación de la lista de comprobación: {0}",
+  "ru": "Не удалось экспортировать чек-лист: {0}",
+  "zh-Hans": "清单导出失败：{0}"
+ },
+ "Checklist exported to {0}.": {
+  "es": "Lista de comprobación exportada a {0}.",
+  "ru": "Чек-лист экспортирован в {0}.",
+  "zh-Hans": "清单已导出到 {0}。"
+ },
+ "Class": {
+  "es": "Clase",
+  "ru": "Класс",
+  "zh-Hans": "类别"
+ },
+ "Class ID": {
+  "es": "ID de clase",
+  "ru": "ID класса",
+  "zh-Hans": "类 ID"
+ },
+ "Clears both power-management checkboxes on this adapter. Takes effect when the adapter next restarts.": {
+  "es": "Desmarca las dos casillas de administración de energía de este adaptador. Surte efecto al reiniciarse el adaptador.",
+  "ru": "Снимает обе галочки управления питанием на этом адаптере. Вступает в силу при следующем перезапуске адаптера.",
+  "zh-Hans": "清除该适配器的两个电源管理复选框。将在适配器下次重启时生效。"
+ },
+ "Clipboard unavailable: {0}": {
+  "es": "Portapapeles no disponible: {0}",
+  "ru": "Буфер обмена недоступен: {0}",
+  "zh-Hans": "剪贴板不可用：{0}"
+ },
+ "Comma separated. Added to the well-known list and to whatever this machine is already using": {
+  "es": "Separados por comas. Se añaden a la lista conocida y a lo que este equipo ya esté usando",
+  "ru": "Через запятую. Добавляются к известному списку и к тому, что этот компьютер уже использует",
+  "zh-Hans": "以逗号分隔。将追加到常用列表以及本机当前正在使用的解析器"
+ },
+ "Compare selected": {
+  "es": "Comparar seleccionados",
+  "ru": "Сравнить выбранные",
+  "zh-Hans": "比较所选项"
+ },
+ "Compares the most recent runs against older ones to show whether this connection has drifted": {
+  "es": "Compara las ejecuciones más recientes con las anteriores para mostrar si esta conexión ha derivado",
+  "ru": "Сравнивает последние прогоны с более ранними, чтобы показать, изменилось ли качество соединения",
+  "zh-Hans": "将最近的测量与较早的测量比较，看这条连接是否发生了漂移"
+ },
+ "Component": {
+  "es": "Componente",
+  "ru": "Компонент",
+  "zh-Hans": "组件"
+ },
+ "Component ID": {
+  "es": "ID de componente",
+  "ru": "ID компонента",
+  "zh-Hans": "组件 ID"
+ },
+ "Computer": {
+  "es": "Equipo",
+  "ru": "Компьютер",
+  "zh-Hans": "计算机"
+ },
+ "Conditions": {
+  "es": "Condiciones",
+  "ru": "Условия",
+  "zh-Hans": "条件"
+ },
+ "Confidence": {
+  "es": "Confianza",
+  "ru": "Достоверность",
+  "zh-Hans": "置信度"
+ },
+ "Confirm high-risk": {
+  "es": "Confirmar alto riesgo",
+  "ru": "Подтвердить высокий риск",
+  "zh-Hans": "确认高风险"
+ },
+ "Congestion": {
+  "es": "Congestión",
+  "ru": "Перегрузка",
+  "zh-Hans": "拥塞控制"
+ },
+ "Connectivity": {
+  "es": "Conectividad",
+  "ru": "Подключение",
+  "zh-Hans": "连接性"
+ },
+ "Consent could not be saved: {0}": {
+  "es": "No se pudo guardar el consentimiento: {0}",
+  "ru": "Не удалось сохранить согласие: {0}",
+  "zh-Hans": "无法保存同意状态：{0}"
+ },
+ "Continuous monitor": {
+  "es": "Monitor continuo",
+  "ru": "Непрерывный мониторинг",
+  "zh-Hans": "持续监测"
+ },
+ "Copies the selected adapter as tab-separated text": {
+  "es": "Copia el adaptador seleccionado como texto separado por tabuladores",
+  "ru": "Копирует выбранный адаптер как текст с разделителями-табуляциями",
+  "zh-Hans": "以制表符分隔的文本复制所选适配器"
+ },
+ "Copies the selected inventory row as JSON": {
+  "es": "Copia la fila de inventario seleccionada como JSON",
+  "ru": "Копирует выбранную строку инвентаризации в формате JSON",
+  "zh-Hans": "以 JSON 复制所选清单行"
+ },
+ "Copies the selected property as tab-separated text": {
+  "es": "Copia la propiedad seleccionada como texto separado por tabuladores",
+  "ru": "Копирует выбранное свойство как текст с разделителями-табуляциями",
+  "zh-Hans": "以制表符分隔的文本复制所选属性"
+ },
+ "Copy as text": {
+  "es": "Copiar como texto",
+  "ru": "Копировать как текст",
+  "zh-Hans": "复制为文本"
+ },
+ "Copy row": {
+  "es": "Copiar fila",
+  "ru": "Копировать строку",
+  "zh-Hans": "复制行"
+ },
+ "Could not open the link: {0}": {
+  "es": "No se pudo abrir el enlace: {0}",
+  "ru": "Не удалось открыть ссылку: {0}",
+  "zh-Hans": "无法打开链接：{0}"
+ },
+ "Could not open {0}: {1}": {
+  "es": "No se pudo abrir {0}: {1}",
+  "ru": "Не удалось открыть {0}: {1}",
+  "zh-Hans": "无法打开 {0}：{1}"
+ },
+ "Current": {
+  "es": "Actual",
+  "ru": "Текущее",
+  "zh-Hans": "当前"
+ },
+ "Current placement": {
+  "es": "Ubicación actual",
+  "ru": "Текущее размещение",
+  "zh-Hans": "当前分配"
+ },
+ "Current read-only system facts. No setting is changed during discovery.": {
+  "es": "Datos del sistema de solo lectura. Durante el descubrimiento no se cambia ningún ajuste.",
+  "ru": "Текущие сведения о системе, только для чтения. Во время сбора данных никакие настройки не меняются.",
+  "zh-Hans": "当前系统状态，只读。发现过程中不会更改任何设置。"
+ },
+ "DIRECTION": {
+  "es": "DIRECCIÓN",
+  "ru": "НАПРАВЛЕНИЕ",
+  "zh-Hans": "方向"
+ },
+ "DNS / CONNECTION": {
+  "es": "DNS / CONEXIÓN",
+  "ru": "DNS / СОЕДИНЕНИЕ",
+  "zh-Hans": "DNS / 连接"
+ },
+ "DNS resolvers": {
+  "es": "Resolutores DNS",
+  "ru": "DNS-серверы",
+  "zh-Hans": "DNS 解析器"
+ },
+ "DNS servers": {
+  "es": "Servidores DNS",
+  "ru": "DNS-серверы",
+  "zh-Hans": "DNS 服务器"
+ },
+ "DSCP value": {
+  "es": "Valor DSCP",
+  "ru": "Значение DSCP",
+  "zh-Hans": "DSCP 值"
+ },
+ "Dashboard": {
+  "es": "Panel",
+  "ru": "Панель",
+  "zh-Hans": "仪表板"
+ },
+ "Default": {
+  "es": "Predeterminado",
+  "ru": "По умолчанию",
+  "zh-Hans": "默认值"
+ },
+ "Default routes": {
+  "es": "Rutas predeterminadas",
+  "ru": "Маршруты по умолчанию",
+  "zh-Hans": "默认路由"
+ },
+ "Delete failed: {0}": {
+  "es": "Error al eliminar: {0}",
+  "ru": "Не удалось удалить: {0}",
+  "zh-Hans": "删除失败：{0}"
+ },
+ "Delete selected": {
+  "es": "Eliminar seleccionados",
+  "ru": "Удалить выбранные",
+  "zh-Hans": "删除所选项"
+ },
+ "Deleted {0} run(s).": {
+  "es": "Se eliminaron {0} ejecución(es).",
+  "ru": "Удалено прогонов: {0}.",
+  "zh-Hans": "已删除 {0} 条运行记录。"
+ },
+ "Description": {
+  "es": "Descripción",
+  "ru": "Описание",
+  "zh-Hans": "说明"
+ },
+ "Destination": {
+  "es": "Destino",
+  "ru": "Назначение",
+  "zh-Hans": "目标"
+ },
+ "Detail": {
+  "es": "Detalle",
+  "ru": "Подробности",
+  "zh-Hans": "详情"
+ },
+ "Details": {
+  "es": "Detalles",
+  "ru": "Подробности",
+  "zh-Hans": "详情"
+ },
+ "Device": {
+  "es": "Dispositivo",
+  "ru": "Устройство",
+  "zh-Hans": "设备"
+ },
+ "Device scan failed: {0}": {
+  "es": "Falló el escaneo de dispositivos: {0}",
+  "ru": "Не удалось просканировать устройства: {0}",
+  "zh-Hans": "设备扫描失败：{0}"
+ },
+ "Diagnosing {0}…": {
+  "es": "Diagnosticando {0}…",
+  "ru": "Диагностика {0}…",
+  "zh-Hans": "正在诊断 {0}…"
+ },
+ "Diagnosis canceled": {
+  "es": "Diagnóstico cancelado",
+  "ru": "Диагностика отменена",
+  "zh-Hans": "诊断已取消"
+ },
+ "Diagnosis completed at {0:HH:mm:ss}": {
+  "es": "Diagnóstico completado a las {0:HH:mm:ss}",
+  "ru": "Диагностика завершена в {0:HH:mm:ss}",
+  "zh-Hans": "诊断于 {0:HH:mm:ss} 完成"
+ },
+ "Diagnosis failed": {
+  "es": "El diagnóstico falló",
+  "ru": "Диагностика не удалась",
+  "zh-Hans": "诊断失败"
+ },
+ "Diagnosis for {0} canceled. Partial samples were discarded.": {
+  "es": "Diagnóstico de {0} cancelado. Se descartaron las muestras parciales.",
+  "ru": "Диагностика {0} отменена. Неполные выборки отброшены.",
+  "zh-Hans": "对 {0} 的诊断已取消。部分样本已丢弃。"
+ },
+ "Diagnosis for {0} failed: {1}": {
+  "es": "El diagnóstico de {0} falló: {1}",
+  "ru": "Диагностика {0} не удалась: {1}",
+  "zh-Hans": "对 {0} 的诊断失败：{1}"
+ },
+ "Diagnosis target set to {0} from the imported report.{1} Nothing has been measured yet.": {
+  "es": "Objetivo de diagnóstico fijado en {0} a partir del informe importado.{1} Todavía no se ha medido nada.",
+  "ru": "Цель диагностики установлена на {0} из импортированного отчёта.{1} Пока ничего не измерено.",
+  "zh-Hans": "已根据导入的报告将诊断目标设为 {0}。{1} 目前尚未进行任何测量。"
+ },
+ "Diagnostic profile": {
+  "es": "Perfil de diagnóstico",
+  "ru": "Профиль диагностики",
+  "zh-Hans": "诊断配置"
+ },
+ "Diagnostic run history": {
+  "es": "Historial de diagnósticos",
+  "ru": "История диагностических прогонов",
+  "zh-Hans": "诊断运行历史"
+ },
+ "Did the change help?": {
+  "es": "¿Ayudó el cambio?",
+  "ru": "Помогло ли изменение?",
+  "zh-Hans": "这次更改有帮助吗？"
+ },
+ "Discard proposals": {
+  "es": "Descartar propuestas",
+  "ru": "Отклонить предложения",
+  "zh-Hans": "放弃提案"
+ },
+ "Display language": {
+  "es": "Idioma de la interfaz",
+  "ru": "Язык интерфейса",
+  "zh-Hans": "显示语言"
+ },
+ "Domain": {
+  "es": "Dominio",
+  "ru": "Домен",
+  "zh-Hans": "域"
+ },
+ "Drift check failed: {0}": {
+  "es": "Falló la comprobación de deriva: {0}",
+  "ru": "Не удалось проверить расхождения: {0}",
+  "zh-Hans": "偏移检查失败：{0}"
+ },
+ "Driver": {
+  "es": "Controlador",
+  "ru": "Драйвер",
+  "zh-Hans": "驱动程序"
+ },
+ "Driver-advertised NDIS properties": {
+  "es": "Propiedades NDIS anunciadas por el controlador",
+  "ru": "Свойства NDIS, объявленные драйвером",
+  "zh-Hans": "驱动程序公布的 NDIS 属性"
+ },
+ "Driver-advertised adapter properties": {
+  "es": "Propiedades del adaptador anunciadas por el controlador",
+  "ru": "Свойства адаптера, объявленные драйвером",
+  "zh-Hans": "驱动程序公布的适配器属性"
+ },
+ "Driver-advertised values": {
+  "es": "Valores anunciados por el controlador",
+  "ru": "Значения, объявленные драйвером",
+  "zh-Hans": "驱动程序公布的取值"
+ },
+ "Dry run at {0:T}: {1} effective change(s). Applying restarts each affected adapter, which briefly drops its link.": {
+  "es": "Simulación a las {0:T}: {1} cambio(s) efectivo(s). Aplicar reinicia cada adaptador afectado, lo que corta brevemente su enlace.",
+  "ru": "Пробный прогон в {0:T}: действующих изменений — {1}. Применение перезапускает каждый затронутый адаптер, что ненадолго обрывает связь.",
+  "zh-Hans": "{0:T} 的试运行：{1} 项实际更改。应用会重启每个受影响的适配器，链路会短暂中断。"
+ },
+ "Dynamic ports": {
+  "es": "Puertos dinámicos",
+  "ru": "Динамические порты",
+  "zh-Hans": "动态端口"
+ },
+ "ENDPOINT": {
+  "es": "EXTREMO",
+  "ru": "КОНЕЧНАЯ ТОЧКА",
+  "zh-Hans": "端点"
+ },
+ "EXTRA RESOLVERS (OPTIONAL)": {
+  "es": "RESOLUTORES ADICIONALES (OPCIONAL)",
+  "ru": "ДОПОЛНИТЕЛЬНЫЕ DNS-СЕРВЕРЫ (НЕОБЯЗАТЕЛЬНО)",
+  "zh-Hans": "额外解析器（可选）"
+ },
+ "Each resolver is queried directly over UDP port 53, so one that is not configured on this machine can still be measured. This is read-only: no resolver is changed.": {
+  "es": "Cada resolutor se consulta directamente por el puerto UDP 53, así que también puede medirse uno que no esté configurado en este equipo. Es solo lectura: no se cambia ningún resolutor.",
+  "ru": "Каждый DNS-сервер опрашивается напрямую по UDP-порту 53, поэтому можно измерить и тот, что не настроен на этом компьютере. Режим только для чтения: ни один сервер не меняется.",
+  "zh-Hans": "每个解析器都通过 UDP 53 端口直接查询，因此即使本机未配置的解析器也可以测量。此过程只读：不会更改任何解析器。"
+ },
+ "Elevated": {
+  "es": "Administrador",
+  "ru": "Администратор",
+  "zh-Hans": "管理员"
+ },
+ "Enable live network changes": {
+  "es": "Habilitar cambios de red en vivo",
+  "ru": "Разрешить изменения сети на живой системе",
+  "zh-Hans": "启用实时网络更改"
+ },
+ "Enter a game server, regional endpoint, or IP address.": {
+  "es": "Introduzca un servidor de juego, un extremo regional o una dirección IP.",
+  "ru": "Укажите игровой сервер, региональную конечную точку или IP-адрес.",
+  "zh-Hans": "请输入游戏服务器、区域端点或 IP 地址。"
+ },
+ "Enter both a throughput endpoint and a latency target.": {
+  "es": "Introduzca un extremo de rendimiento y un objetivo de latencia.",
+  "ru": "Укажите и конечную точку для пропускной способности, и цель для задержки.",
+  "zh-Hans": "请同时输入吞吐量端点和延迟目标。"
+ },
+ "Error": {
+  "es": "Error",
+  "ru": "Ошибка",
+  "zh-Hans": "错误"
+ },
+ "Every interface this machine has, what it is doing right now, and what it costs to leave it up. The adapter carrying the default route is never offered for disabling: it is the way back in.": {
+  "es": "Todas las interfaces de este equipo, lo que están haciendo ahora mismo y lo que cuesta dejarlas activas. El adaptador que lleva la ruta predeterminada nunca se ofrece para deshabilitar: es la vía de regreso.",
+  "ru": "Все интерфейсы этого компьютера, чем они заняты прямо сейчас и во что обходится оставить их включёнными. Адаптер с маршрутом по умолчанию никогда не предлагается к отключению: это путь обратно.",
+  "zh-Hans": "本机的每个网络接口、它们当前的状态，以及保持启用的代价。承载默认路由的适配器永远不会被列为可禁用项：它是回来的路。"
+ },
+ "Evidence": {
+  "es": "Evidencia",
+  "ru": "Данные",
+  "zh-Hans": "证据"
+ },
+ "Evidence-ranked findings": {
+  "es": "Hallazgos ordenados por evidencia",
+  "ru": "Выводы, отсортированные по доказательности",
+  "zh-Hans": "按证据强度排序的发现"
+ },
+ "Expected effect": {
+  "es": "Efecto esperado",
+  "ru": "Ожидаемый эффект",
+  "zh-Hans": "预期效果"
+ },
+ "Export application logs": {
+  "es": "Exportar los registros de la aplicación",
+  "ru": "Экспорт журналов приложения",
+  "zh-Hans": "导出应用日志"
+ },
+ "Export checklist…": {
+  "es": "Exportar lista de comprobación…",
+  "ru": "Экспортировать чек-лист…",
+  "zh-Hans": "导出清单…"
+ },
+ "Export diagnostic snapshot": {
+  "es": "Exportar instantánea de diagnóstico",
+  "ru": "Экспорт диагностического снимка",
+  "zh-Hans": "导出诊断快照"
+ },
+ "Export full diagnostic report": {
+  "es": "Exportar el informe de diagnóstico completo",
+  "ru": "Экспорт полного диагностического отчёта",
+  "zh-Hans": "导出完整诊断报告"
+ },
+ "Export logs…": {
+  "es": "Exportar registros…",
+  "ru": "Экспортировать журналы…",
+  "zh-Hans": "导出日志…"
+ },
+ "Export menu": {
+  "es": "Menú de exportación",
+  "ru": "Меню экспорта",
+  "zh-Hans": "导出菜单"
+ },
+ "Export redacted": {
+  "es": "Exportar censurado",
+  "ru": "Экспорт без данных",
+  "zh-Hans": "导出脱敏版"
+ },
+ "Export redacted HTML": {
+  "es": "Exportar HTML censurado",
+  "ru": "Экспорт HTML без данных",
+  "zh-Hans": "导出脱敏 HTML"
+ },
+ "Export report HTML": {
+  "es": "Exportar informe HTML",
+  "ru": "Экспорт отчёта в HTML",
+  "zh-Hans": "导出 HTML 报告"
+ },
+ "Export report JSON": {
+  "es": "Exportar informe JSON",
+  "ru": "Экспорт отчёта в JSON",
+  "zh-Hans": "导出 JSON 报告"
+ },
+ "Export snapshot…": {
+  "es": "Exportar instantánea…",
+  "ru": "Экспортировать снимок…",
+  "zh-Hans": "导出快照…"
+ },
+ "Export support snapshot…": {
+  "es": "Exportar instantánea de soporte…",
+  "ru": "Экспортировать снимок для поддержки…",
+  "zh-Hans": "导出支持快照…"
+ },
+ "Export the action checklist": {
+  "es": "Exportar la lista de acciones",
+  "ru": "Экспорт чек-листа действий",
+  "zh-Hans": "导出操作清单"
+ },
+ "Exports the selected runs with addresses removed": {
+  "es": "Exporta las ejecuciones seleccionadas sin las direcciones",
+  "ru": "Экспортирует выбранные прогоны с удалёнными адресами",
+  "zh-Hans": "导出所选运行记录，并移除其中的地址"
+ },
+ "Extra confirm": {
+  "es": "Confirmación extra",
+  "ru": "Доп. подтверждение",
+  "zh-Hans": "额外确认"
+ },
+ "Extra resolvers": {
+  "es": "Resolutores adicionales",
+  "ru": "Дополнительные DNS-серверы",
+  "zh-Hans": "额外解析器"
+ },
+ "Failed": {
+  "es": "Falló",
+  "ru": "Ошибка",
+  "zh-Hans": "失败"
+ },
+ "Family": {
+  "es": "Familia",
+  "ru": "Семейство",
+  "zh-Hans": "协议族"
+ },
+ "Feature": {
+  "es": "Función",
+  "ru": "Функция",
+  "zh-Hans": "功能"
+ },
+ "Filter NDIS properties": {
+  "es": "Filtrar propiedades NDIS",
+  "ru": "Фильтр свойств NDIS",
+  "zh-Hans": "筛选 NDIS 属性"
+ },
+ "Filter adapters": {
+  "es": "Filtrar adaptadores",
+  "ru": "Фильтр адаптеров",
+  "zh-Hans": "筛选适配器"
+ },
+ "Filter keywords": {
+  "es": "Filtrar palabras clave",
+  "ru": "Фильтр ключевых слов",
+  "zh-Hans": "筛选关键字"
+ },
+ "Filter network adapters": {
+  "es": "Filtrar adaptadores de red",
+  "ru": "Фильтр сетевых адаптеров",
+  "zh-Hans": "筛选网络适配器"
+ },
+ "Finding": {
+  "es": "Hallazgo",
+  "ru": "Вывод",
+  "zh-Hans": "发现"
+ },
+ "Flags": {
+  "es": "Indicadores",
+  "ru": "Флаги",
+  "zh-Hans": "标志"
+ },
+ "Focus": {
+  "es": "Enfoque",
+  "ru": "Приоритет",
+  "zh-Hans": "侧重"
+ },
+ "Forget baseline": {
+  "es": "Olvidar la línea base",
+  "ru": "Забыть базовый замер",
+  "zh-Hans": "忘记基线"
+ },
+ "GAME (TICK RATE)": {
+  "es": "JUEGO (TASA DE TICK)",
+  "ru": "ИГРА (ЧАСТОТА ТИКОВ)",
+  "zh-Hans": "游戏（TICK 率）"
+ },
+ "GAME ENDPOINT": {
+  "es": "EXTREMO DEL JUEGO",
+  "ru": "ИГРОВАЯ КОНЕЧНАЯ ТОЧКА",
+  "zh-Hans": "游戏端点"
+ },
+ "GATEWAY": {
+  "es": "PUERTA DE ENLACE",
+  "ru": "ШЛЮЗ",
+  "zh-Hans": "网关"
+ },
+ "Game or regional endpoint": {
+  "es": "Extremo del juego o regional",
+  "ru": "Игровая или региональная конечная точка",
+  "zh-Hans": "游戏或区域端点"
+ },
+ "Game summary": {
+  "es": "Resumen del juego",
+  "ru": "Сводка по игре",
+  "zh-Hans": "游戏概要"
+ },
+ "Game tick rate profile": {
+  "es": "Perfil de tasa de tick del juego",
+  "ru": "Профиль частоты тиков игры",
+  "zh-Hans": "游戏 tick 率配置"
+ },
+ "Gaming diagnostics": {
+  "es": "Diagnóstico para juegos",
+  "ru": "Игровая диагностика",
+  "zh-Hans": "游戏诊断"
+ },
+ "Gateways": {
+  "es": "Puertas de enlace",
+  "ru": "Шлюзы",
+  "zh-Hans": "网关"
+ },
+ "Global feature": {
+  "es": "Función global",
+  "ru": "Глобальная функция",
+  "zh-Hans": "全局功能"
+ },
+ "Go to tuning plan": {
+  "es": "Ir al plan de ajuste",
+  "ru": "Перейти к плану настройки",
+  "zh-Hans": "前往调优计划"
+ },
+ "Health check": {
+  "es": "Comprobación de salud",
+  "ru": "Проверка состояния",
+  "zh-Hans": "健康检查"
+ },
+ "Health check failed: {0}": {
+  "es": "Falló la comprobación de salud: {0}",
+  "ru": "Проверка состояния не удалась: {0}",
+  "zh-Hans": "健康检查失败：{0}"
+ },
+ "High-risk confirmation": {
+  "es": "Confirmación de alto riesgo",
+  "ru": "Подтверждение высокого риска",
+  "zh-Hans": "高风险确认"
+ },
+ "History & comparison": {
+  "es": "Historial y comparación",
+  "ru": "История и сравнение",
+  "zh-Hans": "历史与比较"
+ },
+ "Hops": {
+  "es": "Saltos",
+  "ru": "Узлы",
+  "zh-Hans": "跳数"
+ },
+ "Host name or IP": {
+  "es": "Nombre o IP",
+  "ru": "Имя или IP",
+  "zh-Hans": "主机名或 IP"
+ },
+ "Host that accepts a sustained transfer, for example a speed-test host you control": {
+  "es": "Host que acepte una transferencia sostenida, por ejemplo un servidor de test de velocidad que usted controle",
+  "ru": "Узел, принимающий длительную передачу, например подконтрольный вам сервер теста скорости",
+  "zh-Hans": "能接受持续传输的主机，例如你自己控制的测速主机"
+ },
+ "Host to ping": {
+  "es": "Host al que hacer ping",
+  "ru": "Узел для ping",
+  "zh-Hans": "要 ping 的主机"
+ },
+ "Host you may load": {
+  "es": "Host que puede saturar",
+  "ru": "Узел, который можно нагружать",
+  "zh-Hans": "你有权加压的主机"
+ },
+ "How to verify": {
+  "es": "Cómo verificarlo",
+  "ru": "Как проверить",
+  "zh-Hans": "如何验证"
+ },
+ "INVENTORY": {
+  "es": "INVENTARIO",
+  "ru": "ИНВЕНТАРИЗАЦИЯ",
+  "zh-Hans": "清单"
+ },
+ "INVENTORY ONLY": {
+  "es": "SOLO INVENTARIO",
+  "ru": "ТОЛЬКО ЧТЕНИЕ",
+  "zh-Hans": "仅清单"
+ },
+ "IP metrics": {
+  "es": "Métricas IP",
+  "ru": "Метрики IP",
+  "zh-Hans": "IP 度量"
+ },
+ "IP route table": {
+  "es": "Tabla de rutas IP",
+  "ru": "Таблица IP-маршрутов",
+  "zh-Hans": "IP 路由表"
+ },
+ "IPv4 index": {
+  "es": "Índice IPv4",
+  "ru": "Индекс IPv4",
+  "zh-Hans": "IPv4 索引"
+ },
+ "Idle versus loaded": {
+  "es": "En reposo frente a con carga",
+  "ru": "В покое и под нагрузкой",
+  "zh-Hans": "空闲与加载对比"
+ },
+ "Import a capture report": {
+  "es": "Importar un informe de captura",
+  "ru": "Импорт отчёта захвата",
+  "zh-Hans": "导入抓包报告"
+ },
+ "Import an online bufferbloat result": {
+  "es": "Importar un resultado de bufferbloat en línea",
+  "ru": "Импорт онлайн-результата bufferbloat",
+  "zh-Hans": "导入在线缓冲膨胀测试结果"
+ },
+ "Import refused: {0}": {
+  "es": "Importación rechazada: {0}",
+  "ru": "Импорт отклонён: {0}",
+  "zh-Hans": "导入被拒绝：{0}"
+ },
+ "Import report…": {
+  "es": "Importar informe…",
+  "ru": "Импортировать отчёт…",
+  "zh-Hans": "导入报告…"
+ },
+ "Import result…": {
+  "es": "Importar resultado…",
+  "ru": "Импортировать результат…",
+  "zh-Hans": "导入结果…"
+ },
+ "Imported a {0} result.": {
+  "es": "Se importó un resultado de {0}.",
+  "ru": "Импортирован результат {0}.",
+  "zh-Hans": "已导入一份 {0} 结果。"
+ },
+ "Imported from {0}. Latency increase under load is graded on the Waveform scale; it describes queue growth in front of the slowest link, not link speed.": {
+  "es": "Importado de {0}. El aumento de latencia con carga se califica en la escala de Waveform; describe el crecimiento de la cola delante del enlace más lento, no la velocidad del enlace.",
+  "ru": "Импортировано из {0}. Рост задержки под нагрузкой оценивается по шкале Waveform; он описывает рост очереди перед самым медленным звеном, а не скорость канала.",
+  "zh-Hans": "从 {0} 导入。加载下的延迟增长按 Waveform 量表评级；它描述的是最慢链路前方的队列增长，而不是链路速度。"
+ },
+ "Index": {
+  "es": "Índice",
+  "ru": "Индекс",
+  "zh-Hans": "索引"
+ },
+ "Initial cwnd": {
+  "es": "cwnd inicial",
+  "ru": "Начальное cwnd",
+  "zh-Hans": "初始 cwnd"
+ },
+ "Interface": {
+  "es": "Interfaz",
+  "ru": "Интерфейс",
+  "zh-Hans": "接口"
+ },
+ "Interface addressing and metrics": {
+  "es": "Direccionamiento y métricas de la interfaz",
+  "ru": "Адресация и метрики интерфейса",
+  "zh-Hans": "接口的地址与度量"
+ },
+ "Interface description": {
+  "es": "Descripción de la interfaz",
+  "ru": "Описание интерфейса",
+  "zh-Hans": "接口描述"
+ },
+ "Interface language. Measurements, findings and log entries stay in English.": {
+  "es": "Idioma de la interfaz. Las mediciones, los hallazgos y las entradas de registro siguen en inglés.",
+  "ru": "Язык интерфейса. Измерения, выводы и записи журнала остаются на английском.",
+  "zh-Hans": "界面语言。测量结果、诊断发现和日志条目仍为英文。"
+ },
+ "Interface metric inventory partial: {0}": {
+  "es": "Inventario de métricas de interfaz parcial: {0}",
+  "ru": "Инвентаризация метрик интерфейсов неполная: {0}",
+  "zh-Hans": "接口度量清单不完整：{0}"
+ },
+ "Interface profile": {
+  "es": "Perfil de interfaz",
+  "ru": "Профиль интерфейсов",
+  "zh-Hans": "接口用途配置"
+ },
+ "Interfaces": {
+  "es": "Interfaces",
+  "ru": "Интерфейсы",
+  "zh-Hans": "接口"
+ },
+ "Interrupt affinity": {
+  "es": "Afinidad de interrupciones",
+  "ru": "Привязка прерываний",
+  "zh-Hans": "中断亲和性"
+ },
+ "Interrupt affinity change failed: {0}": {
+  "es": "Falló el cambio de afinidad de interrupciones: {0}",
+  "ru": "Не удалось изменить привязку прерываний: {0}",
+  "zh-Hans": "中断亲和性更改失败：{0}"
+ },
+ "Interrupt policy": {
+  "es": "Directiva de interrupciones",
+  "ru": "Политика прерываний",
+  "zh-Hans": "中断策略"
+ },
+ "Interrupt priority": {
+  "es": "Prioridad de interrupción",
+  "ru": "Приоритет прерываний",
+  "zh-Hans": "中断优先级"
+ },
+ "Inventory": {
+  "es": "Inventario",
+  "ru": "Инвентаризация",
+  "zh-Hans": "清单"
+ },
+ "Inventory failed: {0}": {
+  "es": "El inventario falló: {0}",
+  "ru": "Инвентаризация не удалась: {0}",
+  "zh-Hans": "清单读取失败：{0}"
+ },
+ "Inventory refreshed at {0:HH:mm:ss}": {
+  "es": "Inventario actualizado a las {0:HH:mm:ss}",
+  "ru": "Инвентаризация обновлена в {0:HH:mm:ss}",
+  "zh-Hans": "清单已于 {0:HH:mm:ss} 刷新"
+ },
+ "Its keyword, what it trades against, and everything the driver will accept are shown here.": {
+  "es": "Aquí se muestran su palabra clave, contra qué se compensa y todo lo que el controlador aceptará.",
+  "ru": "Здесь показаны его ключевое слово, чем за него платят и все значения, которые примет драйвер.",
+  "zh-Hans": "这里显示它的关键字、它牺牲了什么，以及驱动程序能接受的全部取值。"
+ },
+ "Jitter": {
+  "es": "Jitter",
+  "ru": "Джиттер",
+  "zh-Hans": "抖动"
+ },
+ "Jitter (1s)": {
+  "es": "Jitter (1 s)",
+  "ru": "Джиттер (1 с)",
+  "zh-Hans": "抖动（1 秒）"
+ },
+ "Jitter is the mean absolute difference between consecutive successful RTT samples, so it moves with how fast the profile sent. Jitter (1s) is the standard deviation inside each one-second window, averaged — the same line reports the same figure at any probe rate, which is the one that can be compared against a game's tick budget. It is blank when no single second collected two replies.": {
+  "es": "El jitter es la diferencia absoluta media entre muestras de RTT consecutivas con éxito, así que varía con la rapidez de envío del perfil. Jitter (1 s) es la desviación estándar dentro de cada ventana de un segundo, promediada: la misma línea da la misma cifra a cualquier ritmo de sondeo, y es la que puede compararse con el presupuesto de tick de un juego. Queda en blanco si ningún segundo recogió dos respuestas.",
+  "ru": "Джиттер — это средняя абсолютная разница между последовательными успешными замерами RTT, поэтому он зависит от того, как часто профиль отправлял пакеты. Джиттер (1 с) — это усреднённое стандартное отклонение внутри каждого односекундного окна: одна и та же линия даёт одну и ту же величину при любой частоте зондирования, и именно её можно сравнивать с бюджетом тика игры. Поле пустое, если ни в одной секунде не пришло двух ответов.",
+  "zh-Hans": "抖动是相邻成功 RTT 样本之间的平均绝对差，因此会随探测配置的发送速率变化。抖动（1 秒）是每个一秒窗口内标准差的平均值——无论探测速率如何，同一条线路都会给出相同数值，这才是能与游戏 tick 预算比较的指标。若没有任何一秒收到两个回复，则该值为空。"
+ },
+ "Jumped to {0}.": {
+  "es": "Se saltó a {0}.",
+  "ru": "Переход к «{0}».",
+  "zh-Hans": "已跳转到 {0}。"
+ },
+ "Keyword": {
+  "es": "Palabra clave",
+  "ru": "Ключевое слово",
+  "zh-Hans": "关键字"
+ },
+ "Kind": {
+  "es": "Tipo",
+  "ru": "Вид",
+  "zh-Hans": "种类"
+ },
+ "LATENCY TARGET": {
+  "es": "OBJETIVO DE LATENCIA",
+  "ru": "ЦЕЛЬ ДЛЯ ЗАДЕРЖКИ",
+  "zh-Hans": "延迟目标"
+ },
+ "LOAD": {
+  "es": "CARGA",
+  "ru": "НАГРУЗКА",
+  "zh-Hans": "负载"
+ },
+ "LOGICAL PROCESSORS": {
+  "es": "PROCESADORES LÓGICOS",
+  "ru": "ЛОГИЧЕСКИХ ПРОЦЕССОРОВ",
+  "zh-Hans": "逻辑处理器"
+ },
+ "Language": {
+  "es": "Idioma",
+  "ru": "Язык",
+  "zh-Hans": "语言"
+ },
+ "Latency increase under load is graded on the Waveform scale. It describes queue growth in front of the slowest link, not link speed.": {
+  "es": "El aumento de latencia con carga se califica en la escala de Waveform. Describe el crecimiento de la cola delante del enlace más lento, no la velocidad del enlace.",
+  "ru": "Рост задержки под нагрузкой оценивается по шкале Waveform. Он описывает рост очереди перед самым медленным звеном, а не скорость канала.",
+  "zh-Hans": "加载下的延迟增长按 Waveform 量表评级。它描述的是最慢链路前方的队列增长，而不是链路速度。"
+ },
+ "Latency target": {
+  "es": "Objetivo de latencia",
+  "ru": "Цель для задержки",
+  "zh-Hans": "延迟目标"
+ },
+ "Live changes stay disabled until the alpha risk notice is accepted.": {
+  "es": "Los cambios en vivo seguirán deshabilitados hasta que se acepte el aviso de riesgo de la alfa.",
+  "ru": "Изменения на живой системе останутся выключенными, пока не принято предупреждение о рисках альфа-версии.",
+  "zh-Hans": "在接受 alpha 风险提示之前，实时更改将保持禁用。"
+ },
+ "Load condition": {
+  "es": "Condición de carga",
+  "ru": "Условие нагрузки",
+  "zh-Hans": "负载条件"
+ },
+ "Loading…": {
+  "es": "Cargando…",
+  "ru": "Загрузка…",
+  "zh-Hans": "正在加载…"
+ },
+ "Local retention": {
+  "es": "Retención local",
+  "ru": "Локальное хранение",
+  "zh-Hans": "本地保留"
+ },
+ "Log export failed: {0}": {
+  "es": "Falló la exportación del registro: {0}",
+  "ru": "Не удалось экспортировать журнал: {0}",
+  "zh-Hans": "日志导出失败：{0}"
+ },
+ "Log exported to {0}.": {
+  "es": "Registro exportado a {0}.",
+  "ru": "Журнал экспортирован в {0}.",
+  "zh-Hans": "日志已导出到 {0}。"
+ },
+ "Log file size": {
+  "es": "Tamaño del archivo de registro",
+  "ru": "Размер файла журнала",
+  "zh-Hans": "日志文件大小"
+ },
+ "Logging unavailable: {0}": {
+  "es": "Registro no disponible: {0}",
+  "ru": "Журналирование недоступно: {0}",
+  "zh-Hans": "日志功能不可用：{0}"
+ },
+ "Logs can contain diagnostic targets and local file paths. Export them anyway?": {
+  "es": "Los registros pueden contener objetivos de diagnóstico y rutas de archivos locales. ¿Exportarlos de todos modos?",
+  "ru": "Журналы могут содержать цели диагностики и локальные пути к файлам. Всё равно экспортировать?",
+  "zh-Hans": "日志可能包含诊断目标和本地文件路径。仍要导出吗？"
+ },
+ "Lost": {
+  "es": "Perdidos",
+  "ru": "Потеряно",
+  "zh-Hans": "丢失"
+ },
+ "MB per file": {
+  "es": "MB por archivo",
+  "ru": "МБ на файл",
+  "zh-Hans": "MB / 每个文件"
+ },
+ "MEASURE": {
+  "es": "MEDIR",
+  "ru": "ИЗМЕРЕНИЕ",
+  "zh-Hans": "测量"
+ },
+ "Mark one application's traffic": {
+  "es": "Marcar el tráfico de una aplicación",
+  "ru": "Пометить трафик одного приложения",
+  "zh-Hans": "标记某个应用的流量"
+ },
+ "Markdown (*.md)|*.md|All files (*.*)|*.*": {
+  "es": "Markdown (*.md)|*.md|Todos los archivos (*.*)|*.*",
+  "ru": "Markdown (*.md)|*.md|Все файлы (*.*)|*.*",
+  "zh-Hans": "Markdown (*.md)|*.md|所有文件 (*.*)|*.*"
+ },
+ "Max": {
+  "es": "Máx.",
+  "ru": "Макс.",
+  "zh-Hans": "最大"
+ },
+ "Maximum log file size": {
+  "es": "Tamaño máximo del archivo de registro",
+  "ru": "Максимальный размер файла журнала",
+  "zh-Hans": "日志文件大小上限"
+ },
+ "Measure": {
+  "es": "Medir",
+  "ru": "Измерить",
+  "zh-Hans": "测量"
+ },
+ "Measured": {
+  "es": "Medido",
+  "ru": "Измерено",
+  "zh-Hans": "实测"
+ },
+ "Measured resolvers": {
+  "es": "Resolutores medidos",
+  "ru": "Измеренные DNS-серверы",
+  "zh-Hans": "已测解析器"
+ },
+ "Measured throughput": {
+  "es": "Rendimiento medido",
+  "ru": "Измеренная пропускная способность",
+  "zh-Hans": "实测吞吐量"
+ },
+ "Measurement cancelled.": {
+  "es": "Medición cancelada.",
+  "ru": "Измерение отменено.",
+  "zh-Hans": "测量已取消。"
+ },
+ "Measurement complete.": {
+  "es": "Medición completada.",
+  "ru": "Измерение завершено.",
+  "zh-Hans": "测量完成。"
+ },
+ "Measurement failed.": {
+  "es": "La medición falló.",
+  "ru": "Измерение не удалось.",
+  "zh-Hans": "测量失败。"
+ },
+ "Measuring {0} throughput and loaded latency…": {
+  "es": "Midiendo el rendimiento de {0} y la latencia con carga…",
+  "ru": "Измеряется пропускная способность ({0}) и задержка под нагрузкой…",
+  "zh-Hans": "正在测量 {0} 吞吐量与加载延迟…"
+ },
+ "Measuring…": {
+  "es": "Midiendo…",
+  "ru": "Измерение…",
+  "zh-Hans": "正在测量…"
+ },
+ "Median": {
+  "es": "Mediana",
+  "ru": "Медиана",
+  "zh-Hans": "中位数"
+ },
+ "Median ms": {
+  "es": "Mediana ms",
+  "ru": "Медиана, мс",
+  "zh-Hans": "中位数 ms"
+ },
+ "Metric": {
+  "es": "Métrica",
+  "ru": "Метрика",
+  "zh-Hans": "度量"
+ },
+ "Min": {
+  "es": "Mín.",
+  "ru": "Мин.",
+  "zh-Hans": "最小"
+ },
+ "Monitor duration seconds": {
+  "es": "Duración del monitor en segundos",
+  "ru": "Длительность мониторинга, секунд",
+  "zh-Hans": "监测时长（秒）"
+ },
+ "Monitor interval milliseconds": {
+  "es": "Intervalo del monitor en milisegundos",
+  "ru": "Интервал мониторинга, миллисекунд",
+  "zh-Hans": "监测间隔（毫秒）"
+ },
+ "Monitoring timeline": {
+  "es": "Cronología del monitor",
+  "ru": "Хронология мониторинга",
+  "zh-Hans": "监测时间线"
+ },
+ "NAT layers and path-MTU behaviour. Neither shows up in a latency measurement, and both explain whole classes of report — port forwarding that will not work, or downloads that stall while ping is fine.": {
+  "es": "Capas de NAT y comportamiento de la MTU del camino. Ninguno aparece en una medición de latencia, y ambos explican clases enteras de incidencias: reenvío de puertos que no funciona, o descargas que se atascan mientras el ping está bien.",
+  "ru": "Слои NAT и поведение path MTU. Ни то, ни другое не видно в измерении задержки, но именно они объясняют целые классы жалоб: не работающий проброс портов или зависающие загрузки при нормальном пинге.",
+  "zh-Hans": "NAT 层数与路径 MTU 行为。两者都不会出现在延迟测量中，却能解释一整类问题——端口转发不生效，或者 ping 正常但下载卡住。"
+ },
+ "NDIS & drivers": {
+  "es": "NDIS y controladores",
+  "ru": "NDIS и драйверы",
+  "zh-Hans": "NDIS 与驱动"
+ },
+ "NDIS PARAMETERS": {
+  "es": "PARÁMETROS NDIS",
+  "ru": "ПАРАМЕТРОВ NDIS",
+  "zh-Hans": "NDIS 参数"
+ },
+ "NETWORK DEVICES": {
+  "es": "DISPOSITIVOS DE RED",
+  "ru": "СЕТЕВЫХ УСТРОЙСТВ",
+  "zh-Hans": "网络设备"
+ },
+ "Name": {
+  "es": "Nombre",
+  "ru": "Имя",
+  "zh-Hans": "名称"
+ },
+ "Name the application to match. A policy with no application would mark everything this machine sends, which is not what prioritising a game means.": {
+  "es": "Indique la aplicación que debe coincidir. Una política sin aplicación marcaría todo lo que envía este equipo, que no es lo que significa priorizar un juego.",
+  "ru": "Укажите приложение для сопоставления. Политика без приложения пометила бы всё, что отправляет этот компьютер, а это не то, что значит «приоритет для игры».",
+  "zh-Hans": "请指定要匹配的应用程序。没有应用程序的策略会标记本机发出的所有流量，而这并不是“为游戏提高优先级”的含义。"
+ },
+ "Name the application whose policy should be removed.": {
+  "es": "Indique la aplicación cuya política debe eliminarse.",
+  "ru": "Укажите приложение, чью политику нужно удалить.",
+  "zh-Hans": "请指定要移除其策略的应用程序。"
+ },
+ "Network ID": {
+  "es": "ID de red",
+  "ru": "ID сети",
+  "zh-Hans": "网络 ID"
+ },
+ "Network adapters": {
+  "es": "Adaptadores de red",
+  "ru": "Сетевые адаптеры",
+  "zh-Hans": "网络适配器"
+ },
+ "Network binding inventory partial: {0}": {
+  "es": "Inventario de enlaces de red parcial: {0}",
+  "ru": "Инвентаризация сетевых привязок неполная: {0}",
+  "zh-Hans": "网络绑定清单不完整：{0}"
+ },
+ "Network bindings": {
+  "es": "Enlaces de red",
+  "ru": "Сетевые привязки",
+  "zh-Hans": "网络绑定"
+ },
+ "Network devices": {
+  "es": "Dispositivos de red",
+  "ru": "Сетевые устройства",
+  "zh-Hans": "网络设备"
+ },
+ "Network devices and advice": {
+  "es": "Dispositivos de red y consejos",
+  "ru": "Сетевые устройства и рекомендации",
+  "zh-Hans": "网络设备与建议"
+ },
+ "Network devices only": {
+  "es": "Solo dispositivos de red",
+  "ru": "Только сетевые устройства",
+  "zh-Hans": "仅网络设备"
+ },
+ "Network profile inventory partial: {0}": {
+  "es": "Inventario de perfiles de red parcial: {0}",
+  "ru": "Инвентаризация сетевых профилей неполная: {0}",
+  "zh-Hans": "网络配置文件清单不完整：{0}"
+ },
+ "Network profiles": {
+  "es": "Perfiles de red",
+  "ru": "Сетевые профили",
+  "zh-Hans": "网络配置文件"
+ },
+ "Next hop": {
+  "es": "Siguiente salto",
+  "ru": "Следующий узел",
+  "zh-Hans": "下一跳"
+ },
+ "No Wi-Fi radio is connected; this connection is wired.": {
+  "es": "No hay ninguna radio Wi-Fi conectada; esta conexión es por cable.",
+  "ru": "Подключённого Wi-Fi-радио нет; это проводное соединение.",
+  "zh-Hans": "没有已连接的 Wi-Fi 无线电；此连接为有线连接。"
+ },
+ "No baseline to compare against.": {
+  "es": "No hay línea base con la que comparar.",
+  "ru": "Нет базового замера для сравнения.",
+  "zh-Hans": "没有可供比较的基线。"
+ },
+ "No baseline yet.": {
+  "es": "Todavía no hay línea base.",
+  "ru": "Базового замера ещё нет.",
+  "zh-Hans": "尚无基线。"
+ },
+ "No baseline: nothing was measured before this change": {
+  "es": "Sin línea base: no se midió nada antes de este cambio",
+  "ru": "Базы нет: перед этим изменением ничего не измерялось",
+  "zh-Hans": "无基线：此次更改前没有做过任何测量"
+ },
+ "No benchmark yet.": {
+  "es": "Todavía no hay mediciones.",
+  "ru": "Измерений ещё не было.",
+  "zh-Hans": "尚未进行基准测试。"
+ },
+ "No change requested.": {
+  "es": "No se ha solicitado ningún cambio.",
+  "ru": "Изменения не запрашивались.",
+  "zh-Hans": "未请求任何更改。"
+ },
+ "No comparison selected.": {
+  "es": "No hay ninguna comparación seleccionada.",
+  "ru": "Сравнение не выбрано.",
+  "zh-Hans": "未选择要比较的项。"
+ },
+ "No external result imported.": {
+  "es": "No se ha importado ningún resultado externo.",
+  "ru": "Внешний результат не импортирован.",
+  "zh-Hans": "尚未导入外部结果。"
+ },
+ "No interface currently carries a default route, so nothing is protected as the way back in.": {
+  "es": "Ninguna interfaz lleva actualmente una ruta predeterminada, así que nada está protegido como vía de regreso.",
+  "ru": "Сейчас ни один интерфейс не несёт маршрут по умолчанию, поэтому ничто не защищено как путь обратно.",
+  "zh-Hans": "当前没有接口承载默认路由，因此没有任何接口被当作“回来的路”加以保护。"
+ },
+ "No plan prepared.": {
+  "es": "No hay ningún plan preparado.",
+  "ru": "План не подготовлен.",
+  "zh-Hans": "尚未准备计划。"
+ },
+ "No recommendations yet.": {
+  "es": "Todavía no hay recomendaciones.",
+  "ru": "Рекомендаций ещё нет.",
+  "zh-Hans": "尚无建议。"
+ },
+ "No report imported.": {
+  "es": "No se ha importado ningún informe.",
+  "ru": "Отчёт не импортирован.",
+  "zh-Hans": "尚未导入报告。"
+ },
+ "No resolver change requested.": {
+  "es": "No se ha solicitado ningún cambio de resolutor.",
+  "ru": "Смена DNS-сервера не запрашивалась.",
+  "zh-Hans": "未请求更改解析器。"
+ },
+ "No resolver to measure.": {
+  "es": "No hay ningún resolutor que medir.",
+  "ru": "Нет DNS-серверов для измерения.",
+  "zh-Hans": "没有可测量的解析器。"
+ },
+ "No run yet.": {
+  "es": "Todavía no hay ninguna ejecución.",
+  "ru": "Прогонов ещё не было.",
+  "zh-Hans": "尚未运行。"
+ },
+ "No section matching “{0}”.": {
+  "es": "Ninguna sección coincide con «{0}».",
+  "ru": "Нет раздела, соответствующего «{0}».",
+  "zh-Hans": "没有与“{0}”匹配的区域。"
+ },
+ "No section named {0}.": {
+  "es": "No existe ninguna sección llamada {0}.",
+  "ru": "Раздел с именем «{0}» не найден.",
+  "zh-Hans": "没有名为 {0} 的区域。"
+ },
+ "No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings.": {
+  "es": "Ninguna prueba se ejecuta automáticamente. Esto es medición de red de solo lectura; nunca cambia ajustes de Windows ni del adaptador.",
+  "ru": "Ни один тест не запускается автоматически. Это измерение сети только для чтения; оно никогда не меняет настройки Windows или адаптера.",
+  "zh-Hans": "没有任何测试会自动运行。这里只做只读的网络测量，绝不会更改 Windows 或适配器设置。"
+ },
+ "Not comparable: {0}": {
+  "es": "No comparable: {0}",
+  "ru": "Несопоставимо: {0}",
+  "zh-Hans": "不可比较：{0}"
+ },
+ "Not gradable": {
+  "es": "No calificable",
+  "ru": "Оценить нельзя",
+  "zh-Hans": "无法评级"
+ },
+ "Not inspected.": {
+  "es": "No inspeccionado.",
+  "ru": "Не проверялось.",
+  "zh-Hans": "未检查。"
+ },
+ "Not measured": {
+  "es": "No medido",
+  "ru": "Не измерено",
+  "zh-Hans": "未测量"
+ },
+ "Not run": {
+  "es": "No ejecutado",
+  "ru": "Не запускалось",
+  "zh-Hans": "未运行"
+ },
+ "Not running": {
+  "es": "No en ejecución",
+  "ru": "Не выполняется",
+  "zh-Hans": "未在运行"
+ },
+ "Not scanned.": {
+  "es": "No escaneado.",
+  "ru": "Не сканировалось.",
+  "zh-Hans": "未扫描。"
+ },
+ "Note": {
+  "es": "Nota",
+  "ru": "Примечание",
+  "zh-Hans": "备注"
+ },
+ "Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.": {
+  "es": "No se puede escribir nada hasta que acepte el consentimiento de cambios en el plan de ajuste. Todo lo demás es de solo lectura.",
+  "ru": "Ничего нельзя записать, пока вы не примете согласие на изменения в плане настройки. Всё остальное доступно только для чтения.",
+  "zh-Hans": "在调优计划中接受更改同意声明之前，无法写入任何内容。其余部分均为只读。"
+ },
+ "Nothing checked yet. A driver update or another tuning tool can put a setting back without telling anyone.": {
+  "es": "Todavía no se ha comprobado nada. Una actualización de controlador u otra herramienta de ajuste puede revertir un valor sin avisar a nadie.",
+  "ru": "Пока ничего не проверялось. Обновление драйвера или другой тюнинг-инструмент может вернуть настройку обратно, никого не предупредив.",
+  "zh-Hans": "尚未做过检查。驱动更新或其他调优工具可能会在无人知情的情况下把某项设置改回去。"
+ },
+ "Nothing here is a change this machine can make.": {
+  "es": "Aquí no hay ningún cambio que este equipo pueda hacer.",
+  "ru": "Здесь нет изменений, которые может выполнить этот компьютер.",
+  "zh-Hans": "这里没有本机能够执行的更改。"
+ },
+ "Nothing here writes anything on its own. Each button queues one typed change on the tuning plan, where it is previewed against the live state, confirmed by hand, verified by read-back and recorded so it can be rolled back.": {
+  "es": "Aquí nada escribe nada por su cuenta. Cada botón encola un cambio tipado en el plan de ajuste, donde se previsualiza contra el estado real, se confirma a mano, se verifica releyéndolo y se registra para poder revertirlo.",
+  "ru": "Здесь ничто не пишет само по себе. Каждая кнопка ставит одно типизированное изменение в план настройки, где оно сравнивается с текущим состоянием, подтверждается вручную, проверяется обратным чтением и записывается, чтобы его можно было откатить.",
+  "zh-Hans": "这里的任何操作都不会自行写入。每个按钮只会把一项带类型的更改排入调优计划，在那里它会与实时状态对比预览、由你手动确认、通过回读验证，并被记录下来以便回滚。"
+ },
+ "Nothing is written until you accept the change consent in the tuning plan.": {
+  "es": "No se escribe nada hasta que acepte el consentimiento de cambios en el plan de ajuste.",
+  "ru": "Ничего не записывается, пока вы не примете согласие на изменения в плане настройки.",
+  "zh-Hans": "在调优计划中接受更改同意声明之前，不会写入任何内容。"
+ },
+ "Nothing measured here needs a router change.": {
+  "es": "Nada de lo medido aquí requiere un cambio en el router.",
+  "ru": "Ничто из измеренного здесь не требует изменений на роутере.",
+  "zh-Hans": "这里测得的结果都不需要改动路由器。"
+ },
+ "Nothing queued.": {
+  "es": "No hay nada en cola.",
+  "ru": "В очереди ничего нет.",
+  "zh-Hans": "队列为空。"
+ },
+ "Nothing stood out in the current inventory. This looks at configuration only; run a diagnosis to measure the path.": {
+  "es": "Nada destacó en el inventario actual. Esto solo mira la configuración; ejecute un diagnóstico para medir el camino.",
+  "ru": "В текущей инвентаризации ничего не выделяется. Здесь смотрится только конфигурация; чтобы измерить путь, запустите диагностику.",
+  "zh-Hans": "当前清单中没有异常项。这里只看配置；要测量路径请运行诊断。"
+ },
+ "Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online bufferbloat result — recommendations come from a measurement, never from a preset alone.": {
+  "es": "Todavía no hay nada de lo que partir. Ejecute un diagnóstico, mida el bufferbloat o importe un resultado en línea: las recomendaciones salen de una medición, nunca de un preajuste por sí solo.",
+  "ru": "Пока не из чего выводить. Запустите диагностику, измерьте bufferbloat или импортируйте онлайн-результат — рекомендации строятся на измерении, а не на одном лишь пресете.",
+  "zh-Hans": "目前还没有可依据的数据。请运行一次诊断、测量缓冲膨胀，或导入在线测试结果——建议来自实测，而非仅凭预设。"
+ },
+ "Now holds": {
+  "es": "Ahora contiene",
+  "ru": "Сейчас содержит",
+  "zh-Hans": "当前值"
+ },
+ "OVERVIEW": {
+  "es": "RESUMEN",
+  "ru": "ОБЗОР",
+  "zh-Hans": "总览"
+ },
+ "Offload inventory partial: {0}": {
+  "es": "Inventario de descargas parcial: {0}",
+  "ru": "Инвентаризация разгрузок неполная: {0}",
+  "zh-Hans": "卸载功能清单不完整：{0}"
+ },
+ "Offloads": {
+  "es": "Descargas (offloads)",
+  "ru": "Разгрузки",
+  "zh-Hans": "卸载功能"
+ },
+ "Only a successful apply can be rolled back.": {
+  "es": "Solo se puede revertir una aplicación que haya tenido éxito.",
+  "ru": "Откатить можно только успешно применённое изменение.",
+  "zh-Hans": "只有成功应用过的更改才能回滚。"
+ },
+ "Only acts when the gain is above the noise floor. Still asks for elevation, and every change is snapshotted.": {
+  "es": "Solo actúa cuando la ganancia supera el nivel de ruido. Sigue pidiendo elevación, y cada cambio queda en una instantánea.",
+  "ru": "Действует только когда выигрыш выше уровня шума. Всё равно запрашивает повышение прав, и каждое изменение сохраняется в снимке.",
+  "zh-Hans": "只有当收益高于噪声水平时才会动作。仍会请求提升权限，且每次更改都会创建快照。"
+ },
+ "Only devices with an override": {
+  "es": "Solo dispositivos con una anulación",
+  "ru": "Только устройства с переопределением",
+  "zh-Hans": "仅显示有覆盖设置的设备"
+ },
+ "Only offered for a device this profile flags, and never for the adapter carrying the default route": {
+  "es": "Solo se ofrece para un dispositivo que este perfil marque, y nunca para el adaptador que lleva la ruta predeterminada",
+  "ru": "Предлагается только для устройства, отмеченного этим профилем, и никогда для адаптера с маршрутом по умолчанию",
+  "zh-Hans": "仅对该用途配置标记出的设备提供，绝不会对承载默认路由的适配器提供"
+ },
+ "Only properties the selected driver actually advertises are listed. Every change is previewed, snapshotted, verified by read-back, and reversible from the audit history below.": {
+  "es": "Solo se listan las propiedades que el controlador seleccionado anuncia realmente. Cada cambio se previsualiza, se guarda en una instantánea, se verifica releyéndolo y es reversible desde el historial de auditoría de abajo.",
+  "ru": "Перечислены только свойства, которые действительно объявляет выбранный драйвер. Каждое изменение сначала показывается, сохраняется в снимке, проверяется обратным чтением и обратимо из истории аудита ниже.",
+  "zh-Hans": "只列出所选驱动程序实际公布的属性。每次更改都会预览、创建快照、通过回读验证，并可从下方的审计历史中回滚。"
+ },
+ "Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back.": {
+  "es": "Solo los ajustes que el controlador o Windows anuncian actualmente. Enviarlos al plan de ajuste no aplica nada: el plan sigue previsualizando, tomando instantáneas, verificando y pudiendo revertir.",
+  "ru": "Только те настройки, которые сейчас объявляют драйвер или Windows. Отправка их в план настройки ничего не применяет: план по-прежнему показывает, снимает снимок, проверяет и умеет откатывать.",
+  "zh-Hans": "只包含驱动程序或 Windows 当前公布的设置。把它们发送到调优计划不会应用任何内容：计划仍会预览、创建快照、验证并可回滚。"
+ },
+ "Only verifies TCP connection setup": {
+  "es": "Solo verifica el establecimiento de la conexión TCP",
+  "ru": "Проверяет только установление TCP-соединения",
+  "zh-Hans": "仅验证 TCP 连接的建立过程"
+ },
+ "Open Device Manager": {
+  "es": "Abrir el Administrador de dispositivos",
+  "ru": "Открыть диспетчер устройств",
+  "zh-Hans": "打开设备管理器"
+ },
+ "Open connections": {
+  "es": "Conexiones abiertas",
+  "ru": "Открытые соединения",
+  "zh-Hans": "打开连接"
+ },
+ "Open the section that fixes this": {
+  "es": "Abrir la sección que lo arregla",
+  "ru": "Открыть раздел, который это исправляет",
+  "zh-Hans": "打开可修复此项的区域"
+ },
+ "Opened in your browser. SockTuner bundles no third-party binaries and downloads nothing: these are where to get the tools it does not replace, and the measurement services worth checking a result against.": {
+  "es": "Se abren en su navegador. SockTuner no incluye binarios de terceros ni descarga nada: aquí están las herramientas que no sustituye y los servicios de medición con los que merece la pena contrastar un resultado.",
+  "ru": "Открывается в вашем браузере. SockTuner не поставляет сторонние программы и ничего не скачивает: здесь указано, где взять инструменты, которые он не заменяет, и сервисы измерений, с которыми стоит сверять результат.",
+  "zh-Hans": "将在你的浏览器中打开。SockTuner 不捆绑任何第三方程序，也不下载任何内容：这里列出的是它并不取代的工具的获取地址，以及值得用来核对结果的测量服务。"
+ },
+ "Opened {0} in your browser.": {
+  "es": "Se abrió {0} en su navegador.",
+  "ru": "{0} открыт в браузере.",
+  "zh-Hans": "已在浏览器中打开 {0}。"
+ },
+ "Opened {0}.": {
+  "es": "Se abrió {0}.",
+  "ru": "Открыто: {0}.",
+  "zh-Hans": "已打开 {0}。"
+ },
+ "Opens devmgmt.msc. Nothing is changed by opening it.": {
+  "es": "Abre devmgmt.msc. Abrirlo no cambia nada.",
+  "ru": "Открывает devmgmt.msc. Само открытие ничего не меняет.",
+  "zh-Hans": "打开 devmgmt.msc。仅打开不会更改任何内容。"
+ },
+ "Opens the Windows Network Connections folder (ncpa.cpl)": {
+  "es": "Abre la carpeta Conexiones de red de Windows (ncpa.cpl)",
+  "ru": "Открывает папку «Сетевые подключения» Windows (ncpa.cpl)",
+  "zh-Hans": "打开 Windows 的“网络连接”文件夹 (ncpa.cpl)"
+ },
+ "Operating system": {
+  "es": "Sistema operativo",
+  "ru": "Операционная система",
+  "zh-Hans": "操作系统"
+ },
+ "Optional TCP port": {
+  "es": "Puerto TCP opcional",
+  "ru": "Необязательный TCP-порт",
+  "zh-Hans": "可选的 TCP 端口"
+ },
+ "Other state": {
+  "es": "Otro estado",
+  "ru": "Прочее состояние",
+  "zh-Hans": "其他状态"
+ },
+ "Outcome": {
+  "es": "Resultado",
+  "ru": "Итог",
+  "zh-Hans": "结果"
+ },
+ "Owner": {
+  "es": "Propietario",
+  "ru": "Владелец",
+  "zh-Hans": "所有者"
+ },
+ "PRIVILEGE": {
+  "es": "PRIVILEGIO",
+  "ru": "ПРАВА",
+  "zh-Hans": "权限"
+ },
+ "PROCESSORS": {
+  "es": "PROCESADORES",
+  "ru": "ПРОЦЕССОРЫ",
+  "zh-Hans": "处理器"
+ },
+ "PROFILE": {
+  "es": "PERFIL",
+  "ru": "ПРОФИЛЬ",
+  "zh-Hans": "配置"
+ },
+ "PROTOCOL": {
+  "es": "PROTOCOLO",
+  "ru": "ПРОТОКОЛ",
+  "zh-Hans": "协议"
+ },
+ "Parallel streams": {
+  "es": "Flujos paralelos",
+  "ru": "Параллельных потоков",
+  "zh-Hans": "并行流数"
+ },
+ "Path shape": {
+  "es": "Forma del camino",
+  "ru": "Форма пути",
+  "zh-Hans": "路径形态"
+ },
+ "Pinged idle and again under load to measure queue growth": {
+  "es": "Se hizo ping en reposo y de nuevo con carga para medir el crecimiento de la cola",
+  "ru": "Ping выполнен в покое и повторно под нагрузкой, чтобы измерить рост очереди",
+  "zh-Hans": "分别在空闲和加载状态下 ping，以测量队列增长"
+ },
+ "Playable?": {
+  "es": "¿Jugable?",
+  "ru": "Играбельно?",
+  "zh-Hans": "可玩吗？"
+ },
+ "Policy": {
+  "es": "Directiva",
+  "ru": "Политика",
+  "zh-Hans": "策略"
+ },
+ "Precedence": {
+  "es": "Precedencia",
+  "ru": "Приоритет",
+  "zh-Hans": "优先级"
+ },
+ "Preference save failed: {0}": {
+  "es": "No se pudo guardar la preferencia: {0}",
+  "ru": "Не удалось сохранить настройку: {0}",
+  "zh-Hans": "偏好设置保存失败：{0}"
+ },
+ "Preferences": {
+  "es": "Preferencias",
+  "ru": "Настройки",
+  "zh-Hans": "偏好设置"
+ },
+ "Preview changes": {
+  "es": "Previsualizar cambios",
+  "ru": "Просмотреть изменения",
+  "zh-Hans": "预览更改"
+ },
+ "Priority": {
+  "es": "Prioridad",
+  "ru": "Приоритет",
+  "zh-Hans": "优先级"
+ },
+ "Probe and spike timeline": {
+  "es": "Cronología de sondeos y picos",
+  "ru": "Хронология зондов и всплесков",
+  "zh-Hans": "探测与尖峰时间线"
+ },
+ "Probe statistics": {
+  "es": "Estadísticas de sondeo",
+  "ru": "Статистика зондирования",
+  "zh-Hans": "探测统计"
+ },
+ "Profile": {
+  "es": "Perfil",
+  "ru": "Профиль",
+  "zh-Hans": "配置文件"
+ },
+ "Property": {
+  "es": "Propiedad",
+  "ru": "Свойство",
+  "zh-Hans": "属性"
+ },
+ "Proposed": {
+  "es": "Propuesto",
+  "ru": "Предложено",
+  "zh-Hans": "拟定值"
+ },
+ "Proposed value": {
+  "es": "Valor propuesto",
+  "ru": "Предлагаемое значение",
+  "zh-Hans": "拟定值"
+ },
+ "Protocol": {
+  "es": "Protocolo",
+  "ru": "Протокол",
+  "zh-Hans": "协议"
+ },
+ "Protocols": {
+  "es": "Protocolos",
+  "ru": "Протоколы",
+  "zh-Hans": "协议"
+ },
+ "Provider": {
+  "es": "Proveedor",
+  "ru": "Поставщик",
+  "zh-Hans": "提供程序"
+ },
+ "Provider / version": {
+  "es": "Proveedor / versión",
+  "ru": "Поставщик / версия",
+  "zh-Hans": "提供程序 / 版本"
+ },
+ "Provider ID": {
+  "es": "ID de proveedor",
+  "ru": "ID поставщика",
+  "zh-Hans": "提供程序 ID"
+ },
+ "QUERIES PER NAME": {
+  "es": "CONSULTAS POR NOMBRE",
+  "ru": "ЗАПРОСОВ НА ИМЯ",
+  "zh-Hans": "每个名称的查询次数"
+ },
+ "QoS policies": {
+  "es": "Directivas de QoS",
+  "ru": "Политики QoS",
+  "zh-Hans": "QoS 策略"
+ },
+ "QoS policy inventory partial: {0}": {
+  "es": "Inventario de directivas QoS parcial: {0}",
+  "ru": "Инвентаризация политик QoS неполная: {0}",
+  "zh-Hans": "QoS 策略清单不完整：{0}"
+ },
+ "Queries": {
+  "es": "Consultas",
+  "ru": "Запросы",
+  "zh-Hans": "查询"
+ },
+ "Queries per name": {
+  "es": "Consultas por nombre",
+  "ru": "Запросов на имя",
+  "zh-Hans": "每个名称的查询次数"
+ },
+ "Queries per name must be between 1 and 10.": {
+  "es": "Las consultas por nombre deben estar entre 1 y 10.",
+  "ru": "Число запросов на имя должно быть от 1 до 10.",
+  "zh-Hans": "每个名称的查询次数必须在 1 到 10 之间。"
+ },
+ "Queue policy": {
+  "es": "Directiva de cola",
+  "ru": "Дисциплина очереди",
+  "zh-Hans": "队列规则"
+ },
+ "Queue: disable adapter": {
+  "es": "Encolar: deshabilitar el adaptador",
+  "ru": "В очередь: отключить адаптер",
+  "zh-Hans": "排队：禁用适配器"
+ },
+ "Queue: enable adapter": {
+  "es": "Encolar: habilitar el adaptador",
+  "ru": "В очередь: включить адаптер",
+  "zh-Hans": "排队：启用适配器"
+ },
+ "Queue: no power saving": {
+  "es": "Encolar: sin ahorro de energía",
+  "ru": "В очередь: без энергосбережения",
+  "zh-Hans": "排队：关闭节能"
+ },
+ "Queue: restore power default": {
+  "es": "Encolar: restaurar la energía predeterminada",
+  "ru": "В очередь: вернуть питание по умолчанию",
+  "zh-Hans": "排队：恢复默认电源设置"
+ },
+ "Queued: {0} {1}. {2} device change(s) waiting. Nothing is written until you preview and confirm it in the tuning plan.": {
+  "es": "En cola: {0} {1}. {2} cambio(s) de dispositivo esperando. No se escribe nada hasta que lo previsualice y lo confirme en el plan de ajuste.",
+  "ru": "В очереди: {0} {1}. Ожидает изменений устройств: {2}. Ничего не записывается, пока вы не просмотрите и не подтвердите это в плане настройки.",
+  "zh-Hans": "已排队：{0} {1}。等待中的设备更改：{2} 项。在调优计划中预览并确认之前不会写入任何内容。"
+ },
+ "Queued: {0}. Nothing is written until you preview and confirm it in the tuning plan. A mark only does something once your router is configured to act on it.": {
+  "es": "En cola: {0}. No se escribe nada hasta que lo previsualice y lo confirme en el plan de ajuste. Una marca solo sirve de algo cuando su router está configurado para actuar sobre ella.",
+  "ru": "В очереди: {0}. Ничего не записывается, пока вы не просмотрите и не подтвердите это в плане настройки. Метка начинает работать, только когда роутер настроен на неё реагировать.",
+  "zh-Hans": "已排队：{0}。在调优计划中预览并确认之前不会写入任何内容。只有当你的路由器被配置为遵守该标记时，它才会起作用。"
+ },
+ "Queues every action this machine can make. The plan still previews, verifies and records them, and applying is still a separate confirmed step.": {
+  "es": "Encola todas las acciones que este equipo puede hacer. El plan sigue previsualizándolas, verificándolas y registrándolas, y aplicar sigue siendo un paso confirmado aparte.",
+  "ru": "Ставит в очередь все действия, доступные этому компьютеру. План по-прежнему показывает, проверяет и записывает их, а применение остаётся отдельным подтверждаемым шагом.",
+  "zh-Hans": "把本机能执行的所有操作排入队列。计划仍会预览、验证并记录它们，应用依旧是一个需单独确认的步骤。"
+ },
+ "Queues only the selected action": {
+  "es": "Encola solo la acción seleccionada",
+  "ru": "Ставит в очередь только выбранное действие",
+  "zh-Hans": "仅将所选操作排入队列"
+ },
+ "Queues the removal of the policy named for the application above. SockTuner only manages policies it created.": {
+  "es": "Encola la eliminación de la política con el nombre de la aplicación de arriba. SockTuner solo gestiona las políticas que ha creado.",
+  "ru": "Ставит в очередь удаление политики, названной по приложению выше. SockTuner управляет только созданными им политиками.",
+  "zh-Hans": "将删除以上方应用命名的策略排入队列。SockTuner 只管理由它自己创建的策略。"
+ },
+ "RECORDS": {
+  "es": "REGISTROS",
+  "ru": "ЗАПИСИ",
+  "zh-Hans": "记录"
+ },
+ "REFERENCE": {
+  "es": "REFERENCIA",
+  "ru": "СПРАВОЧНИК",
+  "zh-Hans": "参考"
+ },
+ "REMOTE PORTS": {
+  "es": "PUERTOS REMOTOS",
+  "ru": "УДАЛЁННЫЕ ПОРТЫ",
+  "zh-Hans": "远程端口"
+ },
+ "RSS, RSC and hardware offload state": {
+  "es": "Estado de RSS, RSC y descarga por hardware",
+  "ru": "Состояние RSS, RSC и аппаратных разгрузок",
+  "zh-Hans": "RSS、RSC 与硬件卸载状态"
+ },
+ "Ranked by median lookup time. A resolver that answers fast is not automatically the right choice: filtering, privacy and who operates it matter as much as latency.": {
+  "es": "Ordenados por el tiempo mediano de resolución. Un resolutor que responde rápido no es automáticamente la opción correcta: el filtrado, la privacidad y quién lo opera importan tanto como la latencia.",
+  "ru": "Отсортировано по медианному времени ответа. Быстрый DNS-сервер не становится от этого правильным выбором: фильтрация, приватность и то, кто его держит, важны не меньше задержки.",
+  "zh-Hans": "按查询时间中位数排序。响应快的解析器并不自动就是正确选择：过滤策略、隐私以及由谁运营，和延迟同样重要。"
+ },
+ "Raw value": {
+  "es": "Valor en bruto",
+  "ru": "Исходное значение",
+  "zh-Hans": "原始值"
+ },
+ "Re-read the whole Windows network inventory  (F5)": {
+  "es": "Volver a leer todo el inventario de red de Windows  (F5)",
+  "ru": "Перечитать всю сетевую инвентаризацию Windows  (F5)",
+  "zh-Hans": "重新读取整个 Windows 网络清单  (F5)"
+ },
+ "Re-run and compare": {
+  "es": "Volver a ejecutar y comparar",
+  "ru": "Повторить и сравнить",
+  "zh-Hans": "重跑并比较"
+ },
+ "Re-running the baseline diagnosis…": {
+  "es": "Repitiendo el diagnóstico de la línea base…",
+  "ru": "Повторяется базовая диагностика…",
+  "zh-Hans": "正在重跑基线诊断…"
+ },
+ "Reading Network List Manager…": {
+  "es": "Leyendo el Administrador de listas de redes…",
+  "ru": "Чтение диспетчера списка сетей…",
+  "zh-Hans": "正在读取网络列表管理器…"
+ },
+ "Reading StandardCimv2 QoS policies…": {
+  "es": "Leyendo las directivas QoS de StandardCimv2…",
+  "ru": "Чтение политик QoS из StandardCimv2…",
+  "zh-Hans": "正在读取 StandardCimv2 的 QoS 策略…"
+ },
+ "Reading StandardCimv2 TCP settings…": {
+  "es": "Leyendo los ajustes TCP de StandardCimv2…",
+  "ru": "Чтение настроек TCP из StandardCimv2…",
+  "zh-Hans": "正在读取 StandardCimv2 的 TCP 设置…"
+ },
+ "Reading StandardCimv2 binding state…": {
+  "es": "Leyendo el estado de enlaces de StandardCimv2…",
+  "ru": "Чтение состояния привязок из StandardCimv2…",
+  "zh-Hans": "正在读取 StandardCimv2 的绑定状态…"
+ },
+ "Reading StandardCimv2 offload state…": {
+  "es": "Leyendo el estado de descargas de StandardCimv2…",
+  "ru": "Чтение состояния разгрузок из StandardCimv2…",
+  "zh-Hans": "正在读取 StandardCimv2 的卸载状态…"
+ },
+ "Reading Windows network inventory…": {
+  "es": "Leyendo el inventario de red de Windows…",
+  "ru": "Чтение сетевой инвентаризации Windows…",
+  "zh-Hans": "正在读取 Windows 网络清单…"
+ },
+ "Reading native Winsock catalog…": {
+  "es": "Leyendo el catálogo nativo de Winsock…",
+  "ru": "Чтение нативного каталога Winsock…",
+  "zh-Hans": "正在读取原生 Winsock 目录…"
+ },
+ "Reading native driver metadata…": {
+  "es": "Leyendo los metadatos nativos del controlador…",
+  "ru": "Чтение нативных метаданных драйвера…",
+  "zh-Hans": "正在读取原生驱动元数据…"
+ },
+ "Reading native interface metrics…": {
+  "es": "Leyendo las métricas nativas de las interfaces…",
+  "ru": "Чтение нативных метрик интерфейсов…",
+  "zh-Hans": "正在读取原生接口度量…"
+ },
+ "Reading native route inventory…": {
+  "es": "Leyendo el inventario nativo de rutas…",
+  "ru": "Чтение нативной таблицы маршрутов…",
+  "zh-Hans": "正在读取原生路由清单…"
+ },
+ "Reads back every setting SockTuner has written and reports the ones something else has changed since": {
+  "es": "Relee todos los ajustes que SockTuner ha escrito e informa de los que algo más ha cambiado desde entonces",
+  "ru": "Перечитывает все настройки, записанные SockTuner, и сообщает о тех, которые с тех пор изменило что-то ещё",
+  "zh-Hans": "回读 SockTuner 写过的每一项设置，并报告此后被其他程序改动过的项"
+ },
+ "Ready": {
+  "es": "Listo",
+  "ru": "Готово",
+  "zh-Hans": "就绪"
+ },
+ "Receive issues": {
+  "es": "Problemas de recepción",
+  "ru": "Проблемы приёма",
+  "zh-Hans": "接收问题"
+ },
+ "Received": {
+  "es": "Recibido",
+  "ru": "Получено",
+  "zh-Hans": "已接收"
+ },
+ "Recommendations": {
+  "es": "Recomendaciones",
+  "ru": "Рекомендации",
+  "zh-Hans": "建议"
+ },
+ "Recommendations are derived from a measurement: the last diagnosis, the last bufferbloat run, or an online bufferbloat result imported on the Throughput tab. Run or import one first; nothing here measures anything by itself.": {
+  "es": "Las recomendaciones se derivan de una medición: el último diagnóstico, la última prueba de bufferbloat o un resultado en línea importado en la pestaña de rendimiento. Ejecute o importe una primero; aquí nada mide nada por sí solo.",
+  "ru": "Рекомендации выводятся из измерения: последней диагностики, последнего прогона bufferbloat или онлайн-результата, импортированного на вкладке пропускной способности. Сначала выполните или импортируйте измерение; здесь ничто само по себе ничего не измеряет.",
+  "zh-Hans": "建议来自一次实测：最近一次诊断、最近一次缓冲膨胀测量，或在“吞吐量”标签页导入的在线测试结果。请先运行或导入一次；这里本身不会进行任何测量。"
+ },
+ "Recommendations could not be built: {0}": {
+  "es": "No se pudieron generar las recomendaciones: {0}",
+  "ru": "Не удалось составить рекомендации: {0}",
+  "zh-Hans": "无法生成建议：{0}"
+ },
+ "Redacted support snapshot": {
+  "es": "Instantánea de soporte censurada",
+  "ru": "Снимок для поддержки без данных",
+  "zh-Hans": "脱敏支持快照"
+ },
+ "Reference tools and reading": {
+  "es": "Herramientas de referencia y lecturas",
+  "ru": "Справочные инструменты и материалы",
+  "zh-Hans": "参考工具与读物"
+ },
+ "Refresh": {
+  "es": "Actualizar",
+  "ru": "Обновить",
+  "zh-Hans": "刷新"
+ },
+ "Refresh inventory before exporting a snapshot.": {
+  "es": "Actualice el inventario antes de exportar una instantánea.",
+  "ru": "Обновите инвентаризацию перед экспортом снимка.",
+  "zh-Hans": "导出快照前请先刷新清单。"
+ },
+ "Refresh inventory before exporting a support snapshot.": {
+  "es": "Actualice el inventario antes de exportar una instantánea de soporte.",
+  "ru": "Обновите инвентаризацию перед экспортом снимка для поддержки.",
+  "zh-Hans": "导出支持快照前请先刷新清单。"
+ },
+ "Refresh network inventory": {
+  "es": "Actualizar el inventario de red",
+  "ru": "Обновить сетевую инвентаризацию",
+  "zh-Hans": "刷新网络清单"
+ },
+ "Refresh the inventory to list network devices.": {
+  "es": "Actualice el inventario para listar los dispositivos de red.",
+  "ru": "Обновите инвентаризацию, чтобы увидеть сетевые устройства.",
+  "zh-Hans": "请刷新清单以列出网络设备。"
+ },
+ "Refused: this machine no longer offers {0} on {1}.": {
+  "es": "Rechazado: este equipo ya no ofrece {0} en {1}.",
+  "ru": "Отклонено: этот компьютер больше не предлагает {0} на {1}.",
+  "zh-Hans": "已拒绝：本机在 {1} 上不再提供 {0}。"
+ },
+ "Refused: “{0}” is not a policy SockTuner can manage, or the values are not valid.": {
+  "es": "Rechazado: «{0}» no es una política que SockTuner pueda gestionar, o los valores no son válidos.",
+  "ru": "Отклонено: «{0}» — не та политика, которой может управлять SockTuner, либо значения недопустимы.",
+  "zh-Hans": "已拒绝：“{0}”不是 SockTuner 可管理的策略，或者取值无效。"
+ },
+ "Reload capabilities": {
+  "es": "Recargar capacidades",
+  "ru": "Перечитать возможности",
+  "zh-Hans": "重新加载能力信息"
+ },
+ "Remote ports": {
+  "es": "Puertos remotos",
+  "ru": "Удалённые порты",
+  "zh-Hans": "远程端口"
+ },
+ "Remove a SockTuner policy": {
+  "es": "Eliminar una política de SockTuner",
+  "ru": "Удалить политику SockTuner",
+  "zh-Hans": "移除某个 SockTuner 策略"
+ },
+ "Removes the override so the driver own INF decides again": {
+  "es": "Elimina la anulación para que vuelva a decidir el propio INF del controlador",
+  "ru": "Убирает переопределение, чтобы решение снова принимал собственный INF драйвера",
+  "zh-Hans": "移除覆盖设置，交还给驱动自身的 INF 决定"
+ },
+ "Repeated route samples": {
+  "es": "Muestras de ruta repetidas",
+  "ru": "Повторные замеры маршрута",
+  "zh-Hans": "重复的路由采样"
+ },
+ "Repeats the diagnosis with exactly the parameters of the baseline run": {
+  "es": "Repite el diagnóstico exactamente con los parámetros de la ejecución de referencia",
+  "ru": "Повторяет диагностику ровно с параметрами базового прогона",
+  "zh-Hans": "以与基线运行完全相同的参数重跑诊断"
+ },
+ "Report export failed: {0}": {
+  "es": "Falló la exportación del informe: {0}",
+  "ru": "Не удалось экспортировать отчёт: {0}",
+  "zh-Hans": "报告导出失败：{0}"
+ },
+ "Report exported to {0}.": {
+  "es": "Informe exportado a {0}.",
+  "ru": "Отчёт экспортирован в {0}.",
+  "zh-Hans": "报告已导出到 {0}。"
+ },
+ "Rescan devices": {
+  "es": "Reescanear dispositivos",
+  "ru": "Пересканировать устройства",
+  "zh-Hans": "重新扫描设备"
+ },
+ "Resolver": {
+  "es": "Resolutor",
+  "ru": "DNS-сервер",
+  "zh-Hans": "解析器"
+ },
+ "Resolver benchmark cancelled.": {
+  "es": "Medición de resolutores cancelada.",
+  "ru": "Измерение DNS-серверов отменено.",
+  "zh-Hans": "解析器基准测试已取消。"
+ },
+ "Resolver benchmark complete.": {
+  "es": "Medición de resolutores completada.",
+  "ru": "Измерение DNS-серверов завершено.",
+  "zh-Hans": "解析器基准测试完成。"
+ },
+ "Resolver benchmark failed.": {
+  "es": "La medición de resolutores falló.",
+  "ru": "Измерение DNS-серверов не удалось.",
+  "zh-Hans": "解析器基准测试失败。"
+ },
+ "Resolver change failed: {0}": {
+  "es": "Falló el cambio de resolutor: {0}",
+  "ru": "Не удалось сменить DNS-сервер: {0}",
+  "zh-Hans": "解析器更改失败：{0}"
+ },
+ "Restart": {
+  "es": "Reinicio",
+  "ru": "Перезапуск",
+  "zh-Hans": "重启"
+ },
+ "Restore DHCP resolvers": {
+  "es": "Restaurar los resolutores DHCP",
+  "ru": "Вернуть DNS-серверы от DHCP",
+  "zh-Hans": "恢复 DHCP 下发的解析器"
+ },
+ "Restore Windows default": {
+  "es": "Restaurar el valor predeterminado de Windows",
+  "ru": "Вернуть значение Windows по умолчанию",
+  "zh-Hans": "恢复 Windows 默认值"
+ },
+ "Result": {
+  "es": "Resultado",
+  "ru": "Результат",
+  "zh-Hans": "结果"
+ },
+ "Retention saved, but existing logs could not be trimmed: {0}": {
+  "es": "Retención guardada, pero no se pudieron recortar los registros existentes: {0}",
+  "ru": "Параметр хранения сохранён, но обрезать существующие журналы не удалось: {0}",
+  "zh-Hans": "保留设置已保存，但无法裁剪现有日志：{0}"
+ },
+ "Retention saved: two files of up to {0} MB each.": {
+  "es": "Retención guardada: dos archivos de hasta {0} MB cada uno.",
+  "ru": "Параметр хранения сохранён: два файла по {0} МБ.",
+  "zh-Hans": "保留设置已保存：两个文件，每个最多 {0} MB。"
+ },
+ "Risk": {
+  "es": "Riesgo",
+  "ru": "Риск",
+  "zh-Hans": "风险"
+ },
+ "Role": {
+  "es": "Función",
+  "ru": "Роль",
+  "zh-Hans": "角色"
+ },
+ "Roll back selected": {
+  "es": "Revertir lo seleccionado",
+  "ru": "Откатить выбранное",
+  "zh-Hans": "回滚所选项"
+ },
+ "Route inventory partial: {0}": {
+  "es": "Inventario de rutas parcial: {0}",
+  "ru": "Инвентаризация маршрутов неполная: {0}",
+  "zh-Hans": "路由清单不完整：{0}"
+ },
+ "Routes & DNS": {
+  "es": "Rutas y DNS",
+  "ru": "Маршруты и DNS",
+  "zh-Hans": "路由与 DNS"
+ },
+ "Run a benchmark first.": {
+  "es": "Ejecute primero una medición.",
+  "ru": "Сначала выполните измерение.",
+  "zh-Hans": "请先运行一次基准测试。"
+ },
+ "Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one.": {
+  "es": "Ejecute primero una medición de bufferbloat: el consejo de conformado se calcula a partir de la velocidad que esta conexión alcanzó realmente, nunca de la anunciada.",
+  "ru": "Сначала выполните измерение bufferbloat: советы по шейпингу считаются от скорости, которой это соединение действительно достигло, а не от заявленной.",
+  "zh-Hans": "请先做一次缓冲膨胀测量：整形建议基于这条连接实际达到的速率计算，绝不使用标称速率。"
+ },
+ "Run a completed diagnosis before exporting a report.": {
+  "es": "Ejecute un diagnóstico completo antes de exportar un informe.",
+  "ru": "Перед экспортом отчёта выполните диагностику до конца.",
+  "zh-Hans": "导出报告前请先完整运行一次诊断。"
+ },
+ "Run a diagnosis to judge the game endpoint against a tick rate.": {
+  "es": "Ejecute un diagnóstico para juzgar el extremo del juego frente a una tasa de tick.",
+  "ru": "Запустите диагностику, чтобы оценить игровую конечную точку относительно частоты тиков.",
+  "zh-Hans": "运行一次诊断，以按 tick 率评判该游戏端点。"
+ },
+ "Run a diagnosis to populate findings.": {
+  "es": "Ejecute un diagnóstico para rellenar los hallazgos.",
+  "ru": "Запустите диагностику, чтобы получить выводы.",
+  "zh-Hans": "运行一次诊断以填充诊断发现。"
+ },
+ "Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically.": {
+  "es": "Ejecute un diagnóstico y luego aplique un plan. La ejecución previa al cambio se convierte automáticamente en la línea base.",
+  "ru": "Запустите диагностику, затем примените план. Прогон до изменения автоматически становится базовым.",
+  "zh-Hans": "先运行诊断，再应用计划。更改前的那次运行会自动成为基线。"
+ },
+ "Run diagnosis": {
+  "es": "Diagnosticar",
+  "ru": "Диагностика",
+  "zh-Hans": "运行诊断"
+ },
+ "Running…": {
+  "es": "Ejecutando…",
+  "ru": "Выполняется…",
+  "zh-Hans": "正在运行…"
+ },
+ "Runs automatically with every inventory refresh.": {
+  "es": "Se ejecuta automáticamente con cada actualización del inventario.",
+  "ru": "Выполняется автоматически при каждом обновлении инвентаризации.",
+  "zh-Hans": "每次刷新清单时自动运行。"
+ },
+ "SECONDS PER PHASE": {
+  "es": "SEGUNDOS POR FASE",
+  "ru": "СЕКУНД НА ФАЗУ",
+  "zh-Hans": "每阶段秒数"
+ },
+ "STREAMS": {
+  "es": "FLUJOS",
+  "ru": "ПОТОКИ",
+  "zh-Hans": "流数"
+ },
+ "SYN retries": {
+  "es": "Reintentos SYN",
+  "ru": "Повторы SYN",
+  "zh-Hans": "SYN 重试"
+ },
+ "Safe workflow": {
+  "es": "Flujo de trabajo seguro",
+  "ru": "Безопасный порядок работы",
+  "zh-Hans": "安全的操作流程"
+ },
+ "Same target, same profile, same load condition, same port.": {
+  "es": "Mismo objetivo, mismo perfil, misma condición de carga, mismo puerto.",
+  "ru": "Та же цель, тот же профиль, то же условие нагрузки, тот же порт.",
+  "zh-Hans": "相同目标、相同配置、相同负载条件、相同端口。"
+ },
+ "Saved": {
+  "es": "Guardado",
+  "ru": "Сохранено",
+  "zh-Hans": "已保存"
+ },
+ "Scope": {
+  "es": "Ámbito",
+  "ru": "Область",
+  "zh-Hans": "范围"
+ },
+ "Search all inventory": {
+  "es": "Buscar en todo el inventario",
+  "ru": "Искать по всей инвентаризации",
+  "zh-Hans": "搜索全部清单"
+ },
+ "Search all inventory  (Ctrl+F)": {
+  "es": "Buscar en el inventario  (Ctrl+F)",
+  "ru": "Поиск по инвентаризации  (Ctrl+F)",
+  "zh-Hans": "搜索全部清单  (Ctrl+F)"
+ },
+ "Seconds per phase": {
+  "es": "Segundos por fase",
+  "ru": "Секунд на фазу",
+  "zh-Hans": "每阶段秒数"
+ },
+ "Seconds per phase must be between 1 and {0:0}.": {
+  "es": "Los segundos por fase deben estar entre 1 y {0:0}.",
+  "ru": "Число секунд на фазу должно быть от 1 до {0:0}.",
+  "zh-Hans": "每阶段秒数必须在 1 到 {0:0} 之间。"
+ },
+ "Section": {
+  "es": "Sección",
+  "ru": "Раздел",
+  "zh-Hans": "区域"
+ },
+ "Segment": {
+  "es": "Segmento",
+  "ru": "Участок",
+  "zh-Hans": "网段"
+ },
+ "Select a device": {
+  "es": "Seleccione un dispositivo",
+  "ru": "Выберите устройство",
+  "zh-Hans": "请选择一个设备"
+ },
+ "Select a device above.": {
+  "es": "Seleccione un dispositivo arriba.",
+  "ru": "Выберите устройство выше.",
+  "zh-Hans": "请在上方选择一个设备。"
+ },
+ "Select a device first.": {
+  "es": "Seleccione primero un dispositivo.",
+  "ru": "Сначала выберите устройство.",
+  "zh-Hans": "请先选择一个设备。"
+ },
+ "Select a diagnostic profile.": {
+  "es": "Seleccione un perfil de diagnóstico.",
+  "ru": "Выберите профиль диагностики.",
+  "zh-Hans": "请选择一个诊断配置。"
+ },
+ "Select a game tick rate.": {
+  "es": "Seleccione una tasa de tick de juego.",
+  "ru": "Выберите частоту тиков игры.",
+  "zh-Hans": "请选择游戏的 tick 率。"
+ },
+ "Select a policy and priority.": {
+  "es": "Seleccione una directiva y una prioridad.",
+  "ru": "Выберите политику и приоритет.",
+  "zh-Hans": "请选择策略和优先级。"
+ },
+ "Select a property": {
+  "es": "Seleccione una propiedad",
+  "ru": "Выберите свойство",
+  "zh-Hans": "请选择一个属性"
+ },
+ "Select a transfer direction.": {
+  "es": "Seleccione una dirección de transferencia.",
+  "ru": "Выберите направление передачи.",
+  "zh-Hans": "请选择传输方向。"
+ },
+ "Select an NDIS property to copy.": {
+  "es": "Seleccione una propiedad NDIS para copiar.",
+  "ru": "Выберите свойство NDIS для копирования.",
+  "zh-Hans": "请选择要复制的 NDIS 属性。"
+ },
+ "Select an action that this machine can make.": {
+  "es": "Seleccione una acción que este equipo pueda hacer.",
+  "ru": "Выберите действие, доступное этому компьютеру.",
+  "zh-Hans": "请选择一项本机能够执行的操作。"
+ },
+ "Select an adapter to change.": {
+  "es": "Seleccione un adaptador a cambiar.",
+  "ru": "Выберите адаптер для изменения.",
+  "zh-Hans": "请选择要更改的适配器。"
+ },
+ "Select an adapter to copy.": {
+  "es": "Seleccione un adaptador para copiar.",
+  "ru": "Выберите адаптер для копирования.",
+  "zh-Hans": "请选择要复制的适配器。"
+ },
+ "Select an adapter to list its driver-advertised properties.": {
+  "es": "Seleccione un adaptador para listar las propiedades que anuncia su controlador.",
+  "ru": "Выберите адаптер, чтобы увидеть свойства, объявленные его драйвером.",
+  "zh-Hans": "请选择一个适配器，以列出其驱动程序公布的属性。"
+ },
+ "Select an applied entry to restore exactly the values it captured: the Current column of the plan it applied.": {
+  "es": "Seleccione una entrada aplicada para restaurar exactamente los valores que capturó: la columna Actual del plan que aplicó.",
+  "ru": "Выберите применённую запись, чтобы восстановить ровно те значения, которые она сохранила: колонку «Текущее» применённого плана.",
+  "zh-Hans": "选择一条已应用的记录，以精确恢复它当时采集的值：即所应用计划的“当前”一列。"
+ },
+ "Select an audit entry to roll back.": {
+  "es": "Seleccione una entrada de auditoría para revertir.",
+  "ru": "Выберите запись аудита для отката.",
+  "zh-Hans": "请选择要回滚的审计记录。"
+ },
+ "Select an inventory row to copy.": {
+  "es": "Seleccione una fila del inventario para copiar.",
+  "ru": "Выберите строку инвентаризации для копирования.",
+  "zh-Hans": "请选择要复制的清单行。"
+ },
+ "Select exactly one run to export.": {
+  "es": "Seleccione exactamente una ejecución para exportar.",
+  "ru": "Для экспорта выберите ровно один прогон.",
+  "zh-Hans": "请恰好选择一条运行记录来导出。"
+ },
+ "Select exactly two identical-parameter runs to compare.": {
+  "es": "Seleccione exactamente dos ejecuciones con los mismos parámetros para comparar.",
+  "ru": "Для сравнения выберите ровно два прогона с одинаковыми параметрами.",
+  "zh-Hans": "请恰好选择两条参数相同的运行记录进行比较。"
+ },
+ "Select exactly two runs.": {
+  "es": "Seleccione exactamente dos ejecuciones.",
+  "ru": "Выберите ровно два прогона.",
+  "zh-Hans": "请恰好选择两条运行记录。"
+ },
+ "Self-contained HTML report (*.html)|*.html": {
+  "es": "Informe HTML autónomo (*.html)|*.html",
+  "ru": "Автономный HTML-отчёт (*.html)|*.html",
+  "zh-Hans": "自包含 HTML 报告 (*.html)|*.html"
+ },
+ "Send all to tuning plan": {
+  "es": "Enviar todo al plan de ajuste",
+  "ru": "Отправить всё в план настройки",
+  "zh-Hans": "全部发送到调优计划"
+ },
+ "Send issues": {
+  "es": "Problemas de envío",
+  "ru": "Проблемы отправки",
+  "zh-Hans": "发送问题"
+ },
+ "Send selected": {
+  "es": "Enviar lo seleccionado",
+  "ru": "Отправить выбранное",
+  "zh-Hans": "发送所选项"
+ },
+ "Sent": {
+  "es": "Enviado",
+  "ru": "Отправлено",
+  "zh-Hans": "已发送"
+ },
+ "Sent {0} change(s) from {1} action(s) to the tuning plan. Nothing is applied until you preview and confirm it there.": {
+  "es": "Se enviaron {0} cambio(s) de {1} acción(es) al plan de ajuste. No se aplica nada hasta que lo previsualice y lo confirme allí.",
+  "ru": "В план настройки отправлено изменений: {0} из действий: {1}. Ничего не применяется, пока вы там не просмотрите и не подтвердите это.",
+  "zh-Hans": "已从 {1} 项操作中把 {0} 项更改发送到调优计划。在那里预览并确认之前不会应用任何内容。"
+ },
+ "Sent {0} change(s) to the tuning plan. Nothing is applied until you review and confirm there.": {
+  "es": "Se enviaron {0} cambio(s) al plan de ajuste. No se aplica nada hasta que lo revise y lo confirme allí.",
+  "ru": "В план настройки отправлено изменений: {0}. Ничего не применяется, пока вы там не проверите и не подтвердите это.",
+  "zh-Hans": "已把 {0} 项更改发送到调优计划。在那里检查并确认之前不会应用任何内容。"
+ },
+ "Sent {0} of {1} change(s); the rest are not advertised by the selected adapter's driver.": {
+  "es": "Se enviaron {0} de {1} cambio(s); el resto no los anuncia el controlador del adaptador seleccionado.",
+  "ru": "Отправлено {0} из {1} изменений; остальные не объявлены драйвером выбранного адаптера.",
+  "zh-Hans": "已发送 {1} 项更改中的 {0} 项；其余项所选适配器的驱动程序并未公布。"
+ },
+ "Sent {0} of {1} change(s); the rest are not advertised for the selected adapter.": {
+  "es": "Se enviaron {0} de {1} cambio(s); el resto no se anuncian para el adaptador seleccionado.",
+  "ru": "Отправлено {0} из {1} изменений; остальные не объявлены для выбранного адаптера.",
+  "zh-Hans": "已发送 {1} 项更改中的 {0} 项；其余项未对所选适配器公布。"
+ },
+ "Sets the probe's packet size and the thresholds the result is judged against": {
+  "es": "Fija el tamaño de paquete del sondeo y los umbrales con los que se juzga el resultado",
+  "ru": "Задаёт размер пакета зонда и пороги, по которым оценивается результат",
+  "zh-Hans": "设定探测包大小以及评判结果所用的阈值"
+ },
+ "Setting": {
+  "es": "Ajuste",
+  "ru": "Настройка",
+  "zh-Hans": "设置项"
+ },
+ "Settings changed outside SockTuner": {
+  "es": "Ajustes cambiados fuera de SockTuner",
+  "ru": "Настройки, изменённые вне SockTuner",
+  "zh-Hans": "在 SockTuner 之外被改动的设置"
+ },
+ "Severity": {
+  "es": "Gravedad",
+  "ru": "Важность",
+  "zh-Hans": "严重程度"
+ },
+ "Snapshot": {
+  "es": "Instantánea",
+  "ru": "Снимок",
+  "zh-Hans": "快照"
+ },
+ "Snapshot export failed: {0}": {
+  "es": "Falló la exportación de la instantánea: {0}",
+  "ru": "Не удалось экспортировать снимок: {0}",
+  "zh-Hans": "快照导出失败：{0}"
+ },
+ "SockTuner JSON Lines log (*.jsonl)|*.jsonl": {
+  "es": "Registro JSON Lines de SockTuner (*.jsonl)|*.jsonl",
+  "ru": "Журнал SockTuner в формате JSON Lines (*.jsonl)|*.jsonl",
+  "zh-Hans": "SockTuner JSON Lines 日志 (*.jsonl)|*.jsonl"
+ },
+ "SockTuner JSON report (*.json)|*.json": {
+  "es": "Informe JSON de SockTuner (*.json)|*.json",
+  "ru": "JSON-отчёт SockTuner (*.json)|*.json",
+  "zh-Hans": "SockTuner JSON 报告 (*.json)|*.json"
+ },
+ "SockTuner JSON snapshot (*.json)|*.json": {
+  "es": "Instantánea JSON de SockTuner (*.json)|*.json",
+  "ru": "JSON-снимок SockTuner (*.json)|*.json",
+  "zh-Hans": "SockTuner JSON 快照 (*.json)|*.json"
+ },
+ "SockTuner is in alpha and is about to change live network settings on this computer.\n\n• Applying a NIC property restarts that adapter, which briefly drops the link. Do not continue over a remote session on the adapter you are changing.\n• A wrong value can reduce throughput or stability, or leave the adapter without connectivity until you roll back.\n• Every change is snapshotted, verified by reading it back, and can be rolled back exactly from the audit history.\n• Changes marked high risk or experimental need an extra typed confirmation.\n\nOnly continue if you can recover this machine's network without remote access.": {
+  "es": "SockTuner está en alfa y está a punto de cambiar ajustes de red en vivo en este equipo.\n\n• Aplicar una propiedad de la NIC reinicia ese adaptador, lo que corta brevemente el enlace. No continúe a través de una sesión remota sobre el adaptador que está cambiando.\n• Un valor incorrecto puede reducir el rendimiento o la estabilidad, o dejar el adaptador sin conectividad hasta que lo revierta.\n• Cada cambio se guarda en una instantánea, se verifica releyéndolo y puede revertirse exactamente desde el historial de auditoría.\n• Los cambios marcados como de alto riesgo o experimentales requieren una confirmación escrita adicional.\n\nContinúe solo si puede recuperar la red de este equipo sin acceso remoto.",
+  "ru": "SockTuner находится в стадии альфа-версии и сейчас изменит сетевые настройки на этом компьютере в реальном времени.\n\n• Применение свойства сетевой карты перезапускает адаптер, из-за чего связь ненадолго пропадает. Не продолжайте через удалённый сеанс по тому адаптеру, который вы меняете.\n• Неверное значение может снизить пропускную способность или стабильность либо оставить адаптер без связи до отката.\n• Каждое изменение сохраняется в снимке, проверяется обратным чтением и может быть точно откачено из истории аудита.\n• Изменения, помеченные как высокорисковые или экспериментальные, требуют дополнительного подтверждения вводом.\n\nПродолжайте, только если сможете восстановить сеть этого компьютера без удалённого доступа.",
+  "zh-Hans": "SockTuner 处于 alpha 阶段，接下来会更改本机上正在生效的网络设置。\n\n• 应用网卡属性会重启该适配器，链路会短暂中断。请勿通过正在更改的那块适配器上的远程会话继续操作。\n• 错误的取值可能降低吞吐量或稳定性，也可能让适配器在回滚前完全失去连接。\n• 每次更改都会创建快照、通过回读验证，并可从审计历史中精确回滚。\n• 标记为高风险或实验性的更改需要额外键入确认。\n\n只有在你能够不依赖远程访问恢复本机网络的情况下才继续。"
+ },
+ "SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file.": {
+  "es": "SockTuner conserva el registro actual más un archivo rotado. Elija el tamaño máximo de cada archivo.",
+  "ru": "SockTuner хранит текущий журнал и один ротированный файл. Выберите максимальный размер каждого файла.",
+  "zh-Hans": "SockTuner 会保留当前日志以及一个轮转文件。请选择每个文件的最大大小。"
+ },
+ "SockTuner wrote": {
+  "es": "SockTuner escribió",
+  "ru": "SockTuner записал",
+  "zh-Hans": "SockTuner 写入的值"
+ },
+ "Socket": {
+  "es": "Socket",
+  "ru": "Сокет",
+  "zh-Hans": "套接字"
+ },
+ "Source": {
+  "es": "Origen",
+  "ru": "Источник",
+  "zh-Hans": "来源"
+ },
+ "Speed": {
+  "es": "Velocidad",
+  "ru": "Скорость",
+  "zh-Hans": "速率"
+ },
+ "Spike": {
+  "es": "Pico",
+  "ru": "Всплеск",
+  "zh-Hans": "尖峰"
+ },
+ "Spikes": {
+  "es": "Picos",
+  "ru": "Всплески",
+  "zh-Hans": "尖峰"
+ },
+ "Stable identity, state, link speed, addresses, gateways, and protocol support.": {
+  "es": "Identidad estable, estado, velocidad del enlace, direcciones, puertas de enlace y protocolos admitidos.",
+  "ru": "Устойчивый идентификатор, состояние, скорость канала, адреса, шлюзы и поддержка протоколов.",
+  "zh-Hans": "稳定标识、状态、链路速率、地址、网关以及协议支持情况。"
+ },
+ "Standard user": {
+  "es": "Usuario estándar",
+  "ru": "Обычный",
+  "zh-Hans": "标准用户"
+ },
+ "Start": {
+  "es": "Iniciar",
+  "ru": "Пуск",
+  "zh-Hans": "开始"
+ },
+ "State": {
+  "es": "Estado",
+  "ru": "Состояние",
+  "zh-Hans": "状态"
+ },
+ "Status": {
+  "es": "Estado",
+  "ru": "Статус",
+  "zh-Hans": "状态"
+ },
+ "Stop": {
+  "es": "Detener",
+  "ru": "Стоп",
+  "zh-Hans": "停止"
+ },
+ "Stopping the resolver benchmark…": {
+  "es": "Deteniendo la medición de resolutores…",
+  "ru": "Останавливается измерение DNS-серверов…",
+  "zh-Hans": "正在停止解析器基准测试…"
+ },
+ "Stopping the transfer…": {
+  "es": "Deteniendo la transferencia…",
+  "ru": "Останавливается передача…",
+  "zh-Hans": "正在停止传输…"
+ },
+ "Streams must be between 1 and {0}.": {
+  "es": "Los flujos deben estar entre 1 y {0}.",
+  "ru": "Число потоков должно быть от 1 до {0}.",
+  "zh-Hans": "流数必须在 1 到 {0} 之间。"
+ },
+ "System baseline": {
+  "es": "Línea base del sistema",
+  "ru": "Базовое состояние системы",
+  "zh-Hans": "系统基线"
+ },
+ "TCP PORT (OPTIONAL)": {
+  "es": "PUERTO TCP (OPCIONAL)",
+  "ru": "TCP-ПОРТ (НЕОБЯЗАТЕЛЬНО)",
+  "zh-Hans": "TCP 端口（可选）"
+ },
+ "TCP port must be between 1 and 65535.": {
+  "es": "El puerto TCP debe estar entre 1 y 65535.",
+  "ru": "TCP-порт должен быть от 1 до 65535.",
+  "zh-Hans": "TCP 端口必须在 1 到 65535 之间。"
+ },
+ "TCP setting inventory partial: {0}": {
+  "es": "Inventario de ajustes TCP parcial: {0}",
+  "ru": "Инвентаризация настроек TCP неполная: {0}",
+  "zh-Hans": "TCP 设置清单不完整：{0}"
+ },
+ "TCP settings": {
+  "es": "Ajustes TCP",
+  "ru": "Настройки TCP",
+  "zh-Hans": "TCP 设置"
+ },
+ "TCP templates and effective policy": {
+  "es": "Plantillas TCP y directiva efectiva",
+  "ru": "Шаблоны TCP и действующая политика",
+  "zh-Hans": "TCP 模板与生效策略"
+ },
+ "THROUGHPUT ENDPOINT": {
+  "es": "EXTREMO DE RENDIMIENTO",
+  "ru": "КОНЕЧНАЯ ТОЧКА ДЛЯ ПРОПУСКНОЙ СПОСОБНОСТИ",
+  "zh-Hans": "吞吐量端点"
+ },
+ "Target": {
+  "es": "Objetivo",
+  "ru": "Цель",
+  "zh-Hans": "目标"
+ },
+ "Template": {
+  "es": "Plantilla",
+  "ru": "Шаблон",
+  "zh-Hans": "模板"
+ },
+ "That file could not be read as a capture report: {0}": {
+  "es": "Ese archivo no se pudo leer como informe de captura: {0}",
+  "ru": "Этот файл не удалось прочитать как отчёт захвата: {0}",
+  "zh-Hans": "无法把该文件当作抓包报告读取：{0}"
+ },
+ "That file is larger than {0} MB and was not read.": {
+  "es": "Ese archivo supera los {0} MB y no se leyó.",
+  "ru": "Файл больше {0} МБ и не был прочитан.",
+  "zh-Hans": "该文件超过 {0} MB，未读取。"
+ },
+ "That link is not one of the listed references.": {
+  "es": "Ese enlace no es una de las referencias listadas.",
+  "ru": "Эта ссылка не входит в перечисленные источники.",
+  "zh-Hans": "该链接不属于列出的参考条目。"
+ },
+ "The DSCP value must be a number between 0 and 63.": {
+  "es": "El valor DSCP debe ser un número entre 0 y 63.",
+  "ru": "Значение DSCP должно быть числом от 0 до 63.",
+  "zh-Hans": "DSCP 值必须是 0 到 63 之间的数字。"
+ },
+ "The executable name Windows should match, or its full path": {
+  "es": "El nombre del ejecutable que Windows debe reconocer, o su ruta completa",
+  "ru": "Имя исполняемого файла, которое должна сопоставлять Windows, или его полный путь",
+  "zh-Hans": "Windows 应匹配的可执行文件名，或其完整路径"
+ },
+ "The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?": {
+  "es": "El informe completo contiene objetivos de diagnóstico, direcciones, rutas, identificadores de adaptador y detalles de errores. ¿Exportarlo de todos modos?",
+  "ru": "Полный отчёт содержит цели диагностики, адреса, маршруты, идентификаторы адаптеров и подробности ошибок. Всё равно экспортировать?",
+  "zh-Hans": "完整报告包含诊断目标、地址、路由、适配器标识和错误细节。仍要导出吗？"
+ },
+ "The game server or regional endpoint to measure. A host name or an IP address.": {
+  "es": "El servidor de juego o extremo regional a medir. Un nombre de host o una dirección IP.",
+  "ru": "Игровой сервер или региональная конечная точка для измерения. Имя узла или IP-адрес.",
+  "zh-Hans": "要测量的游戏服务器或区域端点。可填主机名或 IP 地址。"
+ },
+ "The measurements worth checking a SockTuner result against, and the tools this app deliberately does not replace.": {
+  "es": "Las mediciones con las que merece la pena contrastar un resultado de SockTuner, y las herramientas que esta aplicación no pretende sustituir.",
+  "ru": "Измерения, с которыми стоит сверять результат SockTuner, и инструменты, которые это приложение сознательно не заменяет.",
+  "zh-Hans": "值得用来核对 SockTuner 结果的测量服务，以及本应用刻意不去取代的工具。"
+ },
+ "The queue that causes bufferbloat lives on the device in front of the slow link. No amount of local tuning drains it.": {
+  "es": "La cola que provoca el bufferbloat vive en el dispositivo que está delante del enlace lento. Ningún ajuste local la vacía.",
+  "ru": "Очередь, порождающая bufferbloat, живёт на устройстве перед медленным звеном. Никакая локальная настройка её не осушит.",
+  "zh-Hans": "造成缓冲膨胀的队列位于慢速链路前方的设备上。再多的本机调优也无法把它排空。"
+ },
+ "The re-run did not complete, so nothing can be concluded.": {
+  "es": "La repetición no se completó, así que no se puede concluir nada.",
+  "ru": "Повторный прогон не завершился, поэтому выводов сделать нельзя.",
+  "zh-Hans": "重跑未完成，因此无法得出任何结论。"
+ },
+ "The re-run measured a regression. The audit history in the tuning plan can roll it back.": {
+  "es": "La repetición midió un empeoramiento. El historial de auditoría del plan de ajuste puede revertirlo.",
+  "ru": "Повторный прогон показал ухудшение. Историю аудита в плане настройки можно использовать для отката.",
+  "zh-Hans": "重跑测得性能变差。可在调优计划的审计历史中回滚。"
+ },
+ "The reason behind each verdict, and what disabling the device would cost, are shown here.": {
+  "es": "Aquí se muestran el motivo de cada veredicto y lo que costaría deshabilitar el dispositivo.",
+  "ru": "Здесь показаны причина каждого вердикта и во что обойдётся отключение устройства.",
+  "zh-Hans": "这里显示每个判定的理由，以及禁用该设备的代价。"
+ },
+ "The run against {0} at {1:HH:mm:ss} is the before. Re-run it with the same parameters to find out whether the change moved anything.": {
+  "es": "La ejecución contra {0} a las {1:HH:mm:ss} es el antes. Repítala con los mismos parámetros para saber si el cambio movió algo.",
+  "ru": "Прогон к {0} в {1:HH:mm:ss} — это «до». Повторите его с теми же параметрами, чтобы понять, изменило ли что-то это изменение.",
+  "zh-Hans": "{1:HH:mm:ss} 针对 {0} 的那次运行就是“之前”。用相同参数重跑一次，看这次更改是否带来了变化。"
+ },
+ "The run was cancelled before it could be graded.": {
+  "es": "La ejecución se canceló antes de poder calificarla.",
+  "ru": "Прогон отменён до того, как его удалось оценить.",
+  "zh-Hans": "该次运行在评级之前已被取消。"
+ },
+ "The same measurement means different things to different games. A server updating 128 times a second cannot place an input that arrives 10 ms out of position, while one updating 20 times a second will not notice it — so the jitter limits here are derived from the selected tick rate rather than chosen, and the verdict is the worst of the three numbers, never their average.": {
+  "es": "La misma medición significa cosas distintas según el juego. Un servidor que actualiza 128 veces por segundo no puede colocar una entrada que llega 10 ms fuera de sitio, mientras que uno que actualiza 20 veces por segundo ni lo notará: por eso los límites de jitter de aquí se derivan de la tasa de tick seleccionada en vez de elegirse, y el veredicto es el peor de los tres números, nunca su media.",
+  "ru": "Одно и то же измерение значит разное для разных игр. Сервер, обновляющийся 128 раз в секунду, не сможет разместить ввод, пришедший на 10 мс не вовремя, а сервер с 20 обновлениями в секунду этого не заметит — поэтому пределы джиттера здесь выводятся из выбранной частоты тиков, а не назначаются, и вердикт берётся по худшему из трёх чисел, а не по их среднему.",
+  "zh-Hans": "同一份测量对不同游戏含义不同。每秒更新 128 次的服务器无法安放一个迟到 10 ms 的输入，而每秒更新 20 次的服务器根本不会察觉——因此这里的抖动上限是由所选 tick 率推导出来的，而不是随意选定的；判定取三个数值中最差的那个，绝不取平均值。"
+ },
+ "The snapshot contains machine, network profile names/IDs, adapter, binding component, address, route, DNS, driver, and Winsock provider identifiers. Export it anyway?": {
+  "es": "La instantánea contiene identificadores de equipo, nombres/ID de perfiles de red, adaptador, componente de enlace, dirección, ruta, DNS, controlador y proveedor Winsock. ¿Exportarla de todos modos?",
+  "ru": "Снимок содержит идентификаторы компьютера, имена/ID сетевых профилей, адаптера, компонента привязки, адреса, маршруты, DNS, драйвер и поставщиков Winsock. Всё равно экспортировать?",
+  "zh-Hans": "快照包含计算机、网络配置文件名称/ID、适配器、绑定组件、地址、路由、DNS、驱动程序以及 Winsock 提供程序标识。仍要导出吗？"
+ },
+ "This moves real data over your connection and will saturate it for the duration. Nothing is written to Windows or the adapter. Choose an endpoint you are allowed to load.": {
+  "es": "Esto mueve datos reales por su conexión y la saturará mientras dure. No se escribe nada en Windows ni en el adaptador. Elija un extremo que tenga permiso para saturar.",
+  "ru": "Это гонит реальные данные через ваше соединение и на время теста полностью его загрузит. Ни в Windows, ни в адаптер ничего не записывается. Выберите конечную точку, которую вам разрешено нагружать.",
+  "zh-Hans": "这会通过你的连接传输真实数据，并在测试期间将其占满。不会向 Windows 或适配器写入任何内容。请选择你有权加压的端点。"
+ },
+ "This plan contains high-risk or experimental changes; type {0} to confirm.": {
+  "es": "Este plan contiene cambios de alto riesgo o experimentales; escriba {0} para confirmar.",
+  "ru": "Этот план содержит изменения с высоким риском или экспериментальные; введите {0} для подтверждения.",
+  "zh-Hans": "此计划包含高风险或实验性更改；请输入 {0} 以确认。"
+ },
+ "Throughput & bufferbloat": {
+  "es": "Velocidad y bufferbloat",
+  "ru": "Скорость и bufferbloat",
+  "zh-Hans": "吞吐量与缓冲膨胀"
+ },
+ "Throughput endpoint": {
+  "es": "Extremo de rendimiento",
+  "ru": "Конечная точка для пропускной способности",
+  "zh-Hans": "吞吐量端点"
+ },
+ "Time": {
+  "es": "Hora",
+  "ru": "Время",
+  "zh-Hans": "时间"
+ },
+ "Timestamp": {
+  "es": "Marca de tiempo",
+  "ru": "Отметка времени",
+  "zh-Hans": "时间戳"
+ },
+ "Timestamps": {
+  "es": "Marcas de tiempo",
+  "ru": "Отметки времени",
+  "zh-Hans": "时间戳"
+ },
+ "Timing": {
+  "es": "Temporización",
+  "ru": "Тайминги",
+  "zh-Hans": "计时"
+ },
+ "Tools & references": {
+  "es": "Herramientas y referencias",
+  "ru": "Инструменты и источники",
+  "zh-Hans": "工具与参考"
+ },
+ "Tools and references": {
+  "es": "Herramientas y referencias",
+  "ru": "Инструменты и источники",
+  "zh-Hans": "工具与参考"
+ },
+ "Trade-off": {
+  "es": "Contrapartida",
+  "ru": "Компромисс",
+  "zh-Hans": "取舍"
+ },
+ "Transaction audit history": {
+  "es": "Historial de auditoría de transacciones",
+  "ru": "История аудита транзакций",
+  "zh-Hans": "事务审计历史"
+ },
+ "Transfer direction": {
+  "es": "Dirección de la transferencia",
+  "ru": "Направление передачи",
+  "zh-Hans": "传输方向"
+ },
+ "Trend selected": {
+  "es": "Tendencia de lo seleccionado",
+  "ru": "Тренд по выбранным",
+  "zh-Hans": "所选项趋势"
+ },
+ "Tuning focus preset": {
+  "es": "Preajuste de enfoque del ajuste",
+  "ru": "Пресет приоритета настройки",
+  "zh-Hans": "调优侧重预设"
+ },
+ "Tuning plan": {
+  "es": "Plan de ajuste",
+  "ru": "План настройки",
+  "zh-Hans": "调优计划"
+ },
+ "Type": {
+  "es": "Tipo",
+  "ru": "Тип",
+  "zh-Hans": "类型"
+ },
+ "Type APPLY to confirm high-risk or experimental changes": {
+  "es": "Escriba APPLY para confirmar los cambios de alto riesgo o experimentales",
+  "ru": "Введите APPLY, чтобы подтвердить изменения с высоким риском или экспериментальные",
+  "zh-Hans": "输入 APPLY 以确认高风险或实验性更改"
+ },
+ "Type part of a section name, then press Ctrl+K again to jump to it.": {
+  "es": "Escriba parte del nombre de una sección y pulse Ctrl+K otra vez para saltar a ella.",
+  "ru": "Введите часть названия раздела и снова нажмите Ctrl+K, чтобы перейти к нему.",
+  "zh-Hans": "输入区域名称的一部分，然后再次按 Ctrl+K 跳转过去。"
+ },
+ "USE-CASE PROFILE": {
+  "es": "PERFIL DE USO",
+  "ru": "ПРОФИЛЬ ИСПОЛЬЗОВАНИЯ",
+  "zh-Hans": "使用场景配置"
+ },
+ "Use this endpoint": {
+  "es": "Usar este extremo",
+  "ru": "Использовать эту конечную точку",
+  "zh-Hans": "使用此端点"
+ },
+ "Use-case profile": {
+  "es": "Perfil de uso",
+  "ru": "Профиль использования",
+  "zh-Hans": "使用场景配置"
+ },
+ "Verdict": {
+  "es": "Veredicto",
+  "ru": "Вердикт",
+  "zh-Hans": "判定"
+ },
+ "Version": {
+  "es": "Versión",
+  "ru": "Версия",
+  "zh-Hans": "版本"
+ },
+ "WHAT THIS CONNECTION IS FOR": {
+  "es": "PARA QUÉ SIRVE ESTA CONEXIÓN",
+  "ru": "ДЛЯ ЧЕГО ЭТО СОЕДИНЕНИЕ",
+  "zh-Hans": "这条连接的用途"
+ },
+ "Walks outward — adapter, LAN, router, ISP, external hop, endpoint — and stops at the first segment that degrades relative to the one before it.": {
+  "es": "Avanza hacia fuera —adaptador, LAN, router, ISP, salto externo, extremo— y se detiene en el primer segmento que empeora respecto al anterior.",
+  "ru": "Идёт наружу — адаптер, локальная сеть, роутер, провайдер, внешний узел, конечная точка — и останавливается на первом участке, который хуже предыдущего.",
+  "zh-Hans": "由内向外逐段推进——适配器、局域网、路由器、ISP、外部跳、端点——并在第一个相对前一段明显变差的环节停下。"
+ },
+ "What this points at": {
+  "es": "A qué apunta esto",
+  "ru": "На что это указывает",
+  "zh-Hans": "这指向什么"
+ },
+ "What to do": {
+  "es": "Qué hacer",
+  "ru": "Что делать",
+  "zh-Hans": "该怎么做"
+ },
+ "Where the problem starts": {
+  "es": "Dónde empieza el problema",
+  "ru": "Где начинается проблема",
+  "zh-Hans": "问题从哪里开始"
+ },
+ "Which processors service a device's interrupts": {
+  "es": "Qué procesadores atienden las interrupciones de un dispositivo",
+  "ru": "Какие процессоры обслуживают прерывания устройства",
+  "zh-Hans": "由哪些处理器处理某个设备的中断"
+ },
+ "Wi-Fi radio": {
+  "es": "Radio Wi-Fi",
+  "ru": "Wi-Fi-радио",
+  "zh-Hans": "Wi-Fi 无线电"
+ },
+ "Wi-Fi radio inventory unavailable: {0}": {
+  "es": "Inventario de la radio Wi-Fi no disponible: {0}",
+  "ru": "Инвентаризация Wi-Fi-радио недоступна: {0}",
+  "zh-Hans": "Wi-Fi 无线电信息不可用：{0}"
+ },
+ "Windows QoS policy inventory": {
+  "es": "Inventario de directivas QoS de Windows",
+  "ru": "Инвентаризация политик QoS Windows",
+  "zh-Hans": "Windows QoS 策略清单"
+ },
+ "Windows network control and gaming diagnostics": {
+  "es": "Control de red de Windows y diagnóstico para juegos",
+  "ru": "Управление сетью Windows и игровая диагностика",
+  "zh-Hans": "Windows 网络控制与游戏诊断"
+ },
+ "Windows network profiles": {
+  "es": "Perfiles de red de Windows",
+  "ru": "Сетевые профили Windows",
+  "zh-Hans": "Windows 网络配置文件"
+ },
+ "Windows places interrupts on its own unless a device carries an override. Pinning concentrates a device's work on the cores you name and takes it off the others; there is no generally correct placement, so measure before and after rather than trusting a preset.": {
+  "es": "Windows coloca las interrupciones por su cuenta salvo que un dispositivo tenga una anulación. Fijarlas concentra el trabajo de un dispositivo en los núcleos que indique y lo quita de los demás; no existe una colocación correcta en general, así que mida antes y después en vez de fiarse de un preajuste.",
+  "ru": "Windows сама распределяет прерывания, если у устройства нет переопределения. Закрепление сосредоточивает работу устройства на указанных вами ядрах и снимает её с остальных; универсально правильного размещения не существует, поэтому измеряйте до и после, а не доверяйте пресету.",
+  "zh-Hans": "除非设备带有覆盖设置，否则 Windows 会自行安排中断。绑定会把某个设备的工作集中到你指定的核心上，并从其他核心移开；不存在普遍正确的分配方案，因此请自行测量前后差异，而不要迷信某个预设。"
+ },
+ "Winsock catalog": {
+  "es": "Catálogo de Winsock",
+  "ru": "Каталог Winsock",
+  "zh-Hans": "Winsock 目录"
+ },
+ "Winsock inventory partial: {0}": {
+  "es": "Inventario de Winsock parcial: {0}",
+  "ru": "Инвентаризация Winsock неполная: {0}",
+  "zh-Hans": "Winsock 清单不完整：{0}"
+ },
+ "Winsock protocol providers": {
+  "es": "Proveedores de protocolo de Winsock",
+  "ru": "Поставщики протоколов Winsock",
+  "zh-Hans": "Winsock 协议提供程序"
+ },
+ "Working": {
+  "es": "Trabajando",
+  "ru": "Выполняется",
+  "zh-Hans": "处理中"
+ },
+ "Writes every action, including the router instructions and their OpenWrt commands, as a Markdown checklist": {
+  "es": "Escribe todas las acciones, incluidas las instrucciones del router y sus comandos de OpenWrt, como una lista de comprobación en Markdown",
+  "ru": "Записывает все действия, включая инструкции для роутера и их команды OpenWrt, в виде чек-листа Markdown",
+  "zh-Hans": "把所有操作（包括路由器操作说明及其 OpenWrt 命令）写成一份 Markdown 清单"
+ },
+ "Writes require accepting the change consent, elevation, and an explicit confirmation in the tuning plan.": {
+  "es": "Escribir requiere aceptar el consentimiento de cambios, elevación y una confirmación explícita en el plan de ajuste.",
+  "ru": "Для записи нужны принятое согласие на изменения, повышение прав и явное подтверждение в плане настройки.",
+  "zh-Hans": "写入需要接受更改同意声明、提升权限，并在调优计划中明确确认。"
+ },
+ "Written": {
+  "es": "Escrito",
+  "ru": "Записано",
+  "zh-Hans": "已写入"
+ },
+ "seconds": {
+  "es": "segundos",
+  "ru": "секунд",
+  "zh-Hans": "秒"
+ },
+ "{0}  ·  {1}  ·  {2} risk  ·  {3}": {
+  "es": "{0}  ·  {1}  ·  riesgo {2}  ·  {3}",
+  "ru": "{0}  ·  {1}  ·  риск {2}  ·  {3}",
+  "zh-Hans": "{0}  ·  {1}  ·  风险 {2}  ·  {3}"
+ },
+ "{0}  —  {1}. Instance: {2}": {
+  "es": "{0}  —  {1}. Instancia: {2}",
+  "ru": "{0}  —  {1}. Экземпляр: {2}",
+  "zh-Hans": "{0}  —  {1}。实例：{2}"
+ },
+ "{0} QoS policy row(s). Inspection only; no policy is created or changed.": {
+  "es": "{0} fila(s) de directivas QoS. Solo inspección; no se crea ni se cambia ninguna política.",
+  "ru": "Строк политик QoS: {0}. Только просмотр; ни одна политика не создаётся и не меняется.",
+  "zh-Hans": "共 {0} 行 QoS 策略。仅供查看；不会创建或更改任何策略。"
+ },
+ "{0} TCP template row(s). Read-only values include local/group-policy sources and raw export fields.": {
+  "es": "{0} fila(s) de plantillas TCP. Los valores de solo lectura incluyen los orígenes local/directiva de grupo y los campos de exportación en bruto.",
+  "ru": "Строк шаблонов TCP: {0}. Значения только для чтения включают источники «локально/групповая политика» и исходные поля экспорта.",
+  "zh-Hans": "共 {0} 行 TCP 模板。只读值包含本地/组策略来源以及原始导出字段。"
+ },
+ "{0} The new placement takes effect after a restart.": {
+  "es": "{0} La nueva ubicación surte efecto tras reiniciar.",
+  "ru": "{0} Новое размещение вступит в силу после перезапуска.",
+  "zh-Hans": "{0} 新的分配将在重启后生效。"
+ },
+ "{0} Type {1} to confirm anyway.": {
+  "es": "{0} Escriba {1} para confirmar de todos modos.",
+  "ru": "{0} Введите {1}, чтобы подтвердить всё равно.",
+  "zh-Hans": "{0} 输入 {1} 以仍然确认。"
+ },
+ "{0} action(s) from {1}: {2} this machine can make, {3} belonging elsewhere. Adapter: {4}.": {
+  "es": "{0} acción(es) de {1}: {2} que puede hacer este equipo, {3} que corresponden a otro sitio. Adaptador: {4}.",
+  "ru": "Действий: {0} из «{1}»: {2} может выполнить этот компьютер, {3} относятся к другому месту. Адаптер: {4}.",
+  "zh-Hans": "来自 {1} 的 {0} 项操作：{2} 项本机可执行，{3} 项属于别处。适配器：{4}。"
+ },
+ "{0} advanced properties advertised across {1} supported adapter(s). Raw keywords remain visible and no values are changed.": {
+  "es": "{0} propiedades avanzadas anunciadas en {1} adaptador(es) compatible(s). Las palabras clave en bruto siguen visibles y no se cambia ningún valor.",
+  "ru": "Расширенных свойств объявлено: {0} на поддерживаемых адаптерах: {1}. Исходные ключевые слова остаются видимыми, значения не меняются.",
+  "zh-Hans": "在 {1} 个受支持的适配器上共公布了 {0} 项高级属性。原始关键字仍然可见，且不会更改任何取值。"
+ },
+ "{0} advertises no writable advanced properties. This is normal for virtual and filter adapters.": {
+  "es": "{0} no anuncia ninguna propiedad avanzada escribible. Es normal en adaptadores virtuales y de filtro.",
+  "ru": "{0} не объявляет записываемых расширенных свойств. Для виртуальных и фильтрующих адаптеров это нормально.",
+  "zh-Hans": "{0} 未公布任何可写的高级属性。虚拟适配器和筛选器适配器出现这种情况是正常的。"
+ },
+ "{0} already has that placement.": {
+  "es": "{0} ya tiene esa ubicación.",
+  "ru": "У «{0}» уже такое размещение.",
+  "zh-Hans": "{0} 已经是该分配了。"
+ },
+ "{0} already takes its resolvers from DHCP.": {
+  "es": "{0} ya toma sus resolutores de DHCP.",
+  "ru": "{0} уже получает DNS-серверы по DHCP.",
+  "zh-Hans": "{0} 已经在使用 DHCP 下发的解析器。"
+ },
+ "{0} binding(s) from root/StandardCimv2. Inspection only; no protocol or filter is changed.": {
+  "es": "{0} enlace(s) de root/StandardCimv2. Solo inspección; no se cambia ningún protocolo ni filtro.",
+  "ru": "Привязок из root/StandardCimv2: {0}. Только просмотр; протоколы и фильтры не меняются.",
+  "zh-Hans": "来自 root/StandardCimv2 的 {0} 项绑定。仅供查看；不会更改任何协议或筛选器。"
+ },
+ "{0} carries the default route and is never offered for disabling.": {
+  "es": "{0} lleva la ruta predeterminada y nunca se ofrece para deshabilitar.",
+  "ru": "{0} несёт маршрут по умолчанию и никогда не предлагается к отключению.",
+  "zh-Hans": "{0} 承载默认路由，永远不会被列为可禁用项。"
+ },
+ "{0} device(s) shown of {1} present. {2} currently carry an override; the rest are placed by Windows. This machine reports {3} logical processors.": {
+  "es": "Se muestran {0} dispositivo(s) de {1} presentes. {2} tienen actualmente una anulación; al resto los coloca Windows. Este equipo declara {3} procesadores lógicos.",
+  "ru": "Показано устройств: {0} из {1}. С переопределением сейчас: {2}; остальные размещает Windows. Этот компьютер сообщает о {3} логических процессорах.",
+  "zh-Hans": "已显示 {0} 个设备（共 {1} 个）。其中 {2} 个当前带有覆盖设置，其余由 Windows 安排。本机报告有 {3} 个逻辑处理器。"
+ },
+ "{0} exported to {1}.": {
+  "es": "{0} exportada a {1}.",
+  "ru": "{0} экспортирован в {1}.",
+  "zh-Hans": "{0}已导出到 {1}。"
+ },
+ "{0} failed: {1}": {
+  "es": "{0} falló: {1}",
+  "ru": "{0} — ошибка: {1}",
+  "zh-Hans": "{0} 失败：{1}"
+ },
+ "{0} finding(s) for {1} from the {2} profile ({3:0.0}s).{4}": {
+  "es": "{0} hallazgo(s) para {1} con el perfil {2} ({3:0.0} s).{4}",
+  "ru": "Выводов: {0} для {1} по профилю {2} ({3:0.0} с).{4}",
+  "zh-Hans": "使用 {2} 配置对 {1} 得到 {0} 项发现（{3:0.0} 秒）。{4}"
+ },
+ "{0} finding(s) from the current inventory. {1} worth fixing, {2} worth checking. Select one to open the section that acts on it.": {
+  "es": "{0} hallazgo(s) del inventario actual. {1} que merece la pena arreglar, {2} que merece la pena revisar. Seleccione uno para abrir la sección que actúa sobre él.",
+  "ru": "Выводов по текущей инвентаризации: {0}. Стоит исправить: {1}, стоит проверить: {2}. Выберите один, чтобы открыть раздел, который с ним работает.",
+  "zh-Hans": "当前清单共有 {0} 项发现。{1} 项值得修复，{2} 项值得检查。选中一项即可打开处理它的区域。"
+ },
+ "{0} global and {1} adapter setting row(s). Inspection only; no offload is changed.": {
+  "es": "{0} fila(s) de ajustes globales y {1} del adaptador. Solo inspección; no se cambia ninguna descarga.",
+  "ru": "Строк глобальных настроек: {0}, настроек адаптера: {1}. Только просмотр; разгрузки не меняются.",
+  "zh-Hans": "共 {0} 行全局设置与 {1} 行适配器设置。仅供查看；不会更改任何卸载功能。"
+ },
+ "{0} has no adapter GUID to target.": {
+  "es": "{0} no tiene un GUID de adaptador al que apuntar.",
+  "ru": "У «{0}» нет GUID адаптера, к которому можно обратиться.",
+  "zh-Hans": "{0} 没有可用于定位的适配器 GUID。"
+ },
+ "{0} is already using {1}.": {
+  "es": "{0} ya está usando {1}.",
+  "ru": "{0} уже использует {1}.",
+  "zh-Hans": "{0} 已经在使用 {1}。"
+ },
+ "{0} is not offered for disabling: {1}": {
+  "es": "{0} no se ofrece para deshabilitar: {1}",
+  "ru": "{0} не предлагается к отключению: {1}",
+  "zh-Hans": "{0} 未被列为可禁用项：{1}"
+ },
+ "{0} native IPv4 and {1} native IPv6 route(s).": {
+  "es": "{0} ruta(s) IPv4 nativas y {1} IPv6 nativas.",
+  "ru": "Нативных маршрутов IPv4: {0}, IPv6: {1}.",
+  "zh-Hans": "原生 IPv4 路由 {0} 条，原生 IPv6 路由 {1} 条。"
+ },
+ "{0} native IPv4/IPv6 interface row(s).": {
+  "es": "{0} fila(s) nativas de interfaces IPv4/IPv6.",
+  "ru": "Нативных строк интерфейсов IPv4/IPv6: {0}.",
+  "zh-Hans": "原生 IPv4/IPv6 接口共 {0} 行。"
+ },
+ "{0} native protocol provider(s). Inspection only; repair remains separately gated.": {
+  "es": "{0} proveedor(es) de protocolo nativos. Solo inspección; la reparación sigue estando bloqueada aparte.",
+  "ru": "Нативных поставщиков протоколов: {0}. Только просмотр; восстановление по-прежнему закрыто отдельно.",
+  "zh-Hans": "共 {0} 个原生协议提供程序。仅供查看；修复功能仍单独受限。"
+ },
+ "{0} network device(s); {1} filter and loopback pseudo-interface(s) hidden. {2} worth considering for disabling. ": {
+  "es": "{0} dispositivo(s) de red; {1} pseudointerfaz(ces) de filtro y loopback ocultas. {2} que merece la pena plantearse deshabilitar. ",
+  "ru": "Сетевых устройств: {0}; скрыто псевдоинтерфейсов (фильтры и loopback): {1}. Стоит рассмотреть к отключению: {2}. ",
+  "zh-Hans": "共 {0} 个网络设备；已隐藏 {1} 个筛选器和环回伪接口。其中 {2} 个值得考虑禁用。"
+ },
+ "{0} of {1} advertised propert(ies) match “{2}”. {3} currently differ from the driver default.": {
+  "es": "{0} de {1} propiedad(es) anunciadas coinciden con «{2}». {3} difieren actualmente del valor predeterminado del controlador.",
+  "ru": "«{2}» соответствует {0} из {1} объявленных свойств. Сейчас отличаются от значения драйвера по умолчанию: {3}.",
+  "zh-Hans": "在 {1} 项已公布属性中有 {0} 项匹配“{2}”。其中 {3} 项当前与驱动默认值不同。"
+ },
+ "{0} profile connection(s) from Windows Network List Manager.": {
+  "es": "{0} conexión(es) de perfil del Administrador de listas de redes de Windows.",
+  "ru": "Подключений профилей из диспетчера списка сетей Windows: {0}.",
+  "zh-Hans": "来自 Windows 网络列表管理器的 {0} 个配置文件连接。"
+ },
+ "{0} requested. Approve the Windows elevation prompt to continue…": {
+  "es": "{0} solicitado. Apruebe el aviso de elevación de Windows para continuar…",
+  "ru": "Запрошено: {0}. Подтвердите запрос повышения прав Windows, чтобы продолжить…",
+  "zh-Hans": "已请求 {0}。请批准 Windows 的提升权限提示以继续…"
+ },
+ "{0} — decided by {1}": {
+  "es": "{0} — decidido por {1}",
+  "ru": "{0} — определено по {1}",
+  "zh-Hans": "{0} — 由 {1} 决定"
+ },
+ "{0}: resolving {1}, then collecting {2} concurrent samples per endpoint…": {
+  "es": "{0}: resolviendo {1}, luego recogiendo {2} muestras simultáneas por extremo…",
+  "ru": "{0}: разрешается {1}, затем собирается по {2} одновременных выборок на конечную точку…",
+  "zh-Hans": "{0}：正在解析 {1}，随后为每个端点并发采集 {2} 个样本…"
+ },
+ "{0}: {1} ({2}). {3} Probes carried {4} bytes of payload.": {
+  "es": "{0}: {1} ({2}). {3} Los sondeos llevaron {4} bytes de carga útil.",
+  "ru": "{0}: {1} ({2}). {3} Зонды несли {4} байт полезной нагрузки.",
+  "zh-Hans": "{0}：{1}（{2}）。{3} 探测包携带 {4} 字节负载。"
+ },
+ "{0}{1}{2}{3}Link {4}, addresses {5}, gateways {6}.": {
+  "es": "{0}{1}{2}{3}Enlace {4}, direcciones {5}, puertas de enlace {6}.",
+  "ru": "{0}{1}{2}{3}Канал {4}, адреса {5}, шлюзы {6}.",
+  "zh-Hans": "{0}{1}{2}{3}链路 {4}，地址 {5}，网关 {6}。"
+ }
+}

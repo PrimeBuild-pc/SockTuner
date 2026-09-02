@@ -67,10 +67,13 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        UiTranslator.Apply(this);
         _preferences = AppPreferences.Load();
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
         LogRetentionComboBox.ItemsSource = Enumerable.Range(1, 64);
         LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
+        LanguageComboBox.ItemsSource = Loc.Languages;
+        LanguageComboBox.SelectedItem = Loc.Languages.First(language => language.Tag == Loc.CurrentTag);
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
         DiagnosticGameComboBox.ItemsSource = _gameProfiles;
@@ -130,15 +133,15 @@ public partial class MainWindow : Window
     private void ShowWriteState()
     {
         var accepted = WriteConsent.IsAccepted(_preferences);
-        WriteStateText.Text = accepted ? "CHANGES ARMED" : "INVENTORY ONLY";
+        WriteStateText.Text = accepted ? Loc.T("CHANGES ARMED") : Loc.T("INVENTORY ONLY");
         WriteStateText.ToolTip = accepted
-            ? "Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible."
-            : "Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.";
+            ? Loc.T("Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible.")
+            : Loc.T("Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.");
         // The dashboard used to state flatly that mutations were disabled. That stopped being true
         // when the transaction path was unlocked, and a stale reassurance is worse than none.
         WorkflowWriteStateText.Text = accepted
-            ? "Changes are armed. Applying still needs elevation and a typed confirmation in the tuning plan."
-            : "Nothing is written until you accept the change consent in the tuning plan.";
+            ? Loc.T("Changes are armed. Applying still needs elevation and a typed confirmation in the tuning plan.")
+            : Loc.T("Nothing is written until you accept the change consent in the tuning plan.");
     }
 
     /// <summary>
@@ -267,7 +270,7 @@ public partial class MainWindow : Window
         if (typed.Length == 0)
         {
             InventoryFilterText.Focus();
-            StatusText.Text = "Type part of a section name, then press Ctrl+K again to jump to it.";
+            StatusText.Text = Loc.T("Type part of a section name, then press Ctrl+K again to jump to it.");
             return;
         }
 
@@ -275,12 +278,12 @@ public partial class MainWindow : Window
             item.Header?.ToString()?.Contains(typed, StringComparison.OrdinalIgnoreCase) == true);
         if (match is null)
         {
-            StatusText.Text = $"No section matching \u201c{typed}\u201d.";
+            StatusText.Text = Loc.F($"No section matching \u201c{typed}\u201d.");
             return;
         }
 
         InventoryTabs.SelectedItem = match;
-        StatusText.Text = $"Jumped to {match.Header}.";
+        StatusText.Text = Loc.F($"Jumped to {match.Header}.");
     }
 
     /// <summary>
@@ -300,19 +303,19 @@ public partial class MainWindow : Window
 
     private async Task RefreshInventoryAsync()
     {
-        StatusText.Text = "Reading Windows network inventory…";
+        StatusText.Text = Loc.T("Reading Windows network inventory…");
         SetBusy(true);
 
         try
         {
             _snapshot = await Task.Run(_inventory.Capture);
             ShowSnapshot(_snapshot);
-            StatusText.Text = $"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}";
+            StatusText.Text = Loc.F($"Inventory refreshed at {_snapshot.System.CapturedAt:HH:mm:ss}");
             WriteLog("inventory.completed", $"Captured {_snapshot.Adapters.Count} interfaces, {_snapshot.Routes.Count} IP routes, {_snapshot.NetworkProfiles?.Count ?? 0} network profiles, {_snapshot.NetworkBindings?.Count ?? 0} bindings, {_snapshot.AdapterOffloads?.Count ?? 0} adapter offload rows, {_snapshot.TcpSettings?.Count ?? 0} TCP templates, {_snapshot.QosPolicies?.Count ?? 0} QoS policies, {_snapshot.WinsockProviders?.Count ?? 0} Winsock providers, and {_snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count)} NDIS properties.");
         }
         catch (Exception exception)
         {
-            StatusText.Text = $"Inventory failed: {exception.Message}";
+            StatusText.Text = Loc.F($"Inventory failed: {exception.Message}");
             WriteLog("inventory.failed", exception.Message);
         }
         finally
@@ -327,7 +330,7 @@ public partial class MainWindow : Window
         AdapterCountText.Text = snapshot.Adapters.Count.ToString();
         ProcessorCountText.Text = snapshot.System.LogicalProcessors.ToString();
         NdisPropertyCountText.Text = snapshot.Adapters.Sum(adapter => adapter.NdisProperties.Count).ToString();
-        PrivilegeText.Text = snapshot.System.IsAdministrator ? "Elevated" : "Standard user";
+        PrivilegeText.Text = snapshot.System.IsAdministrator ? Loc.T("Elevated") : Loc.T("Standard user");
         OsText.Text = snapshot.System.OperatingSystem;
         BuildText.Text = snapshot.System.Version;
         MachineText.Text = snapshot.System.MachineName;
@@ -357,42 +360,42 @@ public partial class MainWindow : Window
             .ToArray();
         ApplyAdapterFilter();
         ApplyNdisFilter();
-        NdisSummaryText.Text = $"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.";
+        NdisSummaryText.Text = Loc.F($"{_ndisRows.Count} advanced properties advertised across {snapshot.Adapters.Count(adapter => adapter.NdisSupported)} supported adapter(s). Raw keywords remain visible and no values are changed.");
         RoutesGrid.ItemsSource = snapshot.Routes;
         DnsInterfacesGrid.ItemsSource = snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0);
         InterfaceSummaryText.Text = snapshot.IpInterfaceInventoryError is null
-            ? $"{snapshot.Adapters.Sum(adapter => adapter.IpInterfaces?.Count ?? 0)} native IPv4/IPv6 interface row(s)."
-            : $"Interface metric inventory partial: {snapshot.IpInterfaceInventoryError}";
+            ? Loc.F($"{snapshot.Adapters.Sum(adapter => adapter.IpInterfaces?.Count ?? 0)} native IPv4/IPv6 interface row(s).")
+            : Loc.F($"Interface metric inventory partial: {snapshot.IpInterfaceInventoryError}");
         var ipv4RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv4");
         var ipv6RouteCount = snapshot.Routes.Count(route => route.AddressFamily == "IPv6");
         RouteSummaryText.Text = snapshot.RouteInventoryError is null
-            ? $"{ipv4RouteCount} native IPv4 and {ipv6RouteCount} native IPv6 route(s)."
-            : $"Route inventory partial: {snapshot.RouteInventoryError}";
+            ? Loc.F($"{ipv4RouteCount} native IPv4 and {ipv6RouteCount} native IPv6 route(s).")
+            : Loc.F($"Route inventory partial: {snapshot.RouteInventoryError}");
         NetworkProfilesGrid.ItemsSource = snapshot.NetworkProfiles ?? [];
         NetworkProfileSummaryText.Text = snapshot.NetworkProfileInventoryError is null
-            ? $"{snapshot.NetworkProfiles?.Count ?? 0} profile connection(s) from Windows Network List Manager."
-            : $"Network profile inventory partial: {snapshot.NetworkProfileInventoryError}";
+            ? Loc.F($"{snapshot.NetworkProfiles?.Count ?? 0} profile connection(s) from Windows Network List Manager.")
+            : Loc.F($"Network profile inventory partial: {snapshot.NetworkProfileInventoryError}");
         BindingsGrid.ItemsSource = snapshot.NetworkBindings ?? [];
         BindingSummaryText.Text = snapshot.NetworkBindingInventoryError is null
-            ? $"{snapshot.NetworkBindings?.Count ?? 0} binding(s) from root/StandardCimv2. Inspection only; no protocol or filter is changed."
-            : $"Network binding inventory partial: {snapshot.NetworkBindingInventoryError}";
+            ? Loc.F($"{snapshot.NetworkBindings?.Count ?? 0} binding(s) from root/StandardCimv2. Inspection only; no protocol or filter is changed.")
+            : Loc.F($"Network binding inventory partial: {snapshot.NetworkBindingInventoryError}");
         GlobalOffloadsGrid.ItemsSource = snapshot.GlobalOffloads ?? [];
         AdapterOffloadsGrid.ItemsSource = snapshot.AdapterOffloads ?? [];
         OffloadSummaryText.Text = snapshot.OffloadInventoryError is null
-            ? $"{snapshot.GlobalOffloads?.Count ?? 0} global and {snapshot.AdapterOffloads?.Count ?? 0} adapter setting row(s). Inspection only; no offload is changed."
-            : $"Offload inventory partial: {snapshot.OffloadInventoryError}";
+            ? Loc.F($"{snapshot.GlobalOffloads?.Count ?? 0} global and {snapshot.AdapterOffloads?.Count ?? 0} adapter setting row(s). Inspection only; no offload is changed.")
+            : Loc.F($"Offload inventory partial: {snapshot.OffloadInventoryError}");
         TcpSettingsGrid.ItemsSource = snapshot.TcpSettings ?? [];
         TcpSettingSummaryText.Text = snapshot.TcpSettingInventoryError is null
-            ? $"{snapshot.TcpSettings?.Count ?? 0} TCP template row(s). Read-only values include local/group-policy sources and raw export fields."
-            : $"TCP setting inventory partial: {snapshot.TcpSettingInventoryError}";
+            ? Loc.F($"{snapshot.TcpSettings?.Count ?? 0} TCP template row(s). Read-only values include local/group-policy sources and raw export fields.")
+            : Loc.F($"TCP setting inventory partial: {snapshot.TcpSettingInventoryError}");
         QosPoliciesGrid.ItemsSource = snapshot.QosPolicies ?? [];
         QosPolicySummaryText.Text = snapshot.QosPolicyInventoryError is null
-            ? $"{snapshot.QosPolicies?.Count ?? 0} QoS policy row(s). Inspection only; no policy is created or changed."
-            : $"QoS policy inventory partial: {snapshot.QosPolicyInventoryError}";
+            ? Loc.F($"{snapshot.QosPolicies?.Count ?? 0} QoS policy row(s). Inspection only; no policy is created or changed.")
+            : Loc.F($"QoS policy inventory partial: {snapshot.QosPolicyInventoryError}");
         WinsockProvidersGrid.ItemsSource = snapshot.WinsockProviders ?? [];
         WinsockSummaryText.Text = snapshot.WinsockInventoryError is null
-            ? $"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated."
-            : $"Winsock inventory partial: {snapshot.WinsockInventoryError}";
+            ? Loc.F($"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated.")
+            : Loc.F($"Winsock inventory partial: {snapshot.WinsockInventoryError}");
         ApplyInventoryFilter();
     }
 
@@ -407,7 +410,7 @@ public partial class MainWindow : Window
         var target = DiagnosticTargetText.Text.Trim();
         if (string.IsNullOrWhiteSpace(target))
         {
-            StatusText.Text = "Enter a game server, regional endpoint, or IP address.";
+            StatusText.Text = Loc.T("Enter a game server, regional endpoint, or IP address.");
             return;
         }
 
@@ -416,7 +419,7 @@ public partial class MainWindow : Window
         {
             if (!int.TryParse(DiagnosticPortText.Text, out var parsedPort) || parsedPort is <= 0 or > 65535)
             {
-                StatusText.Text = "TCP port must be between 1 and 65535.";
+                StatusText.Text = Loc.T("TCP port must be between 1 and 65535.");
                 return;
             }
 
@@ -426,13 +429,13 @@ public partial class MainWindow : Window
         if (DiagnosticProfileComboBox.SelectedItem is not DiagnosticProfile profile
             || DiagnosticLoadComboBox.SelectedItem is not DiagnosticLoadCondition loadCondition)
         {
-            StatusText.Text = "Select a diagnostic profile.";
+            StatusText.Text = Loc.T("Select a diagnostic profile.");
             return;
         }
 
         if (DiagnosticGameComboBox.SelectedItem is not GameProfile game)
         {
-            StatusText.Text = "Select a game tick rate.";
+            StatusText.Text = Loc.T("Select a game tick rate.");
             return;
         }
 
@@ -447,8 +450,8 @@ public partial class MainWindow : Window
         _lastReport = null;
         SetDiagnosticBusy(true);
         ClearDiagnosticResults("Running…");
-        DiagnosticRunSummaryText.Text = $"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…";
-        StatusText.Text = $"Diagnosing {target}…";
+        DiagnosticRunSummaryText.Text = Loc.F($"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…");
+        StatusText.Text = Loc.F($"Diagnosing {target}…");
         WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}; Profile={profile.Id}; Load={loadCondition}.");
 
         try
@@ -500,22 +503,22 @@ public partial class MainWindow : Window
             var counterSummary = report.CounterDeltas is { Count: > 0 }
                 ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"
                 : " Counter deltas unavailable.";
-            DiagnosticRunSummaryText.Text = $"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).{counterSummary}";
-            StatusText.Text = $"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}";
+            DiagnosticRunSummaryText.Text = Loc.F($"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).{counterSummary}");
+            StatusText.Text = Loc.F($"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}");
             WriteLog("diagnostic.completed", $"Target={report.RequestedTarget}; Duration={report.Duration.TotalSeconds:0.0}s; Findings={report.Findings.Count}.");
         }
         catch (OperationCanceledException)
         {
             ClearDiagnosticResults("Canceled");
-            DiagnosticRunSummaryText.Text = $"Diagnosis for {target} canceled. Partial samples were discarded.";
-            StatusText.Text = "Diagnosis canceled";
+            DiagnosticRunSummaryText.Text = Loc.F($"Diagnosis for {target} canceled. Partial samples were discarded.");
+            StatusText.Text = Loc.T("Diagnosis canceled");
             WriteLog("diagnostic.canceled", $"Target={target}.");
         }
         catch (Exception exception)
         {
             ClearDiagnosticResults("Failed");
-            DiagnosticRunSummaryText.Text = $"Diagnosis for {target} failed: {exception.Message}";
-            StatusText.Text = "Diagnosis failed";
+            DiagnosticRunSummaryText.Text = Loc.F($"Diagnosis for {target} failed: {exception.Message}");
+            StatusText.Text = Loc.T("Diagnosis failed");
             WriteLog("diagnostic.failed", $"Target={target}; Error={exception.Message}");
         }
         finally
@@ -528,13 +531,13 @@ public partial class MainWindow : Window
     {
         if (_snapshot is null)
         {
-            StatusText.Text = "Refresh inventory before exporting a snapshot.";
+            StatusText.Text = Loc.T("Refresh inventory before exporting a snapshot.");
             return;
         }
 
         if (MessageBox.Show(
-                "The snapshot contains machine, network profile names/IDs, adapter, binding component, address, route, DNS, driver, and Winsock provider identifiers. Export it anyway?",
-                "Export diagnostic snapshot",
+                Loc.T("The snapshot contains machine, network profile names/IDs, adapter, binding component, address, route, DNS, driver, and Winsock provider identifiers. Export it anyway?"),
+                Loc.T("Export diagnostic snapshot"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -548,7 +551,7 @@ public partial class MainWindow : Window
     {
         if (_snapshot is null)
         {
-            StatusText.Text = "Refresh inventory before exporting a support snapshot.";
+            StatusText.Text = Loc.T("Refresh inventory before exporting a support snapshot.");
             return;
         }
 
@@ -560,7 +563,7 @@ public partial class MainWindow : Window
         var kind = redact ? "support" : "snapshot";
         var dialog = new SaveFileDialog
         {
-            Filter = "SockTuner JSON snapshot (*.json)|*.json",
+            Filter = Loc.T("SockTuner JSON snapshot (*.json)|*.json"),
             DefaultExt = ".json",
             AddExtension = true,
             FileName = $"SockTuner-{kind}-{DateTime.Now:yyyyMMdd-HHmmss}.json"
@@ -573,12 +576,12 @@ public partial class MainWindow : Window
         try
         {
             File.WriteAllText(dialog.FileName, SnapshotExporter.Serialize(_snapshot!, redact));
-            StatusText.Text = $"{(redact ? "Redacted support snapshot" : "Snapshot")} exported to {dialog.FileName}.";
+            StatusText.Text = Loc.F($"{(redact ? Loc.T("Redacted support snapshot") : Loc.T("Snapshot"))} exported to {dialog.FileName}.");
             WriteLog(redact ? "support_snapshot.exported" : "snapshot.exported", dialog.FileName);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            StatusText.Text = $"Snapshot export failed: {exception.Message}";
+            StatusText.Text = Loc.F($"Snapshot export failed: {exception.Message}");
             WriteLog("snapshot.export_failed", exception.Message);
         }
     }
@@ -591,7 +594,7 @@ public partial class MainWindow : Window
     {
         if (_lastReport is null)
         {
-            StatusText.Text = "Run a completed diagnosis before exporting a report.";
+            StatusText.Text = Loc.T("Run a completed diagnosis before exporting a report.");
             return;
         }
 
@@ -601,8 +604,8 @@ public partial class MainWindow : Window
     private void SaveReport(GamingDiagnosticReport report, bool html, bool redact)
     {
         if (!redact && MessageBox.Show(
-                "The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?",
-                "Export full diagnostic report",
+                Loc.T("The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?"),
+                Loc.T("Export full diagnostic report"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -612,7 +615,7 @@ public partial class MainWindow : Window
         var extension = html ? ".html" : ".json";
         var dialog = new SaveFileDialog
         {
-            Filter = html ? "Self-contained HTML report (*.html)|*.html" : "SockTuner JSON report (*.json)|*.json",
+            Filter = html ? Loc.T("Self-contained HTML report (*.html)|*.html") : Loc.T("SockTuner JSON report (*.json)|*.json"),
             DefaultExt = extension,
             AddExtension = true,
             FileName = $"SockTuner-report-{DateTime.Now:yyyyMMdd-HHmmss}{extension}"
@@ -624,12 +627,12 @@ public partial class MainWindow : Window
                 ? DiagnosticReportExporter.SerializeHtml(report, redact)
                 : DiagnosticReportExporter.SerializeJson(report, redact);
             File.WriteAllText(dialog.FileName, content);
-            StatusText.Text = $"Report exported to {dialog.FileName}.";
+            StatusText.Text = Loc.F($"Report exported to {dialog.FileName}.");
             WriteLog("report.exported", $"Format={(html ? "html" : "json")}; Redacted={redact}.");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            StatusText.Text = $"Report export failed: {exception.Message}";
+            StatusText.Text = Loc.F($"Report export failed: {exception.Message}");
             WriteLog("report.export_failed", exception.Message);
         }
     }
@@ -637,8 +640,8 @@ public partial class MainWindow : Window
     private void ExportLogs_Click(object sender, RoutedEventArgs e)
     {
         if (MessageBox.Show(
-                "Logs can contain diagnostic targets and local file paths. Export them anyway?",
-                "Export application logs",
+                Loc.T("Logs can contain diagnostic targets and local file paths. Export them anyway?"),
+                Loc.T("Export application logs"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
         {
@@ -647,7 +650,7 @@ public partial class MainWindow : Window
 
         var dialog = new SaveFileDialog
         {
-            Filter = "SockTuner JSON Lines log (*.jsonl)|*.jsonl",
+            Filter = Loc.T("SockTuner JSON Lines log (*.jsonl)|*.jsonl"),
             DefaultExt = ".jsonl",
             AddExtension = true,
             FileName = $"SockTuner-log-{DateTime.Now:yyyyMMdd-HHmmss}.jsonl"
@@ -660,12 +663,12 @@ public partial class MainWindow : Window
         try
         {
             AppLog.Export(dialog.FileName);
-            StatusText.Text = $"Log exported to {dialog.FileName}.";
+            StatusText.Text = Loc.F($"Log exported to {dialog.FileName}.");
             WriteLog("log.exported", dialog.FileName);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            StatusText.Text = $"Log export failed: {exception.Message}";
+            StatusText.Text = Loc.F($"Log export failed: {exception.Message}");
         }
     }
 
@@ -692,14 +695,14 @@ public partial class MainWindow : Window
         var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().OrderBy(entry => entry.SavedAt).ToArray();
         if (selected.Length != 2)
         {
-            ComparisonText.Text = "Select exactly two runs.";
+            ComparisonText.Text = Loc.T("Select exactly two runs.");
             return;
         }
 
         var comparison = DiagnosticComparisonService.Compare(selected[0].Report, selected[1].Report);
         ComparisonText.Text = comparison.Comparable
             ? comparison.Reason + "\n" + string.Join("\n", comparison.Metrics.Select(metric => metric.Summary))
-            : $"Not comparable: {comparison.Reason}";
+            : Loc.F($"Not comparable: {comparison.Reason}");
     }
 
     private void TrendHistory_Click(object sender, RoutedEventArgs e)
@@ -708,7 +711,7 @@ public partial class MainWindow : Window
         var trend = DiagnosticComparisonService.Trend(selected);
         ComparisonText.Text = trend.Comparable
             ? trend.Reason + "\n" + string.Join("\n", trend.Points.Select(point => point.Summary))
-            : $"Not comparable: {trend.Reason}";
+            : Loc.F($"Not comparable: {trend.Reason}");
     }
 
     private void ExportHistory_Click(object sender, RoutedEventArgs e)
@@ -716,7 +719,7 @@ public partial class MainWindow : Window
         var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
         if (selected.Length != 1)
         {
-            ComparisonText.Text = "Select exactly one run to export.";
+            ComparisonText.Text = Loc.T("Select exactly one run to export.");
             return;
         }
         SaveReport(selected[0].Report, html: true, redact: true);
@@ -732,11 +735,11 @@ public partial class MainWindow : Window
                 _historyStore.Delete(entry.Id);
                 _history.Remove(entry);
             }
-            ComparisonText.Text = $"Deleted {selected.Length} run(s).";
+            ComparisonText.Text = Loc.F($"Deleted {selected.Length} run(s).");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            ComparisonText.Text = $"Delete failed: {exception.Message}";
+            ComparisonText.Text = Loc.F($"Delete failed: {exception.Message}");
         }
     }
 
@@ -753,12 +756,36 @@ public partial class MainWindow : Window
             AppPreferences.Save(_preferences);
             var error = AppLog.ConfigureRetention(megabytes);
             PreferenceStatusText.Text = error is null
-                ? $"Retention saved: two files of up to {megabytes} MB each."
-                : $"Retention saved, but existing logs could not be trimmed: {error}";
+                ? Loc.F($"Retention saved: two files of up to {megabytes} MB each.")
+                : Loc.F($"Retention saved, but existing logs could not be trimmed: {error}");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            PreferenceStatusText.Text = $"Preference save failed: {exception.Message}";
+            PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Saved immediately, applied on the next start. Retranslating a live window would mean holding
+    /// the English original of every string that has since been replaced, which is a cache to keep
+    /// correct in exchange for saving one restart.
+    /// </summary>
+    private void Language_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (LanguageComboBox.SelectedItem is not Loc.Language language) return;
+        if (string.Equals(_preferences.Language, language.Tag, StringComparison.Ordinal)) return;
+
+        try
+        {
+            _preferences = _preferences with { Language = language.Tag };
+            AppPreferences.Save(_preferences);
+            PreferenceStatusText.Text = language.Tag == Loc.CurrentTag
+                ? Loc.F($"Language saved: {language.NativeName}.")
+                : Loc.F($"Language saved: {language.NativeName}. Restart SockTuner to apply it.");
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
         }
     }
 
@@ -796,7 +823,7 @@ public partial class MainWindow : Window
     {
         if (_selectedInventoryItem is null)
         {
-            StatusText.Text = "Select an inventory row to copy.";
+            StatusText.Text = Loc.T("Select an inventory row to copy.");
             return;
         }
 
@@ -847,7 +874,7 @@ public partial class MainWindow : Window
     {
         if (AdaptersGrid.SelectedItem is not AdapterInfo adapter)
         {
-            StatusText.Text = "Select an adapter to copy.";
+            StatusText.Text = Loc.T("Select an adapter to copy.");
             return;
         }
 
@@ -860,7 +887,7 @@ public partial class MainWindow : Window
     {
         if (NdisPropertiesGrid.SelectedItem is not NdisPropertyRow property)
         {
-            StatusText.Text = "Select an NDIS property to copy.";
+            StatusText.Text = Loc.T("Select an NDIS property to copy.");
             return;
         }
 
@@ -878,7 +905,7 @@ public partial class MainWindow : Window
         }
         catch (ExternalException exception)
         {
-            StatusText.Text = $"Clipboard unavailable: {exception.Message}";
+            StatusText.Text = Loc.F($"Clipboard unavailable: {exception.Message}");
         }
     }
 
@@ -1011,18 +1038,18 @@ public partial class MainWindow : Window
     private void ShowPlayability(ProbeStatistics gameEndpoint, GameProfile game)
     {
         var verdict = PlayabilityAnalyzer.Judge(gameEndpoint, game);
-        PlayabilityHeadlineText.Text = $"{verdict.Headline} — decided by {verdict.DecidedBy}";
+        PlayabilityHeadlineText.Text = Loc.F($"{verdict.Headline} — decided by {verdict.DecidedBy}");
         PlayabilityDetailText.Text = verdict.Detail;
         PlayabilityMetricsGrid.ItemsSource = verdict.Metrics;
-        PlayabilityTickText.Text = $"{game.DisplayName}: {game.TickDisplay} ({game.SourceDisplay}). {game.Evidence} "
-            + $"Probes carried {game.PayloadBytes} bytes of payload.";
+        PlayabilityTickText.Text = Loc.F($"{game.DisplayName}: {game.TickDisplay} ({game.SourceDisplay}). {game.Evidence} "
+            + $"Probes carried {game.PayloadBytes} bytes of payload.");
         WriteLog("playability.judged", $"Game={game.Id}; Grade={verdict.Grade}; DecidedBy={verdict.DecidedBy}.");
     }
 
     private void WriteLog(string eventName, string message)
     {
         var error = AppLog.Write(eventName, message);
-        LogStatusText.Text = error is null ? string.Empty : $"Logging unavailable: {error}";
+        LogStatusText.Text = error is null ? string.Empty : Loc.F($"Logging unavailable: {error}");
     }
 
     private void ApplyDarkTitleBar()
@@ -1117,7 +1144,7 @@ public partial class MainWindow : Window
     private void CancelThroughput_Click(object sender, RoutedEventArgs e)
     {
         _throughputCancellation?.Cancel();
-        StatusText.Text = "Stopping the transfer…";
+        StatusText.Text = Loc.T("Stopping the transfer…");
     }
 
     private async void RunThroughput_Click(object sender, RoutedEventArgs e)
@@ -1126,38 +1153,38 @@ public partial class MainWindow : Window
         var latencyTarget = LoadedLatencyTargetText.Text.Trim();
         if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(latencyTarget))
         {
-            StatusText.Text = "Enter both a throughput endpoint and a latency target.";
+            StatusText.Text = Loc.T("Enter both a throughput endpoint and a latency target.");
             return;
         }
 
         if (!int.TryParse(ThroughputStreamsText.Text.Trim(), out var streams)
             || streams < 1 || streams > ThroughputProbe.MaximumStreams)
         {
-            StatusText.Text = $"Streams must be between 1 and {ThroughputProbe.MaximumStreams}.";
+            StatusText.Text = Loc.F($"Streams must be between 1 and {ThroughputProbe.MaximumStreams}.");
             return;
         }
 
         if (!int.TryParse(ThroughputSecondsText.Text.Trim(), out var seconds)
             || seconds < 1 || seconds > ThroughputProbe.MaximumDuration.TotalSeconds)
         {
-            StatusText.Text = $"Seconds per phase must be between 1 and {ThroughputProbe.MaximumDuration.TotalSeconds:0}.";
+            StatusText.Text = Loc.F($"Seconds per phase must be between 1 and {ThroughputProbe.MaximumDuration.TotalSeconds:0}.");
             return;
         }
 
         if (ThroughputDirectionComboBox.SelectedItem is not TransferDirection direction)
         {
-            StatusText.Text = "Select a transfer direction.";
+            StatusText.Text = Loc.T("Select a transfer direction.");
             return;
         }
 
         _throughputCancellation?.Dispose();
         _throughputCancellation = new CancellationTokenSource();
         SetThroughputBusy(true);
-        BufferbloatGradeText.Text = "Measuring…";
-        ThroughputResultText.Text = "Running…";
-        LoadedLatencyResultText.Text = "Running…";
-        BufferbloatAssessmentText.Text = "Running…";
-        StatusText.Text = $"Measuring {direction.ToString().ToLowerInvariant()} throughput and loaded latency…";
+        BufferbloatGradeText.Text = Loc.T("Measuring…");
+        ThroughputResultText.Text = Loc.T("Running…");
+        LoadedLatencyResultText.Text = Loc.T("Running…");
+        BufferbloatAssessmentText.Text = Loc.T("Running…");
+        StatusText.Text = Loc.F($"Measuring {direction.ToString().ToLowerInvariant()} throughput and loaded latency…");
         WriteLog("throughput.started", $"Endpoint={endpoint}; Latency={latencyTarget}; Direction={direction}; Streams={streams}; Seconds={seconds}.");
 
         try
@@ -1185,21 +1212,21 @@ public partial class MainWindow : Window
             if (result.Direction == TransferDirection.Download) _lastDownload = result;
             else _lastUpload = result;
             ShowLoadedLatency(result, utilization);
-            StatusText.Text = "Measurement complete.";
+            StatusText.Text = Loc.T("Measurement complete.");
             WriteLog("throughput.completed", result.Summary);
         }
         catch (OperationCanceledException)
         {
-            BufferbloatGradeText.Text = "Cancelled";
-            BufferbloatAssessmentText.Text = "The run was cancelled before it could be graded.";
-            StatusText.Text = "Measurement cancelled.";
+            BufferbloatGradeText.Text = Loc.T("Cancelled");
+            BufferbloatAssessmentText.Text = Loc.T("The run was cancelled before it could be graded.");
+            StatusText.Text = Loc.T("Measurement cancelled.");
             WriteLog("throughput.cancelled", "Cancelled by the operator.");
         }
         catch (Exception exception)
         {
-            BufferbloatGradeText.Text = "Failed";
+            BufferbloatGradeText.Text = Loc.T("Failed");
             BufferbloatAssessmentText.Text = exception.Message;
-            StatusText.Text = "Measurement failed.";
+            StatusText.Text = Loc.T("Measurement failed.");
             WriteLog("throughput.failed", exception.Message);
         }
         finally
@@ -1226,7 +1253,7 @@ public partial class MainWindow : Window
 
         BufferbloatGradeText.Text = result.LatencyIncreaseMs is { } increase
             ? LoadedLatencyAnalyzer.Display(LoadedLatencyAnalyzer.Grade(increase))
-            : "Not gradable";
+            : Loc.T("Not gradable");
 
         var assessment = LoadedLatencyAnalyzer.Analyze(result, utilization);
         var lines = new List<string> { assessment.Title, $"Confidence: {assessment.Confidence}. Owner: {assessment.Owner}." };
@@ -1275,8 +1302,8 @@ public partial class MainWindow : Window
         if (report is null && !measured)
         {
             RecommendationSummaryText.Text =
-                "Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online "
-                + "bufferbloat result — recommendations come from a measurement, never from a preset alone.";
+                Loc.T("Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online "
+                + "bufferbloat result — recommendations come from a measurement, never from a preset alone.");
             return;
         }
 
@@ -1333,13 +1360,13 @@ public partial class MainWindow : Window
                 ? $"an imported {_importedBufferbloat?.SourceDisplay ?? "bufferbloat"} result"
                 : $"{findings.Count} finding(s)";
             RecommendationSummaryText.Text =
-                $"{actions.Count} action(s) from {basis}: {local} this machine can make, "
-                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.";
+                Loc.F($"{actions.Count} action(s) from {basis}: {local} this machine can make, "
+                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.");
             WriteLog("recommendations.built", $"Actions={actions.Count}; Local={local}; Imported={report is null}.");
         }
         catch (Exception exception)
         {
-            RecommendationSummaryText.Text = $"Recommendations could not be built: {exception.Message}";
+            RecommendationSummaryText.Text = Loc.F($"Recommendations could not be built: {exception.Message}");
             WriteLog("recommendations.failed", exception.Message);
         }
     }
@@ -1350,8 +1377,8 @@ public partial class MainWindow : Window
         if (!inventory.Supported || inventory.Radios.Count == 0)
         {
             WifiRadioText.Text = inventory.Error is { } error
-                ? $"Wi-Fi radio inventory unavailable: {error}"
-                : "No Wi-Fi radio is connected; this connection is wired.";
+                ? Loc.F($"Wi-Fi radio inventory unavailable: {error}")
+                : Loc.T("No Wi-Fi radio is connected; this connection is wired.");
             return null;
         }
 
@@ -1381,8 +1408,8 @@ public partial class MainWindow : Window
         if (items.Count == 0)
         {
             RouterGuidanceText.Text = _lastDownload is null && _lastUpload is null
-                ? "Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one."
-                : "Nothing measured here needs a router change.";
+                ? Loc.T("Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one.")
+                : Loc.T("Nothing measured here needs a router change.");
             return;
         }
 
@@ -1401,35 +1428,35 @@ public partial class MainWindow : Window
     {
         if (RemediationGrid.SelectedItem is not RemediationAction { AppliesLocally: true } action)
         {
-            StatusText.Text = "Select an action that this machine can make.";
+            StatusText.Text = Loc.T("Select an action that this machine can make.");
             return;
         }
 
         var accepted = TuningPlan.Propose(action.Changes);
         StatusText.Text = accepted == action.Changes.Count
-            ? $"Sent {accepted} change(s) to the tuning plan. Nothing is applied until you review and confirm there."
-            : $"Sent {accepted} of {action.Changes.Count} change(s); the rest are not advertised for the selected adapter.";
+            ? Loc.F($"Sent {accepted} change(s) to the tuning plan. Nothing is applied until you review and confirm there.")
+            : Loc.F($"Sent {accepted} of {action.Changes.Count} change(s); the rest are not advertised for the selected adapter.");
         WriteLog("recommendations.sent_to_plan", $"Action={action.Id}; Accepted={accepted}/{action.Changes.Count}.");
     }
 
     private void CancelDnsBenchmark_Click(object sender, RoutedEventArgs e)
     {
         _dnsBenchmarkCancellation?.Cancel();
-        StatusText.Text = "Stopping the resolver benchmark\u2026";
+        StatusText.Text = Loc.T("Stopping the resolver benchmark\u2026");
     }
 
     private async void RunDnsBenchmark_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(DnsRoundsText.Text.Trim(), out var rounds) || rounds is < 1 or > 10)
         {
-            StatusText.Text = "Queries per name must be between 1 and 10.";
+            StatusText.Text = Loc.T("Queries per name must be between 1 and 10.");
             return;
         }
 
         var candidates = BuildResolverCandidates();
         if (candidates.Count == 0)
         {
-            StatusText.Text = "No resolver to measure.";
+            StatusText.Text = Loc.T("No resolver to measure.");
             return;
         }
 
@@ -1438,9 +1465,9 @@ public partial class MainWindow : Window
         SetBusy(true);
         RunDnsBenchmarkButton.IsEnabled = false;
         CancelDnsBenchmarkButton.IsEnabled = true;
-        DnsVerdictText.Text = "Measuring\u2026";
+        DnsVerdictText.Text = Loc.T("Measuring\u2026");
         DnsResolverGrid.ItemsSource = null;
-        StatusText.Text = $"Benchmarking {candidates.Count} resolver(s)\u2026";
+        StatusText.Text = Loc.F($"Benchmarking {candidates.Count} resolver(s)\u2026");
         WriteLog("dns.benchmark_started", $"Resolvers={candidates.Count}; Rounds={rounds}.");
 
         try
@@ -1459,25 +1486,25 @@ public partial class MainWindow : Window
             DnsVerdictText.Text = report.Verdict;
             _lastDnsReport = report;
             ApplyBestDnsButton.IsEnabled = WorthApplying(report);
-            StatusText.Text = "Resolver benchmark complete.";
+            StatusText.Text = Loc.T("Resolver benchmark complete.");
             WriteLog("dns.benchmark_completed", report.Verdict);
 
             if (DnsAutoApplyCheck.IsChecked == true && WorthApplying(report))
             {
-                DnsApplyStatusText.Text = "A worthwhile resolver was found; applying automatically\u2026";
+                DnsApplyStatusText.Text = Loc.T("A worthwhile resolver was found; applying automatically\u2026");
                 await ApplyDnsAsync(report.Fastest!.Resolver.Address);
             }
         }
         catch (OperationCanceledException)
         {
-            DnsVerdictText.Text = "Cancelled before every resolver was measured.";
-            StatusText.Text = "Resolver benchmark cancelled.";
+            DnsVerdictText.Text = Loc.T("Cancelled before every resolver was measured.");
+            StatusText.Text = Loc.T("Resolver benchmark cancelled.");
             WriteLog("dns.benchmark_cancelled", "Cancelled by the operator.");
         }
         catch (Exception exception)
         {
-            DnsVerdictText.Text = $"Benchmark failed: {exception.Message}";
-            StatusText.Text = "Resolver benchmark failed.";
+            DnsVerdictText.Text = Loc.F($"Benchmark failed: {exception.Message}");
+            StatusText.Text = Loc.T("Resolver benchmark failed.");
             WriteLog("dns.benchmark_failed", exception.Message);
         }
         finally
@@ -1536,7 +1563,7 @@ public partial class MainWindow : Window
     {
         if (_lastDnsReport?.Fastest is not { } fastest)
         {
-            DnsApplyStatusText.Text = "Run a benchmark first.";
+            DnsApplyStatusText.Text = Loc.T("Run a benchmark first.");
             return;
         }
 
@@ -1554,7 +1581,7 @@ public partial class MainWindow : Window
     {
         if (DnsAdapterComboBox.SelectedItem is not AdapterInfo adapter || !Guid.TryParse(adapter.Id, out _))
         {
-            DnsApplyStatusText.Text = "Select an adapter to change.";
+            DnsApplyStatusText.Text = Loc.T("Select an adapter to change.");
             return;
         }
 
@@ -1572,8 +1599,8 @@ public partial class MainWindow : Window
             if (before == after)
             {
                 DnsApplyStatusText.Text = primary is null
-                    ? $"{adapter.Name} already takes its resolvers from DHCP."
-                    : $"{adapter.Name} is already using {primary}.";
+                    ? Loc.F($"{adapter.Name} already takes its resolvers from DHCP.")
+                    : Loc.F($"{adapter.Name} is already using {primary}.");
                 return;
             }
 
@@ -1588,7 +1615,7 @@ public partial class MainWindow : Window
                     new WorkerStoredValue(after.Exists, after.Value),
                     ChangeSource.Manual)]);
 
-            DnsApplyStatusText.Text = "Approve the Windows elevation prompt to continue\u2026";
+            DnsApplyStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
             var response = await _dnsWorker.ExecuteAsync(request, CancellationToken.None);
             DnsApplyStatusText.Text = response.Status;
             WriteLog("dns.applied", $"Adapter={adapter.Name}; To={after.Value}; Success={response.Success}; {response.Status}");
@@ -1600,7 +1627,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            DnsApplyStatusText.Text = $"Resolver change failed: {exception.Message}";
+            DnsApplyStatusText.Text = Loc.F($"Resolver change failed: {exception.Message}");
             WriteLog("dns.apply_failed", exception.Message);
         }
     }
@@ -1618,15 +1645,15 @@ public partial class MainWindow : Window
             HealthGrid.ItemsSource = findings;
             OpenHealthSectionButton.IsEnabled = false;
             HealthSummaryText.Text = findings.Count == 0
-                ? "Nothing stood out in the current inventory. This looks at configuration only; run a diagnosis to measure the path."
-                : $"{findings.Count} finding(s) from the current inventory. "
+                ? Loc.T("Nothing stood out in the current inventory. This looks at configuration only; run a diagnosis to measure the path.")
+                : Loc.F($"{findings.Count} finding(s) from the current inventory. "
                     + $"{findings.Count(finding => finding.Severity == ChangeRisk.High)} worth fixing, "
                     + $"{findings.Count(finding => finding.Severity == ChangeRisk.Medium)} worth checking. "
-                    + "Select one to open the section that acts on it.";
+                    + $"Select one to open the section that acts on it.");
         }
         catch (Exception exception)
         {
-            HealthSummaryText.Text = $"Health check failed: {exception.Message}";
+            HealthSummaryText.Text = Loc.F($"Health check failed: {exception.Message}");
             WriteLog("health.failed", exception.Message);
         }
     }
@@ -1669,12 +1696,12 @@ public partial class MainWindow : Window
         var carrying = _interfaceAdvice.FirstOrDefault(item => item.Role == InterfaceRole.Carrying);
         var hidden = _adapterRows.Count(InterfaceAdvisor.IsOutOfScope);
         InterfaceSummaryAdviceText.Text = _interfaceAdvice.Count == 0
-            ? "Refresh the inventory to list network devices."
-            : $"{_interfaceAdvice.Count} network device(s); {hidden} filter and loopback pseudo-interface(s) hidden. "
-              + $"{flagged} worth considering for disabling. "
+            ? Loc.T("Refresh the inventory to list network devices.")
+            : Loc.F($"{_interfaceAdvice.Count} network device(s); {hidden} filter and loopback pseudo-interface(s) hidden. "
+              + $"{flagged} worth considering for disabling. ")
               + (carrying is null
-                  ? "No interface currently carries a default route, so nothing is protected as the way back in."
-                  : $"{carrying.Name} carries the default route and is never offered for disabling.");
+                  ? Loc.T("No interface currently carries a default route, so nothing is protected as the way back in.")
+                  : Loc.F($"{carrying.Name} carries the default route and is never offered for disabling."));
         UpdateInterfaceActions();
     }
 
@@ -1704,18 +1731,18 @@ public partial class MainWindow : Window
 
         if (advice is null)
         {
-            InterfaceDetailHeadingText.Text = "Select a device";
+            InterfaceDetailHeadingText.Text = Loc.T("Select a device");
             InterfaceDetailText.Text =
-                "The reason behind each verdict, and what disabling the device would cost, are shown here.";
+                Loc.T("The reason behind each verdict, and what disabling the device would cost, are shown here.");
             return;
         }
 
         InterfaceDetailHeadingText.Text =
             $"{advice.Name}  ·  {advice.KindDisplay}  ·  {advice.RoleDisplay}  ·  {advice.VerdictDisplay}";
         InterfaceDetailText.Text =
-            $"{advice.Reason}{Environment.NewLine}{advice.Evidence}"
+            Loc.F($"{advice.Reason}{Environment.NewLine}{advice.Evidence}"
             + $"{Environment.NewLine}Link {advice.Adapter.SpeedDisplay}, addresses {advice.Adapter.AddressesDisplay}, "
-            + $"gateways {advice.Adapter.GatewaysDisplay}.";
+            + $"gateways {advice.Adapter.GatewaysDisplay}.");
     }
 
     private void QueueDisableInterface_Click(object sender, RoutedEventArgs e) =>
@@ -1743,7 +1770,7 @@ public partial class MainWindow : Window
     {
         if (InterfaceAdviceGrid.SelectedItem is not InterfaceAdvice advice)
         {
-            InterfaceActionStatusText.Text = "Select a device first.";
+            InterfaceActionStatusText.Text = Loc.T("Select a device first.");
             return;
         }
 
@@ -1752,22 +1779,22 @@ public partial class MainWindow : Window
         if (requiresFlagged && !advice.CanDisable)
         {
             InterfaceActionStatusText.Text =
-                $"{advice.Name} is not offered for disabling: {advice.Reason}";
+                Loc.F($"{advice.Name} is not offered for disabling: {advice.Reason}");
             return;
         }
 
         if (!Guid.TryParse(advice.Adapter.Id, out var adapterId))
         {
-            InterfaceActionStatusText.Text = $"{advice.Name} has no adapter GUID to target.";
+            InterfaceActionStatusText.Text = Loc.F($"{advice.Name} has no adapter GUID to target.");
             return;
         }
 
         var accepted = TuningPlan.ProposeDeviceChanges(
             [new ChangeRequest(settingId, adapterId.ToString(), value, ChangeSource.Manual)]);
         InterfaceActionStatusText.Text = accepted == 1
-            ? $"Queued: {verb} {advice.Name}. {TuningPlan.PendingDeviceChangeCount} device change(s) waiting. "
-              + "Nothing is written until you preview and confirm it in the tuning plan."
-            : $"Refused: this machine no longer offers {settingId} on {advice.Name}.";
+            ? Loc.F($"Queued: {verb} {advice.Name}. {TuningPlan.PendingDeviceChangeCount} device change(s) waiting. "
+              + $"Nothing is written until you preview and confirm it in the tuning plan.")
+            : Loc.F($"Refused: this machine no longer offers {settingId} on {advice.Name}.");
         WriteLog("interfaces.queued", $"Setting={settingId}; Adapter={adapterId}; Accepted={accepted}.");
     }
 
@@ -1782,8 +1809,8 @@ public partial class MainWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Import an online bufferbloat result",
-            Filter = "Bufferbloat results (*.csv;*.json)|*.csv;*.json|All files (*.*)|*.*",
+            Title = Loc.T("Import an online bufferbloat result"),
+            Filter = Loc.T("Bufferbloat results (*.csv;*.json)|*.csv;*.json|All files (*.*)|*.*"),
             CheckFileExists = true
         };
 
@@ -1799,16 +1826,16 @@ public partial class MainWindow : Window
 
             ShowImportedBufferbloat(report);
             ImportedReportRecommendButton.IsEnabled = true;
-            StatusText.Text = $"Imported a {report.SourceDisplay} result.";
+            StatusText.Text = Loc.F($"Imported a {report.SourceDisplay} result.");
             WriteLog("bufferbloat.imported",
                 $"Source={report.Source}; Test={report.TestId}; Derived={report.DerivedGrade}; Reported={report.ReportedGrade}.");
         }
         catch (Exception exception) when (exception is IOException or InvalidDataException
                                           or ArgumentException or JsonException or UnauthorizedAccessException)
         {
-            ImportedBufferbloatText.Text = $"Import refused: {exception.Message}";
+            ImportedBufferbloatText.Text = Loc.F($"Import refused: {exception.Message}");
             ImportedReportRecommendButton.IsEnabled = false;
-            StatusText.Text = "Bufferbloat import failed.";
+            StatusText.Text = Loc.T("Bufferbloat import failed.");
             WriteLog("bufferbloat.import_failed", exception.Message);
         }
     }
@@ -1839,8 +1866,8 @@ public partial class MainWindow : Window
         ImportedBufferbloatText.Text = string.Join(Environment.NewLine, lines);
         BufferbloatGradeText.Text = derived;
         BufferbloatSummaryText.Text =
-            $"Imported from {report.SourceDisplay}. Latency increase under load is graded on the Waveform scale; "
-            + "it describes queue growth in front of the slowest link, not link speed.";
+            Loc.F($"Imported from {report.SourceDisplay}. Latency increase under load is graded on the Waveform scale; "
+            + $"it describes queue growth in front of the slowest link, not link speed.");
     }
 
     /// <summary>Builds the recommendations from the import and moves to the tab that shows them.</summary>
@@ -1859,14 +1886,14 @@ public partial class MainWindow : Window
     {
         if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
         {
-            StatusText.Text = "Build recommendations first.";
+            StatusText.Text = Loc.T("Build recommendations first.");
             return;
         }
 
         var applicable = actions.Where(action => action.AppliesLocally).ToArray();
         if (applicable.Length == 0)
         {
-            StatusText.Text = "Nothing here is a change this machine can make.";
+            StatusText.Text = Loc.T("Nothing here is a change this machine can make.");
             return;
         }
 
@@ -1879,9 +1906,9 @@ public partial class MainWindow : Window
         }
 
         StatusText.Text = accepted == requested
-            ? $"Sent {accepted} change(s) from {applicable.Length} action(s) to the tuning plan. "
-              + "Nothing is applied until you preview and confirm it there."
-            : $"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver.";
+            ? Loc.F($"Sent {accepted} change(s) from {applicable.Length} action(s) to the tuning plan. "
+              + $"Nothing is applied until you preview and confirm it there.")
+            : Loc.F($"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver.");
         WriteLog("recommendations.sent_all", $"Actions={applicable.Length}; Accepted={accepted}/{requested}.");
         if (accepted > 0) SelectTab("Tuning plan");
     }
@@ -1895,14 +1922,14 @@ public partial class MainWindow : Window
     {
         if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
         {
-            StatusText.Text = "Build recommendations first.";
+            StatusText.Text = Loc.T("Build recommendations first.");
             return;
         }
 
         var dialog = new SaveFileDialog
         {
-            Title = "Export the action checklist",
-            Filter = "Markdown (*.md)|*.md|All files (*.*)|*.*",
+            Title = Loc.T("Export the action checklist"),
+            Filter = Loc.T("Markdown (*.md)|*.md|All files (*.*)|*.*"),
             FileName = $"socktuner-checklist-{DateTime.Now:yyyyMMdd-HHmmss}.md"
         };
 
@@ -1925,12 +1952,12 @@ public partial class MainWindow : Window
 
             File.WriteAllText(dialog.FileName, ActionChecklistExporter.ToMarkdown(
                 [.. actions], _routerGuidance, string.Join(Environment.NewLine + Environment.NewLine, basis)));
-            StatusText.Text = $"Checklist exported to {dialog.FileName}.";
+            StatusText.Text = Loc.F($"Checklist exported to {dialog.FileName}.");
             WriteLog("checklist.exported", $"Actions={actions.Count()}; Router={_routerGuidance.Count}.");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
-            StatusText.Text = $"Checklist export failed: {exception.Message}";
+            StatusText.Text = Loc.F($"Checklist export failed: {exception.Message}");
             WriteLog("checklist.export_failed", exception.Message);
         }
     }
@@ -1945,10 +1972,10 @@ public partial class MainWindow : Window
     {
         if (_lastReport is not { } report)
         {
-            VerificationHeadlineText.Text = "No baseline: nothing was measured before this change";
+            VerificationHeadlineText.Text = Loc.T("No baseline: nothing was measured before this change");
             VerificationDetailText.Text =
-                "A change was applied without a diagnosis to compare against, so whether it helped cannot be "
-                + "established from here. Run a diagnosis now, apply the next change, and this will have a before.";
+                Loc.T("A change was applied without a diagnosis to compare against, so whether it helped cannot be "
+                + "established from here. Run a diagnosis now, apply the next change, and this will have a before.");
             return;
         }
 
@@ -1956,10 +1983,10 @@ public partial class MainWindow : Window
         ReRunDiagnosticButton.IsEnabled = true;
         ClearBaselineButton.IsEnabled = true;
         VerificationGrid.ItemsSource = null;
-        VerificationHeadlineText.Text = "Baseline captured";
+        VerificationHeadlineText.Text = Loc.T("Baseline captured");
         VerificationDetailText.Text =
-            $"The run against {report.RequestedTarget} at {report.StartedAt:HH:mm:ss} is the before. "
-            + "Re-run it with the same parameters to find out whether the change moved anything.";
+            Loc.F($"The run against {report.RequestedTarget} at {report.StartedAt:HH:mm:ss} is the before. "
+            + $"Re-run it with the same parameters to find out whether the change moved anything.");
         WriteLog("verify.baseline", $"Target={report.RequestedTarget}; At={report.StartedAt:O}.");
     }
 
@@ -1969,9 +1996,9 @@ public partial class MainWindow : Window
         ReRunDiagnosticButton.IsEnabled = false;
         ClearBaselineButton.IsEnabled = false;
         VerificationGrid.ItemsSource = null;
-        VerificationHeadlineText.Text = "No baseline yet.";
+        VerificationHeadlineText.Text = Loc.T("No baseline yet.");
         VerificationDetailText.Text =
-            "Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically.";
+            Loc.T("Run a diagnosis, then apply a plan. The run from before the change becomes the baseline automatically.");
     }
 
     /// <summary>
@@ -1983,7 +2010,7 @@ public partial class MainWindow : Window
     {
         if (_baselineBeforeApply is not { } baseline)
         {
-            VerificationHeadlineText.Text = "No baseline to compare against.";
+            VerificationHeadlineText.Text = Loc.T("No baseline to compare against.");
             return;
         }
 
@@ -1998,14 +2025,14 @@ public partial class MainWindow : Window
                 ?? DiagnosticGameComboBox.SelectedItem;
         }
 
-        VerificationHeadlineText.Text = "Re-running the baseline diagnosis…";
-        VerificationDetailText.Text = "Same target, same profile, same load condition, same port.";
+        VerificationHeadlineText.Text = Loc.T("Re-running the baseline diagnosis…");
+        VerificationDetailText.Text = Loc.T("Same target, same profile, same load condition, same port.");
 
         await RunDiagnosticAsync();
 
         if (_lastReport is not { } after || ReferenceEquals(after, baseline))
         {
-            VerificationHeadlineText.Text = "The re-run did not complete, so nothing can be concluded.";
+            VerificationHeadlineText.Text = Loc.T("The re-run did not complete, so nothing can be concluded.");
             return;
         }
 
@@ -2027,7 +2054,7 @@ public partial class MainWindow : Window
 
         if (verification.SuggestsRollback)
         {
-            StatusText.Text = "The re-run measured a regression. The audit history in the tuning plan can roll it back.";
+            StatusText.Text = Loc.T("The re-run measured a regression. The audit history in the tuning plan can roll it back.");
         }
 
         WriteLog("verify.completed", $"Outcome={verification.Outcome}.");
@@ -2046,14 +2073,14 @@ public partial class MainWindow : Window
         if (application.Length == 0)
         {
             QosActionStatusText.Text =
-                "Name the application to match. A policy with no application would mark everything this "
-                + "machine sends, which is not what prioritising a game means.";
+                Loc.T("Name the application to match. A policy with no application would mark everything this "
+                + "machine sends, which is not what prioritising a game means.");
             return;
         }
 
         if (!int.TryParse(QosDscpText.Text.Trim(), out var dscp))
         {
-            QosActionStatusText.Text = "The DSCP value must be a number between 0 and 63.";
+            QosActionStatusText.Text = Loc.T("The DSCP value must be a number between 0 and 63.");
             return;
         }
 
@@ -2071,7 +2098,7 @@ public partial class MainWindow : Window
         var application = QosApplicationText.Text.Trim();
         if (application.Length == 0)
         {
-            QosActionStatusText.Text = "Name the application whose policy should be removed.";
+            QosActionStatusText.Text = Loc.T("Name the application whose policy should be removed.");
             return;
         }
 
@@ -2089,9 +2116,9 @@ public partial class MainWindow : Window
             [new ChangeRequest(QosPolicySpecification.SettingId, name, value, ChangeSource.Manual)]);
 
         QosActionStatusText.Text = accepted == 1
-            ? $"Queued: {description}. Nothing is written until you preview and confirm it in the tuning plan. "
-              + "A mark only does something once your router is configured to act on it."
-            : $"Refused: \u201c{name}\u201d is not a policy SockTuner can manage, or the values are not valid.";
+            ? Loc.F($"Queued: {description}. Nothing is written until you preview and confirm it in the tuning plan. "
+              + $"A mark only does something once your router is configured to act on it.")
+            : Loc.F($"Refused: \u201c{name}\u201d is not a policy SockTuner can manage, or the values are not valid.");
         WriteLog("qos.queued", $"Policy={name}; Remove={value is null}; Accepted={accepted}.");
     }
 
@@ -2106,11 +2133,11 @@ public partial class MainWindow : Window
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(target) { UseShellExecute = true });
-            StatusText.Text = $"Opened {description}.";
+            StatusText.Text = Loc.F($"Opened {description}.");
         }
         catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            StatusText.Text = $"Could not open {description}: {exception.Message}";
+            StatusText.Text = Loc.F($"Could not open {description}: {exception.Message}");
         }
     }
 
@@ -2135,12 +2162,13 @@ public partial class MainWindow : Window
         var tab = InventoryTabs.Items
             .OfType<System.Windows.Controls.TabItem>()
             .FirstOrDefault(item => string.Equals(
-                item.Header?.ToString()?.Replace("_", string.Empty),
+                // UiTranslator parks the English header in Tag; the analyzers name sections in English.
+                (item.Tag as string ?? item.Header?.ToString())?.Replace("_", string.Empty),
                 finding.Section,
                 StringComparison.OrdinalIgnoreCase));
         if (tab is null)
         {
-            StatusText.Text = $"No section named {finding.Section}.";
+            StatusText.Text = Loc.F($"No section named {finding.Section}.");
             return;
         }
 
@@ -2158,18 +2186,18 @@ public partial class MainWindow : Window
         if (sender is not System.Windows.Controls.Button { Tag: string url }) return;
         if (!ReferenceLinks.All.Any(link => string.Equals(link.Url, url, StringComparison.Ordinal)))
         {
-            ReferenceStatusText.Text = "That link is not one of the listed references.";
+            ReferenceStatusText.Text = Loc.T("That link is not one of the listed references.");
             return;
         }
 
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
-            ReferenceStatusText.Text = $"Opened {url} in your browser.";
+            ReferenceStatusText.Text = Loc.F($"Opened {url} in your browser.");
         }
         catch (Exception exception)
         {
-            ReferenceStatusText.Text = $"Could not open the link: {exception.Message}";
+            ReferenceStatusText.Text = Loc.F($"Could not open the link: {exception.Message}");
         }
     }
 
@@ -2181,8 +2209,8 @@ public partial class MainWindow : Window
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Import a capture report",
-            Filter = "Capture report (*.json)|*.json|All files (*.*)|*.*",
+            Title = Loc.T("Import a capture report"),
+            Filter = Loc.T("Capture report (*.json)|*.json|All files (*.*)|*.*"),
             CheckFileExists = true
         };
         if (dialog.ShowDialog(this) != true) return;
@@ -2192,7 +2220,7 @@ public partial class MainWindow : Window
             var file = new FileInfo(dialog.FileName);
             if (file.Length > GameReportImporter.MaximumBytes)
             {
-                ImportedReportText.Text = $"That file is larger than {GameReportImporter.MaximumBytes / (1024 * 1024)} MB and was not read.";
+                ImportedReportText.Text = Loc.F($"That file is larger than {GameReportImporter.MaximumBytes / (1024 * 1024)} MB and was not read.");
                 return;
             }
 
@@ -2201,10 +2229,10 @@ public partial class MainWindow : Window
 
             _importedReport = report;
             ImportedReportText.Text = report.Summary
-                + (report.CapturedAt == DateTimeOffset.MinValue ? string.Empty : $"  Captured {report.CapturedAt:yyyy-MM-dd HH:mm}.")
+                + (report.CapturedAt == DateTimeOffset.MinValue ? string.Empty : Loc.F($"  Captured {report.CapturedAt:yyyy-MM-dd HH:mm}."))
                 + (report.Scores.Count == 0
                     ? string.Empty
-                    : "  Reported grades: " + string.Join(", ", report.Scores.Select(score => $"{score.Key} {score.Value}")) + ".");
+                    : Loc.T("  Reported grades: ") + string.Join(", ", report.Scores.Select(score => $"{score.Key} {score.Value}")) + ".");
             ImportedFindingsGrid.ItemsSource = findings;
             ImportedFindingsGrid.Visibility = Visibility.Visible;
             UseReportTargetButton.IsEnabled = !string.IsNullOrWhiteSpace(report.DiagnosticTarget);
@@ -2215,7 +2243,7 @@ public partial class MainWindow : Window
             _importedReport = null;
             UseReportTargetButton.IsEnabled = false;
             ImportedFindingsGrid.Visibility = Visibility.Collapsed;
-            ImportedReportText.Text = $"That file could not be read as a capture report: {exception.Message}";
+            ImportedReportText.Text = Loc.F($"That file could not be read as a capture report: {exception.Message}");
             WriteLog("report.import_failed", exception.Message);
         }
     }
@@ -2232,7 +2260,7 @@ public partial class MainWindow : Window
         if (!string.IsNullOrWhiteSpace(_importedReport.RemotePort)) DiagnosticPortText.Text = _importedReport.RemotePort;
         LoadedLatencyTargetText.Text = target;
         var tick = SelectImportedTickRate(_importedReport);
-        StatusText.Text = $"Diagnosis target set to {target} from the imported report.{tick} Nothing has been measured yet.";
+        StatusText.Text = Loc.F($"Diagnosis target set to {target} from the imported report.{tick} Nothing has been measured yet.");
     }
 
     /// <summary>
@@ -2276,7 +2304,7 @@ public partial class MainWindow : Window
         _interrupts = InterruptAffinityInventory.Read();
         if (_interrupts.Error is { } error)
         {
-            IrqSummaryText.Text = $"Device scan failed: {error}";
+            IrqSummaryText.Text = Loc.F($"Device scan failed: {error}");
             return;
         }
 
@@ -2301,9 +2329,9 @@ public partial class MainWindow : Window
         IrqDeviceGrid.ItemsSource = rows;
         var overridden = inventory.Devices.Count(device => device.HasOverride);
         IrqSummaryText.Text =
-            $"{rows.Length} device(s) shown of {inventory.Devices.Count} present. "
+            Loc.F($"{rows.Length} device(s) shown of {inventory.Devices.Count} present. "
             + $"{overridden} currently carry an override; the rest are placed by Windows. "
-            + $"This machine reports {inventory.LogicalProcessors} logical processors.";
+            + $"This machine reports {inventory.LogicalProcessors} logical processors.");
     }
 
     private void IrqDeviceGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
@@ -2313,12 +2341,12 @@ public partial class MainWindow : Window
         IrqResetButton.IsEnabled = selected is { HasOverride: true };
         if (selected is null)
         {
-            IrqSelectedDeviceText.Text = "Select a device above.";
+            IrqSelectedDeviceText.Text = Loc.T("Select a device above.");
             return;
         }
 
         IrqSelectedDeviceText.Text =
-            $"{selected.FriendlyName}  —  {selected.StateDisplay}. Instance: {selected.InstanceId}";
+            Loc.F($"{selected.FriendlyName}  —  {selected.StateDisplay}. Instance: {selected.InstanceId}");
 
         // Start from what the device already has, so applying without touching anything is a no-op
         // rather than a silent change to whatever the controls happened to show.
@@ -2383,7 +2411,7 @@ public partial class MainWindow : Window
         if (IrqPolicyComboBox.SelectedItem is not PolicyChoice { Policy: var policy }
             || IrqPriorityComboBox.SelectedItem is not InterruptPriority priority)
         {
-            IrqStatusText.Text = "Select a policy and priority.";
+            IrqStatusText.Text = Loc.T("Select a policy and priority.");
             return;
         }
 
@@ -2417,7 +2445,7 @@ public partial class MainWindow : Window
             var before = await store.ReadAsync(address, CancellationToken.None);
             if (before == desired)
             {
-                IrqStatusText.Text = $"{device.FriendlyName} already has that placement.";
+                IrqStatusText.Text = Loc.F($"{device.FriendlyName} already has that placement.");
                 return;
             }
 
@@ -2432,10 +2460,10 @@ public partial class MainWindow : Window
                     new WorkerStoredValue(desired.Exists, desired.Value),
                     ChangeSource.Manual)]);
 
-            IrqStatusText.Text = "Approve the Windows elevation prompt to continue\u2026";
+            IrqStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
             var response = await _irqWorker.ExecuteAsync(request, CancellationToken.None);
             IrqStatusText.Text = response.Success
-                ? $"{response.Status} The new placement takes effect after a restart."
+                ? Loc.F($"{response.Status} The new placement takes effect after a restart.")
                 : response.Status;
             WriteLog("irq.applied",
                 $"Device={device.FriendlyName}; To={(desired.Exists ? desired.Value : "default")}; Success={response.Success}");
@@ -2447,7 +2475,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            IrqStatusText.Text = $"Interrupt affinity change failed: {exception.Message}";
+            IrqStatusText.Text = Loc.F($"Interrupt affinity change failed: {exception.Message}");
             WriteLog("irq.apply_failed", exception.Message);
         }
     }
