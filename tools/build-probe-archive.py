@@ -81,7 +81,12 @@ def build(extra_sources):
 
         for adapter in snapshot["adapters"]:
             ndis = adapter.get("ndisProperties") or []
-            caps = caps_by_desc.get(adapter["description"], [])
+            caps = []
+            seen_keywords = set()
+            for capability in caps_by_desc.get(adapter["description"], []):
+                if capability["keyword"] not in seen_keywords:
+                    caps.append(capability)
+                    seen_keywords.add(capability["keyword"])
             if not ndis and not caps:
                 continue
             driver = adapter.get("driver") or {}

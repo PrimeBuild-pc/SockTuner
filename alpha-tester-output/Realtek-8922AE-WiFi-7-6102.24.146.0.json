@@ -1,0 +1,731 @@
+{
+  "archiveKey": "Realtek-8922AE-WiFi-7-6102.24.146.0",
+  "vendor": "Realtek",
+  "model": "Realtek 8922AE WiFi 7 PCI-E NIC",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Realtek Semiconductor Corp.",
+    "version": "6102.24.146.0",
+    "date": "6-25-2026",
+    "infPath": "oem14.inf",
+    "componentId": "PCI\\VEN_10EC&DEV_8922&SUBSYS_60111A3B",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 12,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260907-000423.json"
+  },
+  "adapter": {
+    "id": "{2A453A0F-1200-44CF-9EE4-8D7991EFFB02}",
+    "name": "Adapter 19",
+    "description": "Realtek 8922AE WiFi 7 PCI-E NIC",
+    "interfaceType": "Wireless80211",
+    "status": "NotPresent",
+    "speedBitsPerSecond": 0,
+    "macAddress": "58-02-05-00-00-00",
+    "addresses": [],
+    "gateways": [],
+    "dnsServers": [],
+    "ipv4Index": 0,
+    "ipv4Mtu": 0,
+    "ipv6Index": 0,
+    "ipv6Mtu": 0,
+    "supportsIPv4": false,
+    "supportsIPv6": false,
+    "inventoryError": null,
+    "driver": {
+      "provider": "Realtek Semiconductor Corp.",
+      "version": "6102.24.146.0",
+      "date": "6-25-2026",
+      "infPath": "oem14.inf",
+      "componentId": "PCI\\VEN_10EC&DEV_8922&SUBSYS_60111A3B",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 132
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": null,
+    "ipInterfaces": [],
+    "speedDisplay": "Unknown",
+    "isUp": false,
+    "hasDefaultRoute": false,
+    "routeMetric": null,
+    "driverDisplay": "Realtek Semiconductor Corp. 6102.24.146.0",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "12",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "—",
+    "gatewaysDisplay": "—",
+    "dnsDisplay": "Automatic / unavailable",
+    "receivedDisplay": "Unavailable",
+    "sentDisplay": "Unavailable",
+    "receiveIssuesDisplay": "Unavailable",
+    "sendIssuesDisplay": "Unavailable",
+    "metricDisplay": "Unavailable",
+    "defaultRoutePolicyDisplay": "Unavailable",
+    "mtuDisplay": "Unknown",
+    "protocolsDisplay": "None"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "WifiProtocol_2g",
+      "displayName": "2.4G Modalita wireless",
+      "currentValue": "109",
+      "defaultValue": "109",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: IEEE 802.11b, 109: IEEE 802.11b/g/n/ax/be, 13: IEEE 802.11b/g/n, 45: IEEE 802.11b/g/n/ax, 5: IEEE 802.11b/g"
+    },
+    {
+      "keyword": "WifiProtocol_5g",
+      "displayName": "5G Modalita wireless",
+      "currentValue": "122",
+      "defaultValue": "122",
+      "type": "enum",
+      "validValues": "0: Disabilita, 10: IEEE 802.11a/n, 122: IEEE 802.11a/n/ac/ax/be, 2: IEEE 802.11a, 26: IEEE 802.11a/n/ac, 58: IEEE 802.11a/n/ac/ax"
+    },
+    {
+      "keyword": "WifiProtocol_6G",
+      "displayName": "6GHz Band",
+      "currentValue": "98",
+      "defaultValue": "98",
+      "type": "enum",
+      "validValues": "0: Disabilita, 34: IEEE 802.11ax, 98: IEEE 802.11ax/be"
+    },
+    {
+      "keyword": "Dot11dEnable",
+      "displayName": "802.11d",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "WifiBandwidth_phy0",
+      "displayName": "Bandwidth",
+      "currentValue": "4294967295",
+      "defaultValue": "4294967295",
+      "type": "enum",
+      "validValues": "0: 20MHz Only, 4294967295: Auto"
+    },
+    {
+      "keyword": "AH_BcnIntv",
+      "displayName": "Beacon Interval",
+      "currentValue": "100",
+      "defaultValue": "100",
+      "type": "int",
+      "validValues": "20–1000 (step 1)"
+    },
+    {
+      "keyword": "SupportMACRandom",
+      "displayName": "MAC Randomization",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "MCCSup",
+      "displayName": "Multi-Channel Concurrent",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "PreferBand",
+      "displayName": "Preferred Band",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: 1. No Preference, 1: 2. 2.4G first, 2: 3. 5G first, 3: 4. 6G first"
+    },
+    {
+      "keyword": "RegRoamLevel",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: 1. Disable, 1: 2. Lowest, 2: 3. Medium-Low, 3: 4. Medium, 4: 5. Medium-High, 5: 6. Highest"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilita, 1: Abilita"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "WifiProtocol_2g",
+      "displayName": "2.4G Modalita wireless",
+      "currentValue": "109",
+      "defaultValue": "109",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "IEEE 802.11b",
+          "display": "IEEE 802.11b (1)"
+        },
+        {
+          "registryValue": "5",
+          "displayValue": "IEEE 802.11b/g",
+          "display": "IEEE 802.11b/g (5)"
+        },
+        {
+          "registryValue": "13",
+          "displayValue": "IEEE 802.11b/g/n",
+          "display": "IEEE 802.11b/g/n (13)"
+        },
+        {
+          "registryValue": "45",
+          "displayValue": "IEEE 802.11b/g/n/ax",
+          "display": "IEEE 802.11b/g/n/ax (45)"
+        },
+        {
+          "registryValue": "109",
+          "displayValue": "IEEE 802.11b/g/n/ax/be",
+          "display": "IEEE 802.11b/g/n/ax/be (109)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.WifiProtocol_2g",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "IEEE 802.11b/g/n/ax/be",
+      "defaultDisplay": "IEEE 802.11b/g/n/ax/be",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabilita (0), IEEE 802.11b (1), IEEE 802.11b/g (5), IEEE 802.11b/g/n (13), IEEE 802.11b/g/n/ax (45), IEEE 802.11b/g/n/ax/be (109)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "WifiProtocol_5g",
+      "displayName": "5G Modalita wireless",
+      "currentValue": "122",
+      "defaultValue": "122",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "IEEE 802.11a",
+          "display": "IEEE 802.11a (2)"
+        },
+        {
+          "registryValue": "10",
+          "displayValue": "IEEE 802.11a/n",
+          "display": "IEEE 802.11a/n (10)"
+        },
+        {
+          "registryValue": "26",
+          "displayValue": "IEEE 802.11a/n/ac",
+          "display": "IEEE 802.11a/n/ac (26)"
+        },
+        {
+          "registryValue": "58",
+          "displayValue": "IEEE 802.11a/n/ac/ax",
+          "display": "IEEE 802.11a/n/ac/ax (58)"
+        },
+        {
+          "registryValue": "122",
+          "displayValue": "IEEE 802.11a/n/ac/ax/be",
+          "display": "IEEE 802.11a/n/ac/ax/be (122)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.WifiProtocol_5g",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "IEEE 802.11a/n/ac/ax/be",
+      "defaultDisplay": "IEEE 802.11a/n/ac/ax/be",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabilita (0), IEEE 802.11a (2), IEEE 802.11a/n (10), IEEE 802.11a/n/ac (26), IEEE 802.11a/n/ac/ax (58), IEEE 802.11a/n/ac/ax/be (122)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "WifiProtocol_6G",
+      "displayName": "6GHz Band",
+      "currentValue": "98",
+      "defaultValue": "98",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "34",
+          "displayValue": "IEEE 802.11ax",
+          "display": "IEEE 802.11ax (34)"
+        },
+        {
+          "registryValue": "98",
+          "displayValue": "IEEE 802.11ax/be",
+          "display": "IEEE 802.11ax/be (98)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.WifiProtocol_6G",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "IEEE 802.11ax/be",
+      "defaultDisplay": "IEEE 802.11ax/be",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabilita (0), IEEE 802.11ax (34), IEEE 802.11ax/be (98)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "Dot11dEnable",
+      "displayName": "802.11d",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilita",
+          "display": "Abilita (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.Dot11dEnable",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabilita",
+      "defaultDisplay": "Disabilita",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilita (0), Abilita (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "WifiBandwidth_phy0",
+      "displayName": "Bandwidth",
+      "currentValue": "4294967295",
+      "defaultValue": "4294967295",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "20MHz Only",
+          "display": "20MHz Only (0)"
+        },
+        {
+          "registryValue": "4294967295",
+          "displayValue": "Auto",
+          "display": "Auto (4294967295)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "rejected": false,
+      "settingId": "nic.WifiBandwidth_phy0",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auto",
+      "defaultDisplay": "Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "20MHz Only (0), Auto (4294967295)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "AH_BcnIntv",
+      "displayName": "Beacon Interval",
+      "currentValue": "100",
+      "defaultValue": "100",
+      "choices": [],
+      "minimum": 20,
+      "maximum": 1000,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.AH_BcnIntv",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "100",
+      "defaultDisplay": "100",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "20–1000",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "SupportMACRandom",
+      "displayName": "MAC Randomization",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilita",
+          "display": "Abilita (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio, Identity",
+      "risk": "Medium",
+      "tradeOff": "MAC randomisation improves privacy but breaks MAC-based network access control.",
+      "rejected": false,
+      "settingId": "nic.SupportMACRandom",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilita",
+      "defaultDisplay": "Abilita",
+      "areasDisplay": "WiFiRadio, Identity",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilita (0), Abilita (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "MCCSup",
+      "displayName": "Multi-Channel Concurrent",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.MCCSup",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "PreferBand",
+      "displayName": "Preferred Band",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. No Preference",
+          "display": "1. No Preference (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 2.4G first",
+          "display": "2. 2.4G first (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. 5G first",
+          "display": "3. 5G first (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. 6G first",
+          "display": "4. 6G first (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+      "rejected": false,
+      "settingId": "nic.PreferBand",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "4. 6G first",
+      "defaultDisplay": "4. 6G first",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "1. No Preference (0), 2. 2.4G first (1), 3. 5G first (2), 4. 6G first (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "RegRoamLevel",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "5",
+          "displayValue": "6. Highest",
+          "display": "6. Highest (5)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "5. Medium-High",
+          "display": "5. Medium-High (4)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. Medium",
+          "display": "4. Medium (3)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Medium-Low",
+          "display": "3. Medium-Low (2)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Lowest",
+          "display": "2. Lowest (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "1. Disable",
+          "display": "1. Disable (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+      "rejected": false,
+      "settingId": "nic.RegRoamLevel",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "4. Medium",
+      "defaultDisplay": "4. Medium",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "6. Highest (5), 5. Medium-High (4), 4. Medium (3), 3. Medium-Low (2), 2. Lowest (1), 1. Disable (0)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilita",
+          "display": "Abilita (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnMagicPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilita",
+      "defaultDisplay": "Abilita",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilita (0), Abilita (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "2a453a0f-1200-44cf-9ee4-8d7991effb02",
+      "adapterName": "Adapter 19",
+      "interfaceDescription": "Realtek 8922AE WiFi 7 PCI-E NIC",
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilita",
+          "display": "Disabilita (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilita",
+          "display": "Abilita (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnPattern",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilita",
+      "defaultDisplay": "Abilita",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilita (0), Abilita (1)",
+      "isModifiedFromDefault": false
+    }
+  ]
+}

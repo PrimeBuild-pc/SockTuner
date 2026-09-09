@@ -1,0 +1,1639 @@
+{
+  "archiveKey": "Realtek-2-5GbE-1125.31.50.603",
+  "vendor": "Realtek",
+  "model": "Realtek PCIe 2.5GbE Family Controller",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Realtek",
+    "version": "1125.31.50.603",
+    "date": "6-3-2026",
+    "infPath": "oem18.inf",
+    "componentId": "PCI\\VEN_10EC&DEV_8125&SUBSYS_88E11043&REV_0C",
+    "ndisVersion": "—",
+    "pnpInstanceId": "—",
+    "characteristics": 4
+  },
+  "capturedFrom": {
+    "schemaVersion": 12,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "socktuner-probe-20260907-000423.json"
+  },
+  "adapter": {
+    "id": "{6E0BFE91-93A1-4974-AF82-7CC5B99D783E}",
+    "name": "Adapter 1",
+    "description": "Realtek PCIe 2.5GbE Family Controller",
+    "interfaceType": "Ethernet",
+    "status": "Up",
+    "speedBitsPerSecond": 1000000000,
+    "macAddress": "A0-AD-9F-00-00-00",
+    "addresses": [
+      "[IPv4 address redacted]"
+    ],
+    "gateways": [
+      "[IPv4 address redacted]"
+    ],
+    "dnsServers": [
+      "[IPv4 address redacted]",
+      "[IPv4 address redacted]"
+    ],
+    "ipv4Index": 13,
+    "ipv4Mtu": 1500,
+    "ipv6Index": 0,
+    "ipv6Mtu": 0,
+    "supportsIPv4": true,
+    "supportsIPv6": false,
+    "inventoryError": null,
+    "driver": {
+      "provider": "Realtek",
+      "version": "1125.31.50.603",
+      "date": "6-3-2026",
+      "infPath": "oem18.inf",
+      "componentId": "PCI\\VEN_10EC&DEV_8125&SUBSYS_88E11043&REV_0C",
+      "ndisVersion": "—",
+      "pnpInstanceId": "—",
+      "characteristics": 4
+    },
+    "ndisSupported": true,
+    "ndisInventoryError": null,
+    "counters": {
+      "bytesReceived": 245330,
+      "bytesSent": 72553,
+      "incomingPacketsDiscarded": 0,
+      "incomingPacketsWithErrors": 0,
+      "outgoingPacketsDiscarded": 0,
+      "outgoingPacketsWithErrors": 0
+    },
+    "ipInterfaces": [
+      {
+        "addressFamily": "IPv4",
+        "interfaceIndex": 13,
+        "metric": 25,
+        "mtu": 1500,
+        "automaticMetric": true,
+        "connected": true,
+        "defaultRoutesDisabled": false
+      }
+    ],
+    "speedDisplay": "1 Gbps",
+    "isUp": true,
+    "hasDefaultRoute": true,
+    "routeMetric": 25,
+    "driverDisplay": "Realtek 1125.31.50.603",
+    "kind": "Physical",
+    "adapterKindDisplay": "Physical",
+    "ndisPropertyCountDisplay": "30",
+    "inventoryStatus": "Complete",
+    "addressesDisplay": "[IPv4 address redacted]",
+    "gatewaysDisplay": "[IPv4 address redacted]",
+    "dnsDisplay": "[IPv4 address redacted], [IPv4 address redacted]",
+    "receivedDisplay": "245.33 KB",
+    "sentDisplay": "72.55 KB",
+    "receiveIssuesDisplay": "0 errors / 0 discarded",
+    "sendIssuesDisplay": "0 errors / 0 discarded",
+    "metricDisplay": "IPv4 25 (automatic)",
+    "defaultRoutePolicyDisplay": "IPv4 allowed",
+    "mtuDisplay": "IPv4 1500",
+    "protocolsDisplay": "IPv4"
+  },
+  "ndisProperties": [
+    {
+      "keyword": "AdvancedEEE",
+      "displayName": "Advanced EEE",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*FlowControl",
+      "displayName": "Controllo flusso",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "EEEMaxSupportSpeed",
+      "displayName": "EEE Max Support Speed",
+      "currentValue": "1000",
+      "defaultValue": "1000",
+      "type": "enum",
+      "validValues": "10: 10 Mbps Full Duplex, 100: 100 Mbps Full Duplex, 1000: 1.0 Gbps Full Duplex, 2500: 2.5 Gbps Full Duplex"
+    },
+    {
+      "keyword": "*EEE",
+      "displayName": "Ethernet a risparmio energetico",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "GigaLite",
+      "displayName": "Gigabit Lite",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "EnableGreenEthernet",
+      "displayName": "Green Ethernet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "NetworkAddress",
+      "displayName": "Indirizzo di rete",
+      "currentValue": "[redacted]",
+      "defaultValue": "",
+      "type": "edit",
+      "validValues": "—"
+    },
+    {
+      "keyword": "*InterruptModeration",
+      "displayName": "Interrupt Moderation",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*IPChecksumOffloadIPv4",
+      "displayName": "IPv4 Checksum Offload",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*JumboPacket",
+      "displayName": "Jumbo Frame",
+      "currentValue": "1514",
+      "defaultValue": "1514",
+      "type": "enum",
+      "validValues": "1514: Disabilitato, 16128: 16128 Bytes, 4088: 4088 Bytes, 9014: 9014 Bytes"
+    },
+    {
+      "keyword": "*LsoV2IPv4",
+      "displayName": "Large Send Offload v2 (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*LsoV2IPv6",
+      "displayName": "Large Send Offload v2 (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PMARPOffload",
+      "displayName": "Offload ARP",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PMNSOffload",
+      "displayName": "Offload NS",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "PowerSavingMode",
+      "displayName": "Power Saving Mode",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*PriorityVlanTag",
+      "displayName": "Priorità e VLAN",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Priorità e VLAN disabilitata, 1: Priorità abilitata, 2: VLAN abilitata, 3: Priorità e VLAN abilitata"
+    },
+    {
+      "keyword": "*RscIPv4",
+      "displayName": "Recv Segment Coalescing (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*RscIPv6",
+      "displayName": "Recv Segment Coalescing (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*ReceiveBuffers",
+      "displayName": "Ricevi buffer",
+      "currentValue": "1024",
+      "defaultValue": "1024",
+      "type": "int",
+      "validValues": "32–4096 (step 8)"
+    },
+    {
+      "keyword": "S5WakeOnLan",
+      "displayName": "Shutdown Wake-On-Lan",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Abilitato"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv4",
+      "displayName": "TCP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv6",
+      "displayName": "TCP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*TransmitBuffers",
+      "displayName": "Trasmetti buffer",
+      "currentValue": "512",
+      "defaultValue": "512",
+      "type": "int",
+      "validValues": "64–4096 (step 8)"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv4",
+      "displayName": "UDP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv6",
+      "displayName": "UDP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabilitato, 1: Tx Abilitata, 2: Rx Abilitata, 3: Rx & Tx Abilitata"
+    },
+    {
+      "keyword": "*SpeedDuplex",
+      "displayName": "Velocità e duplex",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto Negotiation, 1: 10 Mbps Half Duplex, 2: 10 Mbps Full Duplex, 2500: 2.5 Gbps Full Duplex, 3: 100 Mbps Half Duplex, 4: 100 Mbps Full Duplex, 6: 1.0 Gbps Full Duplex"
+    },
+    {
+      "keyword": "RegVlanid",
+      "displayName": "VLAN ID",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "int",
+      "validValues": "0–4094 (step 1)"
+    },
+    {
+      "keyword": "WolShutdownLinkSpeed",
+      "displayName": "WOL & Shutdown velocità collegamento",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Prima 10 Mbps, 1: Prima 100 Mbps, 2: Non rallentamento"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "AdvancedEEE",
+      "displayName": "Advanced EEE",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link with some switches.",
+      "rejected": false,
+      "settingId": "nic.AdvancedEEE",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabilitato",
+      "defaultDisplay": "Disabilitato",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*FlowControl",
+      "displayName": "Controllo flusso",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "802.3x pause frames prevent drops but propagate congestion upstream and can add head-of-line blocking delay.",
+      "rejected": false,
+      "settingId": "nic.*FlowControl",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*WakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnPattern",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "EEEMaxSupportSpeed",
+      "displayName": "EEE Max Support Speed",
+      "currentValue": "1000",
+      "defaultValue": "1000",
+      "choices": [
+        {
+          "registryValue": "10",
+          "displayValue": "10 Mbps Full Duplex",
+          "display": "10 Mbps Full Duplex (10)"
+        },
+        {
+          "registryValue": "100",
+          "displayValue": "100 Mbps Full Duplex",
+          "display": "100 Mbps Full Duplex (100)"
+        },
+        {
+          "registryValue": "1000",
+          "displayValue": "1.0 Gbps Full Duplex",
+          "display": "1.0 Gbps Full Duplex (1000)"
+        },
+        {
+          "registryValue": "2500",
+          "displayValue": "2.5 Gbps Full Duplex",
+          "display": "2.5 Gbps Full Duplex (2500)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link with some switches.",
+      "rejected": false,
+      "settingId": "nic.EEEMaxSupportSpeed",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "1.0 Gbps Full Duplex",
+      "defaultDisplay": "1.0 Gbps Full Duplex",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "10 Mbps Full Duplex (10), 100 Mbps Full Duplex (100), 1.0 Gbps Full Duplex (1000), 2.5 Gbps Full Duplex (2500)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*EEE",
+      "displayName": "Ethernet a risparmio energetico",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link with some switches.",
+      "rejected": false,
+      "settingId": "nic.*EEE",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "GigaLite",
+      "displayName": "Gigabit Lite",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link with some switches.",
+      "rejected": false,
+      "settingId": "nic.GigaLite",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "EnableGreenEthernet",
+      "displayName": "Green Ethernet",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link with some switches.",
+      "rejected": false,
+      "settingId": "nic.EnableGreenEthernet",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "NetworkAddress",
+      "displayName": "Indirizzo di rete",
+      "currentValue": "[redacted]",
+      "defaultValue": "",
+      "choices": [],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": true,
+      "areas": "Identity",
+      "risk": "High",
+      "tradeOff": "Overriding the hardware MAC address can break DHCP reservations, port security, and licence activation.",
+      "rejected": false,
+      "settingId": "nic.NetworkAddress",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "",
+      "areasDisplay": "Identity",
+      "riskBadge": "! High",
+      "constraintDisplay": "Free text (driver advertises no constraint)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*InterruptModeration",
+      "displayName": "Interrupt Moderation",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Disabling moderation lowers best-case latency but raises interrupt rate and CPU use, and can reduce peak throughput under load.",
+      "rejected": false,
+      "settingId": "nic.*InterruptModeration",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Enabled",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*IPChecksumOffloadIPv4",
+      "displayName": "IPv4 Checksum Offload",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Abilitata",
+          "display": "Tx Abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Abilitata",
+          "display": "Rx Abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*IPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Tx Abilitata (1), Rx Abilitata (2), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*JumboPacket",
+      "displayName": "Jumbo Frame",
+      "currentValue": "1514",
+      "defaultValue": "1514",
+      "choices": [
+        {
+          "registryValue": "1514",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (1514)"
+        },
+        {
+          "registryValue": "4088",
+          "displayValue": "4088 Bytes",
+          "display": "4088 Bytes (4088)"
+        },
+        {
+          "registryValue": "9014",
+          "displayValue": "9014 Bytes",
+          "display": "9014 Bytes (9014)"
+        },
+        {
+          "registryValue": "16128",
+          "displayValue": "16128 Bytes",
+          "display": "16128 Bytes (16128)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "High",
+      "tradeOff": "Every device on the path must accept the same frame size; a mismatch silently discards large packets while small ones keep working.",
+      "rejected": false,
+      "settingId": "nic.*JumboPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Disabilitato",
+      "defaultDisplay": "Disabilitato",
+      "areasDisplay": "Throughput",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabilitato (1514), 4088 Bytes (4088), 9014 Bytes (9014), 16128 Bytes (16128)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*LsoV2IPv4",
+      "displayName": "Large Send Offload v2 (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*LsoV2IPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*LsoV2IPv6",
+      "displayName": "Large Send Offload v2 (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*LsoV2IPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnMagicPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*PMARPOffload",
+      "displayName": "Offload ARP",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "rejected": false,
+      "settingId": "nic.*PMARPOffload",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*PMNSOffload",
+      "displayName": "Offload NS",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "rejected": false,
+      "settingId": "nic.*PMNSOffload",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "PowerSavingMode",
+      "displayName": "Power Saving Mode",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Power saving reduces idle draw but can add latency on the first packet after an idle period.",
+      "rejected": false,
+      "settingId": "nic.PowerSavingMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*PriorityVlanTag",
+      "displayName": "Priorità e VLAN",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Priorità e VLAN disabilitata",
+          "display": "Priorità e VLAN disabilitata (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Priorità abilitata",
+          "display": "Priorità abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "VLAN abilitata",
+          "display": "VLAN abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Priorità e VLAN abilitata",
+          "display": "Priorità e VLAN abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Vlan",
+      "risk": "Medium",
+      "tradeOff": "Disabling tagging drops 802.1p priority and VLAN membership on a trunked link.",
+      "rejected": false,
+      "settingId": "nic.*PriorityVlanTag",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Priorità e VLAN abilitata",
+      "defaultDisplay": "Priorità e VLAN abilitata",
+      "areasDisplay": "Vlan",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Priorità e VLAN disabilitata (0), Priorità abilitata (1), VLAN abilitata (2), Priorità e VLAN abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*RscIPv4",
+      "displayName": "Recv Segment Coalescing (IPv4)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
+      "rejected": false,
+      "settingId": "nic.*RscIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*RscIPv6",
+      "displayName": "Recv Segment Coalescing (IPv6)",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
+      "rejected": false,
+      "settingId": "nic.*RscIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*ReceiveBuffers",
+      "displayName": "Ricevi buffer",
+      "currentValue": "1024",
+      "defaultValue": "1024",
+      "choices": [],
+      "minimum": 32,
+      "maximum": 4096,
+      "step": 8,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "More descriptors absorb bursts and reduce drops, but add queueing delay and pin more memory.",
+      "rejected": false,
+      "settingId": "nic.*ReceiveBuffers",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "1024",
+      "defaultDisplay": "1024",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "32–4096 (step 8)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "S5WakeOnLan",
+      "displayName": "Shutdown Wake-On-Lan",
+      "currentValue": "1",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Abilitato",
+          "display": "Abilitato (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.S5WakeOnLan",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Abilitato",
+      "defaultDisplay": "Abilitato",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabilitato (0), Abilitato (1)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*TCPChecksumOffloadIPv4",
+      "displayName": "TCP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Abilitata",
+          "display": "Tx Abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Abilitata",
+          "display": "Rx Abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*TCPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Tx Abilitata (1), Rx Abilitata (2), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*TCPChecksumOffloadIPv6",
+      "displayName": "TCP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Abilitata",
+          "display": "Tx Abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Abilitata",
+          "display": "Rx Abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*TCPChecksumOffloadIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Tx Abilitata (1), Rx Abilitata (2), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*TransmitBuffers",
+      "displayName": "Trasmetti buffer",
+      "currentValue": "512",
+      "defaultValue": "512",
+      "choices": [],
+      "minimum": 64,
+      "maximum": 4096,
+      "step": 8,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Throughput",
+      "risk": "Medium",
+      "tradeOff": "More descriptors absorb bursts and reduce drops, but add queueing delay and pin more memory.",
+      "rejected": false,
+      "settingId": "nic.*TransmitBuffers",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "512",
+      "defaultDisplay": "512",
+      "areasDisplay": "Latency, Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "64–4096 (step 8)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*UDPChecksumOffloadIPv4",
+      "displayName": "UDP Checksum Offload (IPv4)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Abilitata",
+          "display": "Tx Abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Abilitata",
+          "display": "Rx Abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*UDPChecksumOffloadIPv4",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Tx Abilitata (1), Rx Abilitata (2), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*UDPChecksumOffloadIPv6",
+      "displayName": "UDP Checksum Offload (IPv6)",
+      "currentValue": "3",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabilitato",
+          "display": "Disabilitato (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Tx Abilitata",
+          "display": "Tx Abilitata (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Rx Abilitata",
+          "display": "Rx Abilitata (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "Rx & Tx Abilitata",
+          "display": "Rx & Tx Abilitata (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "Medium",
+      "tradeOff": "Offload frees CPU and normally raises throughput. Disabling it is a diagnostic step, not an optimisation.",
+      "rejected": false,
+      "settingId": "nic.*UDPChecksumOffloadIPv6",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Rx & Tx Abilitata",
+      "defaultDisplay": "Rx & Tx Abilitata",
+      "areasDisplay": "Throughput",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabilitato (0), Tx Abilitata (1), Rx Abilitata (2), Rx & Tx Abilitata (3)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "*SpeedDuplex",
+      "displayName": "Velocità e duplex",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Auto Negotiation",
+          "display": "Auto Negotiation (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "10 Mbps Half Duplex",
+          "display": "10 Mbps Half Duplex (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "10 Mbps Full Duplex",
+          "display": "10 Mbps Full Duplex (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "100 Mbps Half Duplex",
+          "display": "100 Mbps Half Duplex (3)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "100 Mbps Full Duplex",
+          "display": "100 Mbps Full Duplex (4)"
+        },
+        {
+          "registryValue": "6",
+          "displayValue": "1.0 Gbps Full Duplex",
+          "display": "1.0 Gbps Full Duplex (6)"
+        },
+        {
+          "registryValue": "2500",
+          "displayValue": "2.5 Gbps Full Duplex",
+          "display": "2.5 Gbps Full Duplex (2500)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput",
+      "risk": "High",
+      "tradeOff": "Forcing speed or duplex can drop the link or create a duplex mismatch that only shows up as loss under load. Auto-negotiation is normally correct.",
+      "rejected": false,
+      "settingId": "nic.*SpeedDuplex",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Auto Negotiation",
+      "defaultDisplay": "Auto Negotiation",
+      "areasDisplay": "Throughput",
+      "riskBadge": "! High",
+      "constraintDisplay": "Auto Negotiation (0), 10 Mbps Half Duplex (1), 10 Mbps Full Duplex (2), 100 Mbps Half Duplex (3), 100 Mbps Full Duplex (4), 1.0 Gbps Full Duplex (6), 2.5 Gbps Full Duplex (2500)",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "RegVlanid",
+      "displayName": "VLAN ID",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [],
+      "minimum": 0,
+      "maximum": 4094,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Vlan",
+      "risk": "High",
+      "tradeOff": "A wrong VLAN ID removes the adapter from its network.",
+      "rejected": false,
+      "settingId": "nic.RegVlanid",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "0",
+      "defaultDisplay": "0",
+      "areasDisplay": "Vlan",
+      "riskBadge": "! High",
+      "constraintDisplay": "0–4094",
+      "isModifiedFromDefault": false
+    },
+    {
+      "adapterId": "6e0bfe91-93a1-4974-af82-7cc5b99d783e",
+      "adapterName": "Adapter 1",
+      "interfaceDescription": "Realtek PCIe 2.5GbE Family Controller",
+      "keyword": "WolShutdownLinkSpeed",
+      "displayName": "WOL & Shutdown velocità collegamento",
+      "currentValue": "0",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Prima 10 Mbps",
+          "display": "Prima 10 Mbps (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Prima 100 Mbps",
+          "display": "Prima 100 Mbps (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Non rallentamento",
+          "display": "Non rallentamento (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Medium",
+      "tradeOff": "Reducing link speed at shutdown saves power but can prevent wake-on-LAN on some switches.",
+      "rejected": false,
+      "settingId": "nic.WolShutdownLinkSpeed",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "Prima 10 Mbps",
+      "defaultDisplay": "Prima 10 Mbps",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Prima 10 Mbps (0), Prima 100 Mbps (1), Non rallentamento (2)",
+      "isModifiedFromDefault": false
+    }
+  ]
+}
