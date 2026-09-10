@@ -14,4 +14,4 @@ The repository root [README](../README.md) is the concise project overview.
 
 ## Research material
 
-Uploaded scripts, notes, reports, binaries, captures, and third-party projects are kept separately under [`research/`](../research/). They are inputs for analysis, not SockTuner production code or validated recommendations.
+[RESEARCH_ARCHIVE.md](RESEARCH_ARCHIVE.md) conserva inventario, provenienza e conclusioni del corpus analizzato. Il materiale voluminoso e i programmi di terzi sono stati rimossi da `research/`; restano soltanto note, link e risultati leggeri come provenienza. Nessun elemento del corpus è automaticamente codice di produzione o una raccomandazione validata.

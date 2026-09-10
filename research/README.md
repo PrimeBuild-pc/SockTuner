@@ -1,25 +1,13 @@
 # Private Research Material
 
-This directory contains the original material supplied for SockTuner research. It is deliberately separated from project documentation and future application source code.
+Il corpus originale è stato analizzato staticamente. Inventario, provenienza, conclusioni e registro della pulizia sono conservati in [`docs/RESEARCH_ARCHIVE.md`](../docs/RESEARCH_ARCHIVE.md).
 
-> Nothing in this directory is automatically considered correct, safe, licensed for redistribution, or suitable for production use.
+Il 10 settembre 2026 le directory voluminose `projects/`, `scripts/` e `tools/` sono state spostate nel Cestino, senza cancellazione definitiva. Restano soltanto:
 
-## Organization
-
-| Directory | Contents |
+| Directory | Contenuto |
 | --- | --- |
-| `notes/` | Networking theory, NDIS command notes, and saved text references |
-| `links/` | Windows shortcuts and web links |
-| `scripts/diagnostics/` | Adapter discovery, network diagnostics, gaming tests, and endpoint discovery scripts |
-| `scripts/tuning/` | TCP/IP, MTU, NIC, interrupt, power, offload, and registry tuning scripts |
-| `projects/` | Complete research projects such as GameNetAnalyzer and bufferbloat material |
-| `tools/` | Third-party or bundled utilities, binaries, manuals, and tool collections |
+| `notes/` | Note originali, non validate |
+| `links/` | Collegamenti e provenienza |
+| `results/` | Risultati personali leggeri, non benchmark generalizzabili |
 
-## Handling rules
-
-- Treat scripts as candidate ideas, not authoritative recommendations.
-- Do not execute bundled binaries as part of SockTuner development or normal operation.
-- Validate settings against Microsoft/vendor documentation, installed-driver capabilities, and repeatable tests.
-- Preserve provenance and review licenses before reusing any code or data.
-- Do not publish nested `.git` directories, executables, archives, PCAP files, personal reports, or unknown-license material.
-- Move only independently validated and original conclusions into `docs/` or the future application source tree.
+Nessun elemento residuo è automaticamente corretto, sicuro, licenziato per la redistribuzione o adatto al codice di produzione. Non eseguire comandi remoti o applicare tweak dalle note; usare soltanto le conclusioni indipendenti registrate nella documentazione del progetto.
