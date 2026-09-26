@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="SockTuner banner" width="100%" />
-</p>
-
-<p align="center">
   <a href="https://github.com/PrimeBuild-pc/SockTuner/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=git&amp;logoColor=white"></a>
   <a href="https://github.com/PrimeBuild-pc/SockTuner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
   <a href="https://github.com/PrimeBuild-pc/SockTuner/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
@@ -58,7 +54,7 @@ The report contains the adapter model, driver version, OS version, and driver-ad
 | Change management | Dry run, compatibility gates, risk labels, snapshots, read-back verification, audit history, export, and exact rollback |
 | Profiles | Transparent, editable profiles built only from independently supported and tested settings |
 
-See the [Documentation Index](docs/README.md) and [Product Scope](docs/PRODUCT_SCOPE.md) for the proposed feature boundary.
+See the [documentation index](docs/README.md) for the architecture and repository metadata.
 
 ## Proposed technology
 
@@ -70,13 +66,11 @@ See the [Documentation Index](docs/README.md) and [Product Scope](docs/PRODUCT_S
 
 WPF is the deliberate choice for a Windows-only administrative tool: it is mature, works across Windows 10 and 11, integrates cleanly with native Windows management surfaces, and avoids a browser runtime or an unnecessary UI platform dependency.
 
-Read the full [Architecture](docs/ARCHITECTURE.md), [Implementation Roadmap](docs/ROADMAP.md), and [Development Guide](docs/DEVELOPMENT.md).
+Read the full [Architecture](docs/ARCHITECTURE.md) and [GitHub repository metadata](docs/GITHUB.md).
 
 ## Engineering position
 
 Network settings are workload-, driver-, OS-, and topology-dependent. Disabling RSS, ECN, auto-tuning, offloads, or interrupt moderation is not universally beneficial. Nagle-related changes affect TCP, while many games primarily use UDP. Client-side throttling is not a universal replacement for router-side SQM/AQM and cannot eliminate every form of bufferbloat.
-
-The reference scripts in this private workspace are research inputs, not production code or verified recommendations. Their conflicting values and undocumented registry edits must be validated against official documentation, driver-advertised capabilities, repeatable benchmarks, and rollback tests before they can become SockTuner features.
 
 ## Current stage
 

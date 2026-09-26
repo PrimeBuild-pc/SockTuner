@@ -45,7 +45,7 @@ wpf
 
 Use this near the top of the README until a safe public build exists:
 
-> **Status: pre-alpha development. Read-only inventory and diagnostics are under construction; live network mutations remain disabled.**
+> **Status: alpha development. Live changes are capability-gated, previewed, verified, audited, and reversible; use them only on a machine you can recover locally.**
 
 ## Public-launch checklist
 

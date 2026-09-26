@@ -9,7 +9,7 @@ namespace SockTuner.Tests;
 /// </summary>
 public sealed class RejectedKeywordTests
 {
-    // Distilled from docs/JACKPOTS_ZENIT_NDIS_CANDIDATES.md §C.
+    // Unsafe low-level driver controls stay denied even when advertised.
     public static TheoryData<string> Rejected =>
     [
         "HwOption", "HwOptionV2", "HwOptionV3",
