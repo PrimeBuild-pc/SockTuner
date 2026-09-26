@@ -9,6 +9,9 @@ __pycache__/
 # IDE and user state
 .vs/
 .idea/
+.claude/
+.pi/
+AGENTS.md
 *.user
 *.suo
 *.userosscache

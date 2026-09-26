@@ -71,7 +71,7 @@ These are folders/namespaces in one production project, not separate assemblies 
 | Platform.Windows | Small wrappers around Windows APIs, CIM/WMI, and registry access |
 | Persistence | Versioned JSON snapshots, reports, preferences, and logs |
 
-A plugin API, dependency-injection framework, command bus, database, cloud backend, and background agent are not needed for the first release.
+A plugin API, dependency-injection framework, command bus, database, cloud backend, and background service are not needed for the first release.
 
 ## 5. Windows integration strategy
 
