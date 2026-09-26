@@ -89,6 +89,25 @@ public sealed class TransactionAuditStoreTests : IDisposable
         Assert.False(File.Exists(path));
     }
 
+    [Fact]
+    public void FindLatestReversibleApply_SkipsAnApplyAlreadyUndone()
+    {
+        var start = DateTimeOffset.Parse("2026-09-26T10:00:00Z");
+        var oldApply = Entry(TransactionAuditOutcome.ApplySucceeded, start, "20", "10");
+        var rollback = Entry(TransactionAuditOutcome.RollbackSucceeded, start.AddMinutes(1), "10", "20");
+        var latestApply = Entry(TransactionAuditOutcome.ApplySucceeded, start.AddMinutes(2), "20", "15");
+
+        Assert.Equal(latestApply.Id,
+            TransactionAuditStore.FindLatestReversibleApply([oldApply, rollback, latestApply])?.Id);
+        Assert.Null(TransactionAuditStore.FindLatestReversibleApply([oldApply, rollback]));
+    }
+
+    private static TransactionAuditEntry Entry(
+        TransactionAuditOutcome outcome, DateTimeOffset time, string before, string after) => new(
+        2, Guid.NewGuid(), time, outcome, Guid.NewGuid(),
+        [new("mmcss.system-responsiveness", null,
+            new(true, before), new(true, after), ChangeSource.Manual)], null);
+
     private static ApplyResult Result(bool success)
     {
         var definition = SettingCatalog.Get("mmcss.system-responsiveness");

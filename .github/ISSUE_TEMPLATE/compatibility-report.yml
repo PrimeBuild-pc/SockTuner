@@ -1,0 +1,25 @@
+name: Hardware compatibility report
+description: Share a privacy-safe SockTuner capability report from real hardware.
+title: "Compatibility: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping validate SockTuner on real hardware.
+
+        In SockTuner, open **Preferences → Help improve SockTuner → Create compatibility report**. Review the plain-text JSON file, then drag it into the field below. The report excludes all current setting values, persistent device identifiers, network addresses, paths, machine name, and exact timestamps.
+  - type: textarea
+    id: report
+    attributes:
+      label: Compatibility report
+      description: Drag the generated SockTuner-compatibility.json file here.
+      placeholder: Drag and drop SockTuner-compatibility.json here.
+    validations:
+      required: true
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Consent
+      options:
+        - label: I reviewed the generated JSON and consent to publishing it in this GitHub issue.
+          required: true

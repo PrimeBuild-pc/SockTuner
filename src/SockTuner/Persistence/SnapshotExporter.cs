@@ -16,14 +16,13 @@ public static class SnapshotExporter
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public static string Serialize(NetworkSnapshot snapshot, bool redact = false, bool probe = false) => JsonSerializer.Serialize(new
+    public static string Serialize(NetworkSnapshot snapshot, bool redact = false) => JsonSerializer.Serialize(new
     {
         schemaVersion = 12,
         toolVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown",
         exportedAt = DateTimeOffset.Now,
-        redacted = redact || probe,
-        probe,
-        snapshot = redact || probe ? Redact(snapshot, probe) : snapshot
+        redacted = redact,
+        snapshot = redact ? Redact(snapshot) : snapshot
     }, Options);
 
     /// <summary>
@@ -53,7 +52,7 @@ public static class SnapshotExporter
             report
         }, Options);
 
-    internal static NetworkSnapshot Redact(NetworkSnapshot snapshot, bool probe = false)
+    internal static NetworkSnapshot Redact(NetworkSnapshot snapshot)
     {
         var adapterNames = snapshot.Adapters
             .Select((adapter, index) => (adapter.Name, Replacement: $"Adapter {index + 1}"))
@@ -66,22 +65,20 @@ public static class SnapshotExporter
             System = snapshot.System with { MachineName = Redacted },
             Adapters = snapshot.Adapters.Select((adapter, index) => adapter with
             {
-                Id = probe ? adapter.Id : Redacted,
+                Id = Redacted,
                 Name = $"Adapter {index + 1}",
-                MacAddress = probe ? MaskMac(adapter.MacAddress) : Redacted,
+                MacAddress = Redacted,
                 Addresses = adapter.Addresses.Select(Address).ToArray(),
                 Gateways = adapter.Gateways.Select(Address).ToArray(),
                 DnsServers = adapter.DnsServers.Select(Address).ToArray(),
                 InventoryError = Error(adapter.InventoryError),
                 Driver = adapter.Driver is null ? null : adapter.Driver with
                 {
-                    InfPath = probe ? adapter.Driver.InfPath : Redacted,
-                    PnpInstanceId = probe ? adapter.Driver.PnpInstanceId : Redacted
+                    InfPath = Redacted,
+                    PnpInstanceId = Redacted
                 },
                 NdisProperties = adapter.NdisProperties.Select(property =>
-                    probe && !IsUserAssignedValue(property.Keyword)
-                        ? property
-                        : property with { CurrentValue = Redacted }).ToArray(),
+                    property with { CurrentValue = Redacted }).ToArray(),
                 NdisInventoryError = Error(adapter.NdisInventoryError)
             }).ToArray(),
             Routes = snapshot.Routes.Select(route => route with
@@ -129,17 +126,12 @@ public static class SnapshotExporter
                 JobObject = RedactedValue(policy.JobObject)
             }).ToArray(),
             QosPolicyInventoryError = Error(snapshot.QosPolicyInventoryError),
-            // Driver-advertised constraints are the point of a probe report, so they survive
-            // intact. Only the current value of a user-assigned keyword is masked, exactly as the
-            // NDIS property list above is.
             AdapterCapabilities = snapshot.AdapterCapabilities?.Select(capability => capability with
             {
-                AdapterId = probe ? capability.AdapterId : Guid.Empty,
+                AdapterId = Guid.Empty,
                 AdapterName = AdapterName(capability.AdapterName),
-                InterfaceDescription = probe ? capability.InterfaceDescription : Redacted,
-                CurrentValue = probe && !IsUserAssignedValue(capability.Keyword)
-                    ? capability.CurrentValue
-                    : Redacted
+                InterfaceDescription = Redacted,
+                CurrentValue = Redacted
             }).ToArray(),
             AdapterCapabilityInventoryError = Error(snapshot.AdapterCapabilityInventoryError)
         };
@@ -147,15 +139,5 @@ public static class SnapshotExporter
 
     private static string Address(string address) => address.Contains(':') ? "[IPv6 address redacted]" : "[IPv4 address redacted]";
 
-    // Keeps the vendor OUI, masks the device-specific octets.
-    private static string MaskMac(string macAddress)
-    {
-        var octets = macAddress.Split('-');
-        return octets.Length == 6 ? $"{octets[0]}-{octets[1]}-{octets[2]}-00-00-00" : Redacted;
-    }
-
-    // Keywords whose value is assigned by the user (for example a locally administered MAC).
-    private static bool IsUserAssignedValue(string keyword) =>
-        string.Equals(keyword, "NetworkAddress", StringComparison.OrdinalIgnoreCase);
     private static string RedactedValue(string value) => string.IsNullOrEmpty(value) ? value : Redacted;
 }

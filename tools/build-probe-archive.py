@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild alpha-tester-output/ as a per-model capability archive from --probe reports.
+"""Rebuild alpha-tester-output/ as a per-model archive from compatibility reports.
 
 Development-time maintenance script; not part of the application or its build. Reports are read
 from the archive itself plus any extra folders given on the command line, filed under reports/
@@ -10,6 +10,7 @@ for provenance, split one file per adapter model, and summarised in INDEX.md.
 """
 import collections
 import glob
+import hashlib
 import json
 import os
 import re
@@ -46,13 +47,25 @@ def slug(desc, vendor):
     return re.sub(r"-+", "-", text) or "unknown"
 
 
+def report_archive_name(path, report):
+    name = os.path.basename(path)
+    if not name.lower().startswith("socktuner-compatibility"):
+        return name
+    stem, extension = os.path.splitext(name)
+    stem = re.sub(r"-[0-9a-f]{12}$", "", stem, flags=re.I)
+    content = json.dumps(report, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode()
+    return f"{stem}-{hashlib.sha256(content).hexdigest()[:12]}{extension}"
+
+
 def load_reports(extra_sources):
     reports = []
     for source in [ARCHIVE, REPORTS, *extra_sources]:
-        for path in sorted(glob.glob(os.path.join(source, "socktuner-probe-*.json"))):
+        patterns = ("socktuner-probe-*.json", "SockTuner-compatibility*.json")
+        for path in sorted({path for pattern in patterns for path in glob.glob(os.path.join(source, pattern))}):
             try:
                 with open(path, encoding="utf-8") as handle:
-                    reports.append((path, json.load(handle)))
+                    report = json.load(handle)
+                reports.append((path, report_archive_name(path, report), report))
             except (OSError, ValueError) as error:
                 print("  skipped", os.path.basename(path), error)
     return reports
@@ -96,8 +109,8 @@ def build(extra_sources, write=True):
     reports = load_reports(extra_sources)
     previous_entries = load_archive_entries()
     entries = {}
-    for path, report in reports:
-        snapshot = report["snapshot"]
+    for path, archive_name, report in reports:
+        snapshot = report.get("snapshot", report)
         system = snapshot["system"]
         caps_by_desc = collections.defaultdict(list)
         for capability in (snapshot.get("adapterCapabilities") or []):
@@ -107,7 +120,8 @@ def build(extra_sources, write=True):
             ndis = adapter.get("ndisProperties") or []
             caps = []
             seen_keywords = set()
-            for capability in caps_by_desc.get(adapter["description"], []):
+            reported_capabilities = adapter.get("capabilities") or caps_by_desc.get(adapter["description"], [])
+            for capability in reported_capabilities:
                 if capability["keyword"] not in seen_keywords:
                     caps.append(capability)
                     seen_keywords.add(capability["keyword"])
@@ -132,7 +146,7 @@ def build(extra_sources, write=True):
                     "schemaVersion": report.get("schemaVersion"),
                     "operatingSystem": system.get("operatingSystem"),
                     "osVersion": system.get("version"),
-                    "sourceReport": os.path.basename(path),
+                    "sourceReport": archive_name,
                 },
                 "adapter": {k: v for k, v in adapter.items() if k != "ndisProperties"},
                 "ndisProperties": ndis,
@@ -143,8 +157,8 @@ def build(extra_sources, write=True):
     if not write:
         return entries
 
-    for path, _ in reports:
-        target = os.path.join(REPORTS, os.path.basename(path))
+    for path, archive_name, _ in reports:
+        target = os.path.join(REPORTS, archive_name)
         if os.path.abspath(path) != os.path.abspath(target):
             shutil.copy2(path, target)
         if os.path.dirname(os.path.abspath(path)) == os.path.abspath(ARCHIVE):
@@ -168,7 +182,7 @@ def render_index(entries):
     lines = [
         "# Capability archive",
         "",
-        "Redacted `--probe` reports, split one file per adapter model. This is the reference for",
+        "Privacy-safe compatibility reports, split one file per adapter model. This is the reference for",
         "which hardware SockTuner has real capability data for, and therefore which keywords its",
         "catalog is characterised against. Regenerate with `python tools/build-probe-archive.py`.",
         "",
@@ -177,8 +191,8 @@ def render_index(entries):
         "Raw reports are kept under `reports/` for provenance.",
         "",
         "`capabilities` carries the structured driver constraints (valid values, min/max/step,",
-        "default) that the tuning surface uses. Reports captured before schema 12 have only",
-        "`ndisProperties`; re-running the probe on that hardware upgrades the entry.",
+        "default) that the tuning surface uses. Older probe reports may have only",
+        "`ndisProperties`; creating a new compatibility report on that hardware upgrades the entry.",
         "",
         "## Physical adapters",
         "",
@@ -226,13 +240,13 @@ def render_index(entries):
         "",
         "### Adding a report",
         "",
-        "1. Run `SockTuner.exe --probe` on the machine; it writes a redacted report to the Desktop.",
-        "2. Drop the file into this folder, or pass its folder to the build script.",
+        "1. In SockTuner, open Preferences → Help improve SockTuner → Create compatibility report.",
+        "2. Review the JSON, then drop it into this folder or pass its folder to the build script.",
         "3. Run `python tools/build-probe-archive.py` to file it, split it per model and refresh this index.",
         "4. Run `python tools/build-probe-archive.py --check` to verify regeneration produces no diff.",
         "",
-        "Reports contain no machine name, IP addresses, routes or full MAC addresses; the vendor OUI",
-        "prefix and driver identity are kept deliberately, since they are the point of the archive.",
+        "Current reports contain no persistent device identifiers, network addresses, user paths,",
+        "machine name or exact timestamps. Hardware model and driver identity are kept deliberately.",
     ]
     return "\n".join(lines) + "\n"
 

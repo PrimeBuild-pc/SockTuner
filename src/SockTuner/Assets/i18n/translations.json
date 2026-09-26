@@ -3173,5 +3173,170 @@
   "es": "{0}{1}{2}{3}Enlace {4}, direcciones {5}, puertas de enlace {6}.",
   "ru": "{0}{1}{2}{3}Канал {4}, адреса {5}, шлюзы {6}.",
   "zh-Hans": "{0}{1}{2}{3}链路 {4}，地址 {5}，网关 {6}。"
+ },
+ "Create compatibility report…": {
+  "es": "Crear informe de compatibilidad…",
+  "ru": "Создать отчёт о совместимости…",
+  "zh-Hans": "创建兼容性报告…"
+ },
+ "Create compatibility report": {
+  "es": "Crear informe de compatibilidad",
+  "ru": "Создать отчёт о совместимости",
+  "zh-Hans": "创建兼容性报告"
+ },
+ "Help improve SockTuner": {
+  "es": "Ayuda a mejorar SockTuner",
+  "ru": "Помогите улучшить SockTuner",
+  "zh-Hans": "帮助改进 SockTuner"
+ },
+ "Create a privacy-safe hardware capability report. It includes adapter model, driver version and supported settings; it excludes device IDs, addresses, paths, machine name and exact timestamps.": {
+  "es": "Crea un informe de capacidades de hardware que protege la privacidad. Incluye el modelo del adaptador, la versión del controlador y los ajustes compatibles; excluye identificadores de dispositivo, direcciones, rutas, el nombre del equipo y marcas de tiempo exactas.",
+  "ru": "Создайте безопасный для конфиденциальности отчёт о возможностях оборудования. Он включает модель адаптера, версию драйвера и поддерживаемые параметры, но исключает идентификаторы устройств, адреса, пути, имя компьютера и точные метки времени.",
+  "zh-Hans": "创建保护隐私的硬件功能报告。报告包含适配器型号、驱动程序版本和支持的设置；不包含设备 ID、地址、路径、计算机名称和精确时间戳。"
+ },
+ "Refresh inventory before creating a compatibility report.": {
+  "es": "Actualiza el inventario antes de crear un informe de compatibilidad.",
+  "ru": "Обновите инвентаризацию перед созданием отчёта о совместимости.",
+  "zh-Hans": "请先刷新清单，再创建兼容性报告。"
+ },
+ "The report includes adapter model, driver version and supported settings. It excludes persistent device IDs, addresses, paths, machine name and exact timestamps. Save it for review?": {
+  "es": "El informe incluye el modelo del adaptador, la versión del controlador y los ajustes compatibles. Excluye identificadores persistentes de dispositivo, direcciones, rutas, el nombre del equipo y marcas de tiempo exactas. ¿Guardarlo para revisarlo?",
+  "ru": "Отчёт включает модель адаптера, версию драйвера и поддерживаемые параметры. Он исключает постоянные идентификаторы устройств, адреса, пути, имя компьютера и точные метки времени. Сохранить его для проверки?",
+  "zh-Hans": "报告包含适配器型号、驱动程序版本和支持的设置，不包含持久设备 ID、地址、路径、计算机名称和精确时间戳。是否保存以供检查？"
+ },
+ "SockTuner compatibility report (*.json)|*.json": {
+  "es": "Informe de compatibilidad de SockTuner (*.json)|*.json",
+  "ru": "Отчёт о совместимости SockTuner (*.json)|*.json",
+  "zh-Hans": "SockTuner 兼容性报告 (*.json)|*.json"
+ },
+ "Compatibility report saved to {0}.": {
+  "es": "Informe de compatibilidad guardado en {0}.",
+  "ru": "Отчёт о совместимости сохранён в {0}.",
+  "zh-Hans": "兼容性报告已保存到 {0}。"
+ },
+ "Compatibility report saved.": {
+  "es": "Informe de compatibilidad guardado.",
+  "ru": "Отчёт о совместимости сохранён.",
+  "zh-Hans": "兼容性报告已保存。"
+ },
+ "The JSON file is plain text. Inspect it if you wish, then attach it to the GitHub issue. Open the issue form now?": {
+  "es": "El archivo JSON es texto sin formato. Revísalo si quieres y adjúntalo a la incidencia de GitHub. ¿Abrir ahora el formulario?",
+  "ru": "Файл JSON является обычным текстом. При желании проверьте его и прикрепите к задаче GitHub. Открыть форму задачи сейчас?",
+  "zh-Hans": "JSON 文件是纯文本。你可以先检查内容，然后将其附加到 GitHub 议题。现在打开议题表单吗？"
+ },
+ "Compatibility report saved": {
+  "es": "Informe de compatibilidad guardado",
+  "ru": "Отчёт о совместимости сохранён",
+  "zh-Hans": "兼容性报告已保存"
+ },
+ "GitHub issue form opened. Attach the saved JSON file before submitting.": {
+  "es": "Se abrió el formulario de incidencias de GitHub. Adjunta el archivo JSON guardado antes de enviarlo.",
+  "ru": "Форма задачи GitHub открыта. Перед отправкой прикрепите сохранённый файл JSON.",
+  "zh-Hans": "GitHub 议题表单已打开。提交前请附加已保存的 JSON 文件。"
+ },
+ "Compatibility report failed: {0}": {
+  "es": "Error al crear el informe de compatibilidad: {0}",
+  "ru": "Не удалось создать отчёт о совместимости: {0}",
+  "zh-Hans": "兼容性报告失败：{0}"
+ },
+ "Running application": {
+  "es": "Aplicación en ejecución",
+  "ru": "Запущенное приложение",
+  "zh-Hans": "正在运行的应用程序"
+ },
+ "Choose a running application": {
+  "es": "Elegir una aplicación en ejecución",
+  "ru": "Выбрать запущенное приложение",
+  "zh-Hans": "选择正在运行的应用程序"
+ },
+ "Recovery": {
+  "es": "Recuperación",
+  "ru": "Восстановление",
+  "zh-Hans": "恢复"
+ },
+ "No successful change is waiting to be undone.": {
+  "es": "No hay ningún cambio correcto pendiente de deshacer.",
+  "ru": "Нет успешных изменений, ожидающих отмены.",
+  "zh-Hans": "没有等待撤销的成功更改。"
+ },
+ "Undo last successful change": {
+  "es": "Deshacer el último cambio correcto",
+  "ru": "Отменить последнее успешное изменение",
+  "zh-Hans": "撤销上次成功更改"
+ },
+ "Open recovery history": {
+  "es": "Abrir historial de recuperación",
+  "ru": "Открыть журнал восстановления",
+  "zh-Hans": "打开恢复历史记录"
+ },
+ "Last reversible change: {0:g} · {1} setting(s).": {
+  "es": "Último cambio reversible: {0:g} · {1} ajuste(s).",
+  "ru": "Последнее обратимое изменение: {0:g} · параметров: {1}.",
+  "zh-Hans": "上次可撤销更改：{0:g} · {1} 个设置。"
+ },
+ "Undo the successful change from {0:g} ({1} setting(s))?": {
+  "es": "¿Deshacer el cambio correcto de {0:g} ({1} ajuste(s))?",
+  "ru": "Отменить успешное изменение от {0:g} (параметров: {1})?",
+  "zh-Hans": "撤销 {0:g} 的成功更改（{1} 个设置）？"
+ },
+ "Run complete check": {
+  "es": "Ejecutar comprobación completa",
+  "ru": "Запустить полную проверку",
+  "zh-Hans": "运行完整检查"
+ },
+ "Runs the read-only inventory and path checks together. Loaded-latency and throughput tests stay separate because they generate traffic.": {
+  "es": "Ejecuta conjuntamente el inventario y las comprobaciones de ruta de solo lectura. Las pruebas de latencia con carga y rendimiento permanecen separadas porque generan tráfico.",
+  "ru": "Вместе запускает инвентаризацию и проверку пути только для чтения. Тесты задержки под нагрузкой и пропускной способности остаются отдельными, поскольку создают трафик.",
+  "zh-Hans": "同时运行只读清单和路径检查。负载延迟与吞吐量测试会产生流量，因此保持独立。"
+ },
+ "Review compatibility report": {
+  "es": "Revisar informe de compatibilidad",
+  "ru": "Проверка отчёта о совместимости",
+  "zh-Hans": "检查兼容性报告"
+ },
+ "Review the complete JSON before saving": {
+  "es": "Revisa el JSON completo antes de guardarlo",
+  "ru": "Проверьте полный JSON перед сохранением",
+  "zh-Hans": "保存前检查完整 JSON"
+ },
+ "Only attach this file if you are comfortable publishing the contents in a GitHub issue.": {
+  "es": "Adjunta este archivo solo si aceptas publicar su contenido en una incidencia de GitHub.",
+  "ru": "Прикрепляйте этот файл, только если согласны опубликовать его содержимое в задаче GitHub.",
+  "zh-Hans": "仅当你愿意在 GitHub 议题中公开其内容时，才附加此文件。"
+ },
+ "Save report": {
+  "es": "Guardar informe",
+  "ru": "Сохранить отчёт",
+  "zh-Hans": "保存报告"
+ },
+ "Report saved, but the GitHub issue form could not be opened: {0}": {
+  "es": "El informe se guardó, pero no se pudo abrir el formulario de incidencias de GitHub: {0}",
+  "ru": "Отчёт сохранён, но форму задачи GitHub открыть не удалось: {0}",
+  "zh-Hans": "报告已保存，但无法打开 GitHub 议题表单：{0}"
+ },
+ "Create a privacy-safe hardware capability report. It includes adapter model, driver version and supported setting constraints; it excludes current values, device IDs, addresses, paths, machine name and exact timestamps.": {
+  "es": "Crea un informe de capacidades de hardware que protege la privacidad. Incluye el modelo del adaptador, la versión del controlador y las restricciones admitidas; excluye valores actuales, identificadores de dispositivo, direcciones, rutas, el nombre del equipo y marcas de tiempo exactas.",
+  "ru": "Создайте безопасный для конфиденциальности отчёт о возможностях оборудования. Он включает модель адаптера, версию драйвера и ограничения поддерживаемых параметров, но исключает текущие значения, идентификаторы устройств, адреса, пути, имя компьютера и точные метки времени.",
+  "zh-Hans": "创建保护隐私的硬件功能报告。报告包含适配器型号、驱动程序版本和支持的设置约束；不包含当前值、设备 ID、地址、路径、计算机名称和精确时间戳。"
+ },
+ "The report includes adapter model, driver version and supported setting constraints. It excludes all current values, persistent device IDs, addresses, paths, machine name and exact timestamps. Save it for review?": {
+  "es": "El informe incluye el modelo del adaptador, la versión del controlador y las restricciones admitidas. Excluye todos los valores actuales, identificadores persistentes de dispositivo, direcciones, rutas, el nombre del equipo y marcas de tiempo exactas. ¿Guardarlo para revisarlo?",
+  "ru": "Отчёт включает модель адаптера, версию драйвера и ограничения поддерживаемых параметров. Он исключает все текущие значения, постоянные идентификаторы устройств, адреса, пути, имя компьютера и точные метки времени. Сохранить его для проверки?",
+  "zh-Hans": "报告包含适配器型号、驱动程序版本和支持的设置约束，不包含任何当前值、持久设备 ID、地址、路径、计算机名称和精确时间戳。是否保存以供检查？"
+ },
+ "Undo the successful change from {0:g} ({1} setting(s))? Settings: {2}. Recovery can restart affected adapters and briefly interrupt connectivity.": {
+  "es": "¿Deshacer el cambio correcto de {0:g} ({1} ajuste(s))? Ajustes: {2}. La recuperación puede reiniciar los adaptadores afectados e interrumpir brevemente la conectividad.",
+  "ru": "Отменить успешное изменение от {0:g} (параметров: {1})? Параметры: {2}. Восстановление может перезапустить затронутые адаптеры и кратковременно прервать подключение.",
+  "zh-Hans": "撤销 {0:g} 的成功更改（{1} 个设置）？设置：{2}。恢复可能会重启受影响的适配器并短暂中断连接。"
+ },
+ "Running applications could not be listed: {0}": {
+  "es": "No se pudieron enumerar las aplicaciones en ejecución: {0}",
+  "ru": "Не удалось получить список запущенных приложений: {0}",
+  "zh-Hans": "无法列出正在运行的应用程序：{0}"
+ },
+ "Confirm rollback": {
+  "es": "Confirmar reversión",
+  "ru": "Подтвердить откат",
+  "zh-Hans": "确认回滚"
  }
 }

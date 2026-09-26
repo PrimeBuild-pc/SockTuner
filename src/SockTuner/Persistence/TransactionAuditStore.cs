@@ -70,6 +70,17 @@ public sealed class TransactionAuditStore
             errors.Count == 0 ? null : string.Join("; ", errors),
             maximumEntries);
 
+    public static TransactionAuditEntry? FindLatestReversibleApply(
+        IEnumerable<TransactionAuditEntry> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        var ordered = entries.OrderByDescending(entry => entry.RecordedAt).ToArray();
+        return ordered.FirstOrDefault(apply => apply.Outcome == TransactionAuditOutcome.ApplySucceeded
+            && !ordered.Any(rollback => rollback.RecordedAt > apply.RecordedAt
+                && rollback.Outcome == TransactionAuditOutcome.RollbackSucceeded
+                && Inverts(apply, rollback)));
+    }
+
     public IReadOnlyList<TransactionAuditEntry> Load()
     {
         if (!Directory.Exists(_directory)) return [];
@@ -86,6 +97,14 @@ public sealed class TransactionAuditStore
             return [];
         }
     }
+
+    private static bool Inverts(TransactionAuditEntry apply, TransactionAuditEntry rollback) =>
+        apply.Changes.Count == rollback.Changes.Count
+        && apply.Changes.All(change => rollback.Changes.Any(candidate =>
+            string.Equals(candidate.SettingId, change.SettingId, StringComparison.Ordinal)
+            && string.Equals(candidate.TargetId, change.TargetId, StringComparison.OrdinalIgnoreCase)
+            && candidate.Before == change.After
+            && candidate.After == change.Before));
 
     private TransactionAuditEntry Save(
         TransactionAuditOutcome outcome,

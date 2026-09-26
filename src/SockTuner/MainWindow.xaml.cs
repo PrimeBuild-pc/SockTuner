@@ -12,6 +12,7 @@ using SockTuner.Services;
 using SockTuner.Services.Collection;
 using SockTuner.Services.Diagnosis;
 using SockTuner.Services.Remediation;
+using SockTuner.Views;
 
 namespace SockTuner;
 
@@ -20,6 +21,8 @@ public partial class MainWindow : Window
     private const int UseImmersiveDarkMode = 20;
     private const int UseImmersiveDarkModeBefore20H1 = 19;
     private const int MonitorMaximumSamples = 1000;
+    private const string CompatibilityIssueUrl =
+        "https://github.com/PrimeBuild-pc/SockTuner/issues/new?template=compatibility-report.yml";
 
     /// <summary>The catalogue, plus whatever tick rate an imported capture brought with it.</summary>
     private readonly ObservableCollection<GameProfile> _gameProfiles = new(GameProfiles.All);
@@ -112,6 +115,7 @@ public partial class MainWindow : Window
             ShowWriteState();
             CaptureVerificationBaseline();
             await RefreshInventoryAsync();
+            ShowRecoveryState();
         };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         RestoreWindowGeometry();
@@ -122,6 +126,7 @@ public partial class MainWindow : Window
             LoadInterruptAffinity();
         };
         ShowWriteState();
+        ShowRecoveryState();
         WriteLog("app.started", "SockTuner UI started.");
     }
 
@@ -397,6 +402,7 @@ public partial class MainWindow : Window
             ? Loc.F($"{snapshot.WinsockProviders?.Count ?? 0} native protocol provider(s). Inspection only; repair remains separately gated.")
             : Loc.F($"Winsock inventory partial: {snapshot.WinsockInventoryError}");
         ApplyInventoryFilter();
+        ShowRecoveryState();
     }
 
     private async void RunDiagnostic_Click(object sender, RoutedEventArgs e) => await RunDiagnosticAsync();
@@ -583,6 +589,74 @@ public partial class MainWindow : Window
         {
             StatusText.Text = Loc.F($"Snapshot export failed: {exception.Message}");
             WriteLog("snapshot.export_failed", exception.Message);
+        }
+    }
+
+    private void CreateCompatibilityReport_Click(object sender, RoutedEventArgs e)
+    {
+        if (_snapshot is null)
+        {
+            StatusText.Text = Loc.T("Refresh inventory before creating a compatibility report.");
+            return;
+        }
+
+        if (MessageBox.Show(
+                Loc.T("The report includes adapter model, driver version and supported setting constraints. It excludes all current values, persistent device IDs, addresses, paths, machine name and exact timestamps. Save it for review?"),
+                Loc.T("Create compatibility report"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Information) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        var report = CompatibilityReportExporter.Serialize(_snapshot);
+        var preview = new CompatibilityReportPreviewWindow(report) { Owner = this };
+        if (preview.ShowDialog() != true) return;
+
+        var dialog = new SaveFileDialog
+        {
+            Filter = Loc.T("SockTuner compatibility report (*.json)|*.json"),
+            DefaultExt = ".json",
+            AddExtension = true,
+            FileName = $"SockTuner-compatibility-{Guid.NewGuid():N}.json"
+        };
+        if (dialog.ShowDialog(this) != true) return;
+
+        try
+        {
+            File.WriteAllText(dialog.FileName, report);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            ContributionStatusText.Text = Loc.F($"Compatibility report failed: {exception.Message}");
+            WriteLog("compatibility_report.failed", exception.Message);
+            return;
+        }
+
+        ContributionStatusText.Text = Loc.F($"Compatibility report saved to {dialog.FileName}.");
+        StatusText.Text = Loc.T("Compatibility report saved.");
+        WriteLog("compatibility_report.saved", "A privacy-safe compatibility report was saved.");
+
+        if (MessageBox.Show(
+                Loc.T("The JSON file is plain text. Inspect it if you wish, then attach it to the GitHub issue. Open the issue form now?"),
+                Loc.T("Compatibility report saved"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(CompatibilityIssueUrl)
+            {
+                UseShellExecute = true
+            });
+            ContributionStatusText.Text = Loc.T("GitHub issue form opened. Attach the saved JSON file before submitting.");
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            ContributionStatusText.Text = Loc.F($"Report saved, but the GitHub issue form could not be opened: {exception.Message}");
         }
     }
 
@@ -2067,6 +2141,50 @@ public partial class MainWindow : Window
     /// goes to the tuning plan rather than being applied here, so it is previewed, confirmed,
     /// verified by read-back and recorded where it can be rolled back.
     /// </summary>
+    private void QosRunningApplication_DropDownOpened(object sender, EventArgs e)
+    {
+        var names = new List<string>();
+        try
+        {
+            foreach (var process in System.Diagnostics.Process.GetProcesses())
+            {
+                using (process)
+                {
+                    try
+                    {
+                        names.Add(process.ProcessName);
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // The process exited between enumeration and reading its name.
+                    }
+                }
+            }
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            QosActionStatusText.Text = Loc.F($"Running applications could not be listed: {exception.Message}");
+            return;
+        }
+
+        QosRunningApplicationComboBox.ItemsSource = NormalizeApplicationNames(names);
+    }
+
+    private void QosRunningApplication_SelectionChanged(
+        object sender,
+        System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (QosRunningApplicationComboBox.SelectedItem is string application)
+            QosApplicationText.Text = application;
+    }
+
+    internal static IReadOnlyList<string> NormalizeApplicationNames(IEnumerable<string?> names) => names
+        .Where(name => !string.IsNullOrWhiteSpace(name))
+        .Select(name => name!.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name : $"{name}.exe")
+        .Distinct(StringComparer.OrdinalIgnoreCase)
+        .Order(StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
     private void QueueQosPolicy_Click(object sender, RoutedEventArgs e)
     {
         var application = QosApplicationText.Text.Trim();
@@ -2124,6 +2242,24 @@ public partial class MainWindow : Window
 
     private void OpenTuningPlan_Click(object sender, RoutedEventArgs e) => SelectTab("Tuning plan");
 
+    private async void UndoLastChange_Click(object sender, RoutedEventArgs e)
+    {
+        await TuningPlan.UndoLatestSuccessfulChangeAsync();
+        ShowRecoveryState();
+    }
+
+    private void DashboardCheckDrift_Click(object sender, RoutedEventArgs e)
+    {
+        TuningPlan.CheckForDrift();
+        SelectTab("Tuning plan");
+    }
+
+    private void ShowRecoveryState()
+    {
+        RecoverySummaryText.Text = TuningPlan.RecoverySummary;
+        UndoLastChangeButton.IsEnabled = TuningPlan.CanUndoLastChange;
+    }
+
     /// <summary>
     /// Opens a Windows management console. Both targets are fixed strings in this method — nothing
     /// the user or a report supplies reaches a process start.
@@ -2151,7 +2287,8 @@ public partial class MainWindow : Window
     {
         var tab = InventoryTabs.Items
             .OfType<System.Windows.Controls.TabItem>()
-            .FirstOrDefault(item => string.Equals(item.Header?.ToString(), header, StringComparison.Ordinal));
+            .FirstOrDefault(item => string.Equals(
+                item.Tag as string ?? item.Header?.ToString(), header, StringComparison.Ordinal));
         if (tab is not null) InventoryTabs.SelectedItem = tab;
     }
 

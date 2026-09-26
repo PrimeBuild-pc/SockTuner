@@ -3,6 +3,8 @@
 **/obj/
 artifacts/
 TestResults/
+__pycache__/
+*.py[cod]
 
 # IDE and user state
 .vs/

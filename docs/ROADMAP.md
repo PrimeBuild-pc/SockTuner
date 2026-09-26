@@ -149,7 +149,7 @@ Exit criteria:
 
 Step 7 is split into two gates:
 
-- **7a — capability collection (no disposable hardware required):** the read-only `--probe` mode captures a redacted inventory from collaborator PCs with real Intel/Realtek NICs. Personal data (machine name, IPs, MAC device octets, user-assigned values) is masked; hardware identity (driver, PNP ID, NDIS keywords, defaults, ranges/enums) is preserved. Probe reports seed the capability matrix and fake-platform fixtures.
+- **7a — capability collection (no disposable hardware required):** the in-app compatibility-report flow captures a privacy-safe inventory from collaborator PCs with real NICs and opens a dedicated GitHub issue form. All current setting values, persistent adapter/PNP identifiers, addresses, paths, machine name, and exact timestamps are omitted; adapter model, driver version, NDIS keywords, defaults, ranges and enums seed the capability matrix and fake-platform fixtures.
 - **7b — write unlock (alpha):** NIC/driver writes are enabled behind versioned in-app consent, UAC elevation, driver-advertised validation re-read inside the elevated worker, and a typed confirmation for high-risk or experimental changes. The static per-setting allowlist is retained for registry-backed catalog entries only; for NIC properties the driver's own advertised constraints are the allowlist, so an unsupported keyword or value cannot be planned or written. Capability coverage is currently Intel I226-V and Wireless-AC 3168, Realtek RTL8125 and 8852CE, and MediaTek MT7925 — keywords outside that corpus are exposed but reported as high risk and uncharacterised.
 
 Deliverables:
@@ -220,7 +220,7 @@ Exit criteria:
 
 The queue defines completion gates. A read-only prerequisite from the next item may land in the same reviewed increment, but no step is marked complete and no writable scope unlocks until every earlier exit criterion passes.
 
-1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more probe reports arrive.
+1. **P1 / Step 7b:** broaden real-hardware validation of capability-advertised NIC and driver controls, and grow the characterised-keyword corpus as more compatibility reports arrive.
 2. **P2 / Step 10:** the gates that need what this project does not yet have — a code-signing certificate, and real machines across the Windows and locale matrix. Listed below rather than left implicit, because none of them can be closed by writing code.
 
 Steps 8 and 9 are complete. Step 8 closed with three things rather than a large surface. The interface metric joined MTU as a per-interface override whose restore is the *removal* of the value, since absent means Windows derives the metric from link speed — writing a number back would be a different setting that happened to match, not a rollback. A remote-session guard now stands in front of every change that drops the link: it does not work out which adapter carries the session, so it assumes this one might and forces the typed confirmation, because being wrong in that direction costs a sentence and being wrong in the other direction costs the machine. An unrecognised restart requirement is treated as disruptive, and a test fails if one appears that nobody classified.
