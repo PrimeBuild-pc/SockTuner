@@ -36,6 +36,11 @@ jobs:
       - name: Verify formatting
         run: dotnet format SockTuner.sln --no-restore --verify-no-changes
 
+      - name: Verify capability archive
+        run: |
+          python -m unittest tools/test_build_probe_archive.py
+          python tools/build-probe-archive.py --check
+
       - name: Build
         run: dotnet build SockTuner.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
 

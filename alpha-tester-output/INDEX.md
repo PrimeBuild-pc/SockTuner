@@ -1,6 +1,6 @@
 # Capability archive
 
-Redacted `--probe` reports, split one file per adapter model. This is the reference for
+Privacy-safe compatibility reports, split one file per adapter model. This is the reference for
 which hardware SockTuner has real capability data for, and therefore which keywords its
 catalog is characterised against. Regenerate with `python tools/build-probe-archive.py`.
 
@@ -9,8 +9,8 @@ collapses to a single entry; the richer record wins when a model appears in seve
 Raw reports are kept under `reports/` for provenance.
 
 `capabilities` carries the structured driver constraints (valid values, min/max/step,
-default) that the tuning surface uses. Reports captured before schema 12 have only
-`ndisProperties`; re-running the probe on that hardware upgrades the entry.
+default) that the tuning surface uses. Older probe reports may have only
+`ndisProperties`; creating a new compatibility report on that hardware upgrades the entry.
 
 ## Physical adapters
 
@@ -52,10 +52,10 @@ Hardware with no report yet, roughly in order of how common it is among the targ
 
 ### Adding a report
 
-1. Run `SockTuner.exe --probe` on the machine; it writes a redacted report to the Desktop.
-2. Drop the file into this folder, or pass its folder to the build script.
+1. In SockTuner, open Preferences → Help improve SockTuner → Create compatibility report.
+2. Review the JSON, then drop it into this folder or pass its folder to the build script.
 3. Run `python tools/build-probe-archive.py` to file it, split it per model and refresh this index.
 4. Run `python tools/build-probe-archive.py --check` to verify regeneration produces no diff.
 
-Reports contain no machine name, IP addresses, routes or full MAC addresses; the vendor OUI
-prefix and driver identity are kept deliberately, since they are the point of the archive.
+Current reports contain no persistent device identifiers, network addresses, user paths,
+machine name or exact timestamps. Hardware model and driver identity are kept deliberately.

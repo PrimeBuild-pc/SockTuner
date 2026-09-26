@@ -1,0 +1,27 @@
+<Window x:Class="SockTuner.Views.CompatibilityReportPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Review compatibility report" Height="620" Width="860" MinHeight="420" MinWidth="620"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,14">
+            <TextBlock Text="Review the complete JSON before saving" FontSize="20" FontWeight="SemiBold"/>
+            <TextBlock Text="Only attach this file if you are comfortable publishing the contents in a GitHub issue."
+                       Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+        </StackPanel>
+        <TextBox x:Name="ReportTextBox" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
+                 HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                 FontFamily="Consolas" FontSize="12" TextWrapping="NoWrap"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Content="Cancel" IsCancel="True" Margin="0,0,8,0"/>
+            <Button Content="Save report" IsDefault="True" Style="{StaticResource PrimaryButton}"
+                    Click="Save_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

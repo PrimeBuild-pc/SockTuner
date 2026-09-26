@@ -50,7 +50,8 @@ public sealed class CapabilityArchiveTests
                     continue;
                 }
 
-                capability.Validate(capability.CurrentValue);
+                if (!string.Equals(capability.CurrentValue, "[redacted]", StringComparison.Ordinal))
+                    capability.Validate(capability.CurrentValue);
                 if (!string.IsNullOrEmpty(capability.DefaultValue)) capability.Validate(capability.DefaultValue);
             }
         }

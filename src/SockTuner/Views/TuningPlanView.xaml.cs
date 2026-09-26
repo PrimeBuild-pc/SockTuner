@@ -94,6 +94,12 @@ public partial class TuningPlanView : UserControl
     /// <summary>Raised when a change was applied or rolled back, so the shell can re-inventory.</summary>
     public event EventHandler? Applied;
 
+    public bool CanUndoLastChange => LatestReversibleApply() is not null;
+
+    public string RecoverySummary => LatestReversibleApply() is { } entry
+        ? Loc.F($"Last reversible change: {entry.RecordedAt:g} · {entry.Changes.Count} setting(s).")
+        : Loc.T("No successful change is waiting to be undone.");
+
     public void SetAdapters(IReadOnlyList<AdapterInfo> adapters)
     {
         var selectedId = (AdapterComboBox.SelectedItem as AdapterInfo)?.Id;
@@ -197,7 +203,9 @@ public partial class TuningPlanView : UserControl
     /// Reads back every setting this app has written and reports the ones something else has since
     /// changed. Read-only: it opens the same stores the preview uses, in their read-only form.
     /// </summary>
-    private void CheckDrift_Click(object sender, RoutedEventArgs e)
+    private void CheckDrift_Click(object sender, RoutedEventArgs e) => CheckForDrift();
+
+    public void CheckForDrift()
     {
         try
         {
@@ -388,7 +396,38 @@ public partial class TuningPlanView : UserControl
             return;
         }
 
-        if (!EnsureWriteConsent()) return;
+        await RollbackAsync(entry);
+    }
+
+    public async Task<bool> UndoLatestSuccessfulChangeAsync()
+    {
+        var entry = LatestReversibleApply();
+        if (entry is null)
+        {
+            SetStatus(Loc.T("No successful change is waiting to be undone."));
+            return false;
+        }
+
+        return await RollbackAsync(entry);
+    }
+
+    private TransactionAuditEntry? LatestReversibleApply() =>
+        TransactionAuditStore.FindLatestReversibleApply(_auditStore.Load());
+
+    private async Task<bool> RollbackAsync(TransactionAuditEntry entry)
+    {
+        var settingIds = entry.Changes.Select(change => change.SettingId).Distinct().ToArray();
+        var settings = string.Join(", ", settingIds.Take(5)) + (settingIds.Length > 5 ? ", …" : string.Empty);
+        if (MessageBox.Show(
+                Loc.F($"Undo the successful change from {entry.RecordedAt:g} ({entry.Changes.Count} setting(s))? Settings: {settings}. Recovery can restart affected adapters and briefly interrupt connectivity."),
+                Loc.T("Confirm rollback"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes
+            || !EnsureWriteConsent())
+        {
+            return false;
+        }
 
         // Rollback inverts the recorded change: the value it wrote becomes what we expect to
         // find, and the value it captured beforehand becomes what we restore.
@@ -404,6 +443,7 @@ public partial class TuningPlanView : UserControl
                 ChangeSource.Recovery)).ToArray());
 
         await RunWorkerAsync(request, "Rollback");
+        return true;
     }
 
     private async Task RunWorkerAsync(ElevatedWorkerRequest request, string operation)

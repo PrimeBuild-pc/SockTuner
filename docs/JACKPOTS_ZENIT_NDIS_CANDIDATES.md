@@ -20,7 +20,7 @@
 >
 > The ~90 properties below are the *superset the Zenit tool writes blindly by
 > name*. They are kept here only as a
-> **watch-list**: if a future probe report shows one on real hardware, promote it into the
+> **watch-list**: if a future compatibility report shows one on real hardware, promote it into the
 > corpus with a real range/enum; until then it is a name to recognise, never a value to apply.
 > **The Zenit "forced value" columns are the tool's opinion, unverified — do not import them.**
 
@@ -42,7 +42,7 @@ SockTuner's existing risk model:
 
 ## A. Standardized (`*`) keywords — legitimate candidates when the driver advertises them
 
-Cross-check each against `NicKeywordCatalog`; add the ones a probe report confirms.
+Cross-check each against `NicKeywordCatalog`; add the ones a compatibility report confirms.
 
 ### Offloads (checksum / LSO / USO / RSC / IPsec / encap)
 | Keyword | Zenit value | Note |

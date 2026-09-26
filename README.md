@@ -18,46 +18,22 @@
 </p>
 
 > [!WARNING]
-> **SockTuner is in active development (alpha) and is NOT ready for production use.**
-> The project is at **Step 7b of 10: NIC and driver controls**. This build **can change live network settings**. Applying a NIC property restarts that adapter and briefly drops its link — never apply over a remote session on the adapter you are changing, and be able to recover the machine's network without remote access. Every change is snapshotted, verified by read-back, and reversible from the audit history, but treat it as alpha software.
+> **SockTuner is a community diagnostic alpha, not production software.** Read-only inventory and diagnostics are the primary public surface. Tuning is experimental and can change live network settings. Applying a NIC property restarts that adapter and briefly drops its link — never do this through the connection being changed. Every write requires consent and elevation, is snapshotted, verified by read-back, audited, and reversible.
 
 SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
 
 It is not a generic “make my ping lower” button. SockTuner will show the current value, proposed value, scope, expected trade-off, restart requirement, and rollback data for every change.
 
-## Help wanted: hardware capability probe
+## Help improve hardware compatibility
 
-SockTuner exposes only settings that the NIC driver actually advertises. Virtual machines do not expose real driver properties, so we are collecting capability reports from real hardware — especially **Intel I219/I225/I226** and **Realtek RTL8111/RTL8125** adapters.
+SockTuner exposes only settings that the installed NIC driver actually advertises. We need reports from real hardware — especially **Intel I219/I225/I226**, **Realtek RTL8111/RTL8125**, Killer/Qualcomm, Broadcom, and Marvell adapters.
 
-If you have one of these NICs, you can contribute in two minutes with the built-in read-only probe. **The probe changes nothing on your PC** — it only reads the same inventory the app already displays.
+1. Download and extract the latest Windows x64 build from [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases).
+2. Refresh the inventory, then open **Preferences → Help improve SockTuner**.
+3. Choose **Create compatibility report**, review the plain-text JSON, and let SockTuner open the dedicated GitHub issue form.
+4. Attach the JSON file to the issue.
 
-### How to run the probe
-
-1. Download the latest `SockTuner-*-win-x64.zip` from [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases) and extract it.
-2. The build is currently **unsigned**, so Windows SmartScreen will warn you: click **More info → Run anyway**. You can inspect the source and build it yourself with `dotnet publish` if you prefer.
-3. Open a terminal in the extracted folder (File Explorer address bar → type `cmd` → Enter) and run:
-   ```
-   SockTuner.exe --probe
-   ```
-4. A dialog confirms the report location: `socktuner-probe-<timestamp>.json` on your **Desktop**.
-
-### What the probe collects
-
-| Included (hardware identity) | Masked (personal data) |
-| --- | --- |
-| NIC description, driver provider/version/date, INF name | Machine name |
-| PCI vendor/device ID, reported as the driver's component ID (`PCI\VEN_xxxx&DEV_xxxx`) | IP addresses, gateways, DNS servers, routes |
-| NDIS advanced properties: keyword, current value, default, type, valid ranges/enums | MAC address (only the vendor OUI prefix is kept) |
-| OS version, admin state, CPU count | User-assigned values (e.g. a custom `NetworkAddress` MAC) |
-
-The report is a plain-text JSON file — open it in any editor and check it yourself before sending.
-
-### How to send your report
-
-- **GitHub:** open an [issue](https://github.com/PrimeBuild-pc/SockTuner/issues/new) titled `Probe report: <your NIC model>` and attach the JSON file.
-- **Discord:** open a ticket on our Discord server (invite link in the repository sidebar) and attach the JSON file.
-
-Include your Windows version if you know it. Thank you!
+The report contains the adapter model, driver version, OS version, and driver-advertised keywords and constraints. It excludes all current setting values, persistent adapter/PNP identifiers, MAC and IP addresses, routes, DNS servers, INF and user paths, machine name, and exact timestamps. Creating it is read-only and changes nothing on the PC.
 
 ## Product goals
 
@@ -104,16 +80,11 @@ The reference scripts in this private workspace are research inputs, not product
 
 ## Current stage
 
-- Architecture and product scope approved.
-- Step 1 is complete: the dark Metro shell, application icon, OS/adapter inventory, driver-advertised NDIS discovery, filtering/copy, and DPI validation pass.
-- Native IPv4/IPv6 routes and metrics, interface indexes/MTU/DNS, network profiles and bindings, NIC counters, TCP templates, QoS policies, global/RSS/RSC/LSO/checksum/USO/URO offload state, Winsock catalog, bounded structured logs, full/redacted snapshot export, retention preferences, and log export provide the Step 2 inventory.
-- Steps 1–2 now pass inventory, export, search/copy, dark-theme, and 100–200% WPF DPI validation.
-- Step 3 adds explicit quick/standard/extended diagnostics, concurrent boundary probes, full statistics/timelines, route/MTU/counter evidence, and bounded continuous monitoring.
-- Step 4 includes versioned JSON, self-contained offline HTML, bounded local history, redacted history export, identical-parameter before/after comparison, and multi-run trends.
-- Step 5 is complete with an allowlisted dry-run cart, exact rollback preview, bounded audit history, deterministic transactions, failure injection, and a strict typed elevated-worker protocol.
-- Step 6 is complete: the first two low-disruption MMCSS settings passed direct and published-worker apply/read/rollback/read gates on disposable Windows 10 22H2 and Windows 11 VMs. NIC/driver writes and the normal UI remain locked while Step 7 starts.
-- Step 7a added a read-only `--probe` mode: it writes a redacted capability report (`socktuner-probe-<timestamp>.json` on the Desktop) that collaborators with real Intel/Realtek NICs can share. Personal data is masked; driver identity, NDIS keywords, defaults, and valid ranges/enums are preserved. The probe changes nothing on the machine.
-- Step 7b unlocks live writes. The **Tuning plan** tab lists the properties the selected driver actually advertises, filtered by intent preset — latency, bandwidth, power and wake, Wi-Fi radio, VLAN and identity — with preview, apply, and exact rollback from the audit history. Capability reports so far cover Intel I226-V and Wireless-AC 3168, Realtek RTL8125, 8852CE and 8922AE, and MediaTek MT7925; the generated [capability archive index](alpha-tester-output/INDEX.md) is the authoritative list.
+- Native read-only inventory covers adapters, routes, interfaces, DNS, profiles, bindings, NIC counters, TCP templates, QoS, offloads, interrupts, Winsock, driver identity, and driver-advertised properties.
+- The complete network check measures each path boundary, latency/loss/jitter, DNS and TCP timing, path MTU, route quality, counter deltas, and game-specific playability; loaded-latency and throughput traffic remain separate opt-in tests.
+- Versioned reports, bounded local history, redacted exports, before/after comparison, trends, monitoring, and imported capture reports are available.
+- Experimental writes use one allowlisted tuning plan with dry run, consent, elevation, stale-state refusal, read-back verification, audit, visible recovery, and exact rollback.
+- Real-hardware coverage is crowdsourced through the in-app compatibility report. The generated [capability archive index](alpha-tester-output/INDEX.md) lists current Intel, Realtek, and MediaTek coverage.
 
 ## How a change is applied
 
@@ -127,4 +98,4 @@ The reference scripts in this private workspace are research inputs, not product
 
 Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Applying a NIC property restarts that adapter, which briefly drops the link — do not apply over a remote session on the adapter being changed. Test on a machine you can recover without remote access. SockTuner never invents a value or a range: it exposes only what the installed driver advertises, and treats any keyword it has not characterised as high risk.
 
-SockTuner is released under the [MIT License](LICENSE). The public contribution policy is still being defined; probe reports via issues or Discord are the best way to help right now.
+SockTuner is released under the [MIT License](LICENSE). Compatibility reports and bug reports are welcome through the dedicated GitHub issue forms.

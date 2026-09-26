@@ -32,7 +32,7 @@ The privilege boundary is the interesting part, and it is the part worth attacki
   or driver advertises.
 - Anything that turns imported, untrusted data — a capture report, an exported diagnostic, a probe
   report — into code execution, a file path, or a write.
-- Anything that causes an exported report or a probe report to contain data the redaction claims to
+- Anything that causes an exported report or compatibility report to contain data the redaction claims to
   have removed.
 - Anything that leaves the machine unable to reach the network with no path back to the captured
   state.

@@ -152,33 +152,6 @@ switch ($Command) {
         "OK shot ${w}x${ht} -> $path"
     }
 
-    # Read-only inventory dump to JSON. Ends on a modal this driver cannot click, so the
-    # process is stopped once the file lands. Nothing on the machine is changed.
-    'probe' {
-        if (-not (Test-Path $Exe)) { throw "Not built. Run: driver.ps1 build" }
-        $before = Get-Date
-        $desktop = [Environment]::GetFolderPath('Desktop')
-        $proc = Start-Process -FilePath $Exe -ArgumentList '--probe' -WorkingDirectory (Split-Path $Exe) -PassThru
-        # The JSON is written BEFORE the modal appears, so wait for the file and then close
-        # that exact process. Do not try to click the dialog: it is a Win32 #32770 whose
-        # buttons this build does not expose to UI Automation, so a UIA click never lands
-        # and the process is left alive holding a modal on the user's desktop.
-        $json = $null
-        $deadline = (Get-Date).AddSeconds(120)
-        while ((Get-Date) -lt $deadline) {
-            Start-Sleep -Milliseconds 750
-            $json = Get-ChildItem $desktop -Filter 'socktuner-probe-*.json' -ErrorAction SilentlyContinue |
-                    Where-Object { $_.LastWriteTime -ge $before } |
-                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            if ($json) { break }
-            if ($proc.HasExited) { break }
-        }
-        if (-not $json) { throw 'Probe produced no JSON on the Desktop within 120s.' }
-        Start-Sleep -Milliseconds 500
-        if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue }
-        "OK probe -> $($json.FullName) ($([math]::Round($json.Length/1KB,1)) KB)"
-    }
-
     'stop' {
         Get-Process SockTuner -ErrorAction SilentlyContinue | Stop-Process -Force
         'OK stopped'
@@ -193,7 +166,6 @@ SockTuner driver — commands:
   tabs             list navigation tabs, * marks the selected one
   select "<name>"  select a tab by name (substring match)
   shot [path]      PNG of the window -> .claude/skills/run-socktuner/shots/
-  probe            --probe read-only inventory dump to JSON on the Desktop
   stop             kill the process
 '@
     }

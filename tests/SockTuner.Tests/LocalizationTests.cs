@@ -18,7 +18,7 @@ public class LocalizationTests
     private static readonly HashSet<string> Untranslated =
     [
         "DSCP", "ECN", "Export  ▾", "IPv4", "IPv6", "MSI", "MTU", "NDIS",
-        "PRE-ALPHA 0.1", "RTT ms", "SockTuner", "game.exe", "ms"
+        "COMMUNITY ALPHA 0.9", "RTT ms", "SockTuner", "game.exe", "ms"
     ];
 
     private static readonly Regex XamlText = new(
@@ -40,7 +40,8 @@ public class LocalizationTests
     }
 
     public static TheoryData<string> XamlFiles() =>
-        ["MainWindow.xaml", Path.Combine("Views", "TuningPlanView.xaml")];
+        ["MainWindow.xaml", Path.Combine("Views", "TuningPlanView.xaml"),
+         Path.Combine("Views", "CompatibilityReportPreviewWindow.xaml")];
 
     [Theory]
     [MemberData(nameof(XamlFiles))]

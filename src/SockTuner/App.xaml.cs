@@ -18,12 +18,6 @@ public partial class App : Application
             return;
         }
 
-        if (e.Args.Length == 1 && string.Equals(e.Args[0], "--probe", StringComparison.Ordinal))
-        {
-            Shutdown(RunProbe());
-            return;
-        }
-
         if (e.Args.Length == 1 && string.Equals(e.Args[0], VerifyTcpWritesArgument, StringComparison.Ordinal))
         {
             Shutdown(RunTcpWriteVerification());
@@ -55,8 +49,7 @@ public partial class App : Application
 
     /// <summary>
     /// Set to 1 in the guest to arm the write verification. The argument alone is not enough: this
-    /// mode writes to the live TCP stack, so it must be impossible to trigger by mistyping --probe
-    /// on a real desktop.
+    /// mode writes to the live TCP stack, so an argument alone must not arm it on a real desktop.
     /// </summary>
     internal const string VerifyTcpWritesGate = "SOCKTUNER_VM_WRITE_TEST";
 
@@ -171,42 +164,13 @@ public partial class App : Application
         }
     }
 
-    // Read-only hardware capability probe for collaborators: captures the inventory,
-    // redacts personal data, and writes a shareable JSON report. Mutates nothing.
-    private static int RunProbe()
-    {
-        try
-        {
-            var snapshot = new SystemInventoryService().Capture();
-            var path = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop),
-                $"socktuner-probe-{DateTime.Now:yyyyMMdd-HHmmss}.json");
-            File.WriteAllText(path, SnapshotExporter.Serialize(snapshot, probe: true));
-            Report(
-                "SockTuner probe",
-                $"Probe report saved to:{Environment.NewLine}{path}{Environment.NewLine}{Environment.NewLine}"
-                + "Nothing on this PC was changed. Share this file with the SockTuner team.",
-                MessageBoxImage.Information);
-            return 0;
-        }
-        catch (Exception exception)
-        {
-            Report("SockTuner probe", $"Probe failed: {exception.Message}", MessageBoxImage.Error);
-            return 1;
-        }
-    }
-
     /// <summary>
-    /// Reports the outcome of a console-invoked mode. The README tells a contributor to run the
-    /// probe from a terminal, so the terminal is where the answer belongs: this writes there when
-    /// there is one to write to. The message box is kept for the person who double-clicked the exe
-    /// and has nowhere else to read it — that case has no console to attach to, which is exactly
-    /// the condition tested here.
+    /// Reports the outcome of a console-invoked verification mode. This writes to the parent
+    /// terminal when one exists; otherwise a message box is the only visible channel.
     /// </summary>
     /// <remarks>
     /// A WPF process is built without a console, so it has to borrow the parent's. When it cannot,
-    /// nothing has been written and the modal is the only remaining channel. This is also what
-    /// stopped an automated probe run from leaving a modal nobody could dismiss.
+    /// nothing has been written and the modal is the only remaining channel.
     /// </remarks>
     private static void Report(string title, string message, MessageBoxImage severity)
     {

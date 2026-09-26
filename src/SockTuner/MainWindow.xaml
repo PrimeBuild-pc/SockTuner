@@ -39,6 +39,7 @@
                         <ContextMenu>
                             <MenuItem Header="Export snapshot…" Click="ExportSnapshot_Click"/>
                             <MenuItem Header="Export support snapshot…" Click="ExportSupportSnapshot_Click"/>
+                            <MenuItem Header="Create compatibility report…" Click="CreateCompatibilityReport_Click"/>
                             <MenuItem Header="Export logs…" Click="ExportLogs_Click"/>
                         </ContextMenu>
                     </Button.ContextMenu>
@@ -161,6 +162,16 @@
                                     <TextBlock Text="3  Preview a typed change plan" Margin="0,8"/>
                                     <TextBlock Text="4  Snapshot, apply, verify, roll back" Margin="0,8" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="WorkflowWriteStateText" Foreground="{StaticResource WarningBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
+                                    <Separator Margin="0,18,0,14"/>
+                                    <TextBlock Text="Recovery" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="RecoverySummaryText" Text="No successful change is waiting to be undone."
+                                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
+                                    <WrapPanel>
+                                        <Button x:Name="UndoLastChangeButton" Content="Undo last successful change"
+                                                Click="UndoLastChange_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                                        <Button Content="Check for drift" Click="DashboardCheckDrift_Click" Margin="0,0,8,8"/>
+                                        <Button Content="Open recovery history" Click="OpenTuningPlan_Click" Margin="0,0,0,8"/>
+                                    </WrapPanel>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -404,6 +415,13 @@
                                 <TextBlock Text="Mark one application's traffic" FontSize="18" FontWeight="SemiBold"/>
                                 <TextBlock Text="A DSCP mark is a request, not a reservation. It does nothing until something on the path is set up to honour it — in practice your own router, with a DSCP-aware queue discipline; most consumer ISPs rewrite or ignore the field beyond your access link. This is the half that makes SockTuner's layer_cake.qos advice usable: the policy writes the mark, the router acts on it."
                                            Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <TextBlock Text="Running application" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                                    <ComboBox x:Name="QosRunningApplicationComboBox" Width="280"
+                                              DropDownOpened="QosRunningApplication_DropDownOpened"
+                                              SelectionChanged="QosRunningApplication_SelectionChanged"
+                                              AutomationProperties.Name="Choose a running application"/>
+                                </StackPanel>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -538,14 +556,14 @@
                                              Tag="e.g. 7777" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="5" Content="Run diagnosis" Click="RunDiagnostic_Click"
+                                <Button x:Name="RunDiagnosticButton" Grid.Column="5" Content="Run complete check" Click="RunDiagnostic_Click"
                                         VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
                                 <Button x:Name="CancelDiagnosticButton" Grid.Column="6" Content="Cancel" Click="CancelDiagnostic_Click"
                                         VerticalAlignment="Bottom" IsEnabled="False"/>
                             </Grid>
                         </Border>
 
-                        <TextBlock Text="No test runs automatically. This is read-only network measurement; it never changes Windows or adapter settings." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Runs the read-only inventory and path checks together. Loaded-latency and throughput tests stay separate because they generate traffic." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
@@ -1315,6 +1333,17 @@
                     </StackPanel>
                     <TextBlock x:Name="PreferenceStatusText" Foreground="{StaticResource MutedTextBrush}" Margin="0,12,0,0"/>
 
+                    <Border Style="{StaticResource Card}" Margin="0,28,0,0" MaxWidth="760" HorizontalAlignment="Left">
+                        <StackPanel>
+                            <TextBlock Text="Help improve SockTuner" FontSize="22" FontWeight="SemiBold"/>
+                            <TextBlock Text="Create a privacy-safe hardware capability report. It includes adapter model, driver version and supported setting constraints; it excludes current values, device IDs, addresses, paths, machine name and exact timestamps."
+                                       Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,14"/>
+                            <Button Content="Create compatibility report…" Click="CreateCompatibilityReport_Click"
+                                    HorizontalAlignment="Left" AutomationProperties.Name="Create compatibility report"/>
+                            <TextBlock x:Name="ContributionStatusText" Foreground="{StaticResource MutedTextBrush}"
+                                       TextWrapping="Wrap" Margin="0,10,0,0"/>
+                        </StackPanel>
+                    </Border>
 
                 </StackPanel>
             </TabItem>
@@ -1333,7 +1362,7 @@
             <TextBlock x:Name="StatusText" Grid.Column="1" Text="Ready" Foreground="{StaticResource MutedTextBrush}"
                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
             <TextBlock x:Name="LogStatusText" Grid.Column="2" Foreground="{StaticResource WarningBrush}" Margin="0,0,18,0"/>
-            <TextBlock Grid.Column="3" Text="PRE-ALPHA 0.1" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+            <TextBlock Grid.Column="3" Text="COMMUNITY ALPHA 0.9" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

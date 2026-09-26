@@ -1,6 +1,6 @@
 ---
 name: run-socktuner
-description: Build, launch, drive, screenshot and probe the SockTuner WPF desktop app on Windows. Use when asked to run, start, open, screenshot, inspect the UI of, or capture an inventory from SockTuner, or to verify a change in the real app rather than in tests.
+description: Build, launch, drive and screenshot the SockTuner WPF desktop app on Windows. Use when asked to run, start, open, screenshot, inspect the UI of, or verify a change in the real app rather than in tests.
 ---
 
 # Run SockTuner
@@ -33,7 +33,6 @@ powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 <command
 | `tabs` | Lists the navigation entries; `*` marks the selected one |
 | `select "<name>"` | Selects a tab by name (substring match) |
 | `shot [path]` | PNG of the window → `.claude/skills/run-socktuner/shots/` |
-| `probe` | Read-only inventory dump to JSON on the Desktop |
 | `stop` | Kills the process |
 
 A full verified cycle:
@@ -82,19 +81,12 @@ the saved position no longer lands on an attached monitor.
 `Tuning plan` used to be last; it now sits with the other surfaces that act. The reference
 links moved out of `Preferences` into `Tools & references`.
 
-## Inventory without the GUI
+## Compatibility reports
 
-`probe` runs the app's own `--probe` mode: a read-only capture of the whole inventory,
-redacted (`machineName` masked, no addresses), written as JSON to the Desktop. It changes
-nothing on the machine. This is the fastest way to inspect what the app *sees* without
-touching the UI:
-
-```bash
-powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 probe
-# OK probe -> C:\Users\<user>\Desktop\socktuner-probe-20260828-022443.json (410.4 KB)
-```
-
-Committed probe corpora live in `alpha-tester-output/`.
+Compatibility reports are intentionally created only through the visible UI flow under
+**Preferences → Help improve SockTuner**. The user reviews the complete JSON before saving
+and explicitly chooses whether to open the GitHub issue form. The agent driver does not
+bypass that consent flow.
 
 ## Tests
 
@@ -102,21 +94,19 @@ Committed probe corpora live in `alpha-tester-output/`.
 dotnet test SockTuner.sln
 ```
 
-659 pass, 12 skipped. The 12 skipped are read-only live-inventory checks against the real
-adapters and the two device-level settings; they are safe on a normal desktop and mutate
+The default suite reports its current pass/skip counts. Skipped tests are read-only
+live-inventory checks against real adapters; they are safe on a normal desktop and mutate
 nothing:
 
 ```bash
 SOCKTUNER_LIVE_INVENTORY=1 dotnet test SockTuner.sln
 ```
 
-671 pass, 0 skipped.
-
 ## Never run these on a real machine
 
 `--verify-tcp-writes` **writes to the live TCP stack** and `--verify-device-writes`
 **enables and disables a real adapter, writes PnPCapabilities and creates a QoS policy**.
-Both are gated behind `SOCKTUNER_VM_WRITE_TEST=1` so a mistyped `--probe` cannot trigger
+Both are gated behind `SOCKTUNER_VM_WRITE_TEST=1`, so an argument alone cannot trigger
 them, and both belong in a disposable VM only. The driver deliberately exposes no command
 for either.
 
@@ -161,13 +151,6 @@ path is skipped — the run refuses to disable the adapter carrying the default 
 - **Screenshot tooling downscales.** A desktop-capture MCP may return an image scaled from
   3640x2144 to ~1833x1080, so coordinates read off that image are wrong by a ~1.99 factor.
   `driver.ps1 shot` captures the window rect at native size and sidesteps this.
-- **`--probe` used to end on a modal.** It now attaches to the calling console, prints the
-  report path there and exits on its own; the message box is kept only for someone who
-  double-clicked the exe and has no console to read. The driver still waits for the file
-  before returning, which is what makes it reliable, but it no longer has to kill a process
-  left holding a dialog nobody could dismiss.
-- **Probe takes longer than you expect.** A full inventory capture exceeded 6 s here, so a
-  fixed sleep is not enough; the driver polls for up to 120 s.
 - **`pwsh` 7 cannot load `UIAutomationClient`.** Use `powershell.exe`.
 - **A stale VM registration breaks every `-Name` Hyper-V cmdlet on this host.** `Get-VM`,
   `Checkpoint-VM -Name`, `Copy-VMFile -Name` and friends enumerate all VMs first, hit the
@@ -176,10 +159,9 @@ path is skipped — the run refuses to disable the adapter carrying the default 
 - **PowerShell Direct runs over VMBus, not the network.** That is what makes it safe to
   disable an adapter in the guest from the host: the session survives losing all guest
   networking. It does need guest credentials; there is no passwordless path.
-- **A console-mode run has no console over PowerShell Direct.** `--probe` and the verify
+- **A verification-mode run has no console over PowerShell Direct.** The verification
   modes attach to the caller's console when there is one and fall back to a message box when
-  there is not — and over PSDirect there is not, so the modal blocks forever. Start the
-  process detached and poll for the JSON, which is written before the message appears.
+  there is not. Start them detached in the disposable VM and poll for their JSON result.
 
 ## Troubleshooting
 
@@ -188,6 +170,4 @@ path is skipped — the run refuses to disable the adapter carrying the default 
 | `SockTuner window not found. Run "launch" first.` | The app is not running, or it was started as a shell child and already died. Re-run `launch`. |
 | `Not built. Run: driver.ps1 build` | The Release exe is missing. Run `build`. |
 | `No tab matching '<x>'` | Run `tabs` for the exact names; matching is substring, case-insensitive. |
-| `Probe produced no JSON on the Desktop within 120s.` | Check for a stuck `SockTuner probe` process: `Get-Process SockTuner`. Kill it and retry. |
 | `Could not raise the SockTuner window; another window is on top…` | Something is covering the app and Windows refused the foreground handover. Minimise it, or click the SockTuner window once, then re-run `shot`. |
-| A leftover window titled `SockTuner probe` | An earlier probe attempt was interrupted. `powershell.exe -NoProfile -File .claude/skills/run-socktuner/driver.ps1 stop` clears all SockTuner processes. |
