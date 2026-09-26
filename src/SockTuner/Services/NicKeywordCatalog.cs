@@ -77,6 +77,10 @@ public static class NicKeywordCatalog
         Add(TuningArea.Latency | TuningArea.Throughput, ChangeRisk.Medium,
             "Coalescing raises throughput and lowers CPU use, but adds receive-side latency.",
             "*RscIPv4", "*RscIPv6", "*PacketCoalescing");
+        Add(TuningArea.Latency | TuningArea.Throughput, ChangeRisk.Medium,
+            "RSS spreads receive processing across CPUs and queues. Disabling it can bottleneck one "
+            + "CPU; changing the queue count can add scheduling and interrupt overhead.",
+            "*RSS", "*NumRssQueues");
 
         // ---- Energy saving that costs latency ---------------------------------------------
         Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
@@ -86,6 +90,10 @@ public static class NicKeywordCatalog
         Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
             "Power saving reduces idle draw but can add latency on the first packet after an idle period.",
             "PowerSavingMode", "*IdleRestriction", "LowPowerEnable");
+        Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
+            "Selective suspend saves idle power but waking the adapter can add first-packet latency; "
+            + "shorter idle timeouts increase how often that transition happens.",
+            "*SelectiveSuspend", "*SSIdleTimeout");
 
         // ---- Offloads ----------------------------------------------------------------------
         Add(TuningArea.Throughput, ChangeRisk.Medium,
@@ -132,8 +140,8 @@ public static class NicKeywordCatalog
         // ---- Wake and power-management offloads --------------------------------------------
         Add(TuningArea.Wake | TuningArea.Power, ChangeRisk.Low,
             "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
-            "*WakeOnMagicPacket", "*WakeOnPattern", "WakeOnPattern", "WakeOnMagicPacketFromS5",
-            "S5WakeOnLan");
+            "*WakeOnMagicPacket", "*WakeOnPattern", "*ModernStandbyWoLMagicPacket", "WakeOnPattern",
+            "WakeOnMagicPacketFromS5", "S5WakeOnLan");
         Add(TuningArea.Wake | TuningArea.Power, ChangeRisk.Medium,
             "Reducing link speed at shutdown saves power but can prevent wake-on-LAN on some switches.",
             "WolShutdownLinkSpeed");

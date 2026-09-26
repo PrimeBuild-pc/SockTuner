@@ -6,6 +6,7 @@ from the archive itself plus any extra folders given on the command line, filed 
 for provenance, split one file per adapter model, and summarised in INDEX.md.
 
     python tools/build-probe-archive.py [extra-report-folder ...]
+    python tools/build-probe-archive.py --check
 """
 import collections
 import glob
@@ -20,6 +21,7 @@ ARCHIVE = os.path.join(ROOT, "alpha-tester-output")
 REPORTS = os.path.join(ARCHIVE, "reports")
 VENDOR_BY_PCI = {"8086": "Intel", "10EC": "Realtek", "14C3": "MediaTek", "1969": "Qualcomm-Atheros"}
 VIRTUAL_VENDORS = ("Hyper-V", "TAP-Windows", "Microsoft")
+CLASSIFICATION_FIELDS = ("areas", "risk", "tradeOff", "rejected", "areasDisplay", "riskBadge", "evidence")
 
 
 def vendor_of(desc, component_id):
@@ -56,21 +58,43 @@ def load_reports(extra_sources):
     return reports
 
 
-def build(extra_sources):
-    os.makedirs(REPORTS, exist_ok=True)
+def load_archive_entries():
+    entries = {}
+    for path in glob.glob(os.path.join(ARCHIVE, "*.json")):
+        try:
+            with open(path, encoding="utf-8") as handle:
+                entry = json.load(handle)
+            entries[entry["archiveKey"]] = entry
+        except (KeyError, OSError, ValueError):
+            pass
+    return entries
+
+
+def preserve_characterisations(entries, previous_entries):
+    """Keep reviewed catalog metadata when an older raw report still says 'uncharacterised'."""
+    for key, entry in entries.items():
+        previous = previous_entries.get(key, {})
+        old_caps = {item["keyword"].casefold(): item for item in previous.get("capabilities", [])}
+        for capability in entry["capabilities"]:
+            if "not yet characterised" not in capability.get("tradeOff", ""):
+                continue
+            old = old_caps.get(capability["keyword"].casefold())
+            if not old or "not yet characterised" in old.get("tradeOff", ""):
+                continue
+            for field in CLASSIFICATION_FIELDS:
+                if field in old:
+                    capability[field] = old[field]
+
+
+def build(extra_sources, write=True):
+    if write:
+        os.makedirs(REPORTS, exist_ok=True)
 
     # Read everything before deleting anything: a raw report dropped into the archive root must
-    # not be removed before it has been read.
+    # not be removed before it has been read. Existing derived entries carry reviewed catalog
+    # metadata that older raw reports could not know yet.
     reports = load_reports(extra_sources)
-    for path, _ in reports:
-        target = os.path.join(REPORTS, os.path.basename(path))
-        if os.path.abspath(path) != os.path.abspath(target):
-            shutil.copy2(path, target)
-        if os.path.dirname(os.path.abspath(path)) == os.path.abspath(ARCHIVE):
-            os.remove(path)
-    for stale in glob.glob(os.path.join(ARCHIVE, "*.json")):
-        os.remove(stale)
-
+    previous_entries = load_archive_entries()
     entries = {}
     for path, report in reports:
         snapshot = report["snapshot"]
@@ -81,7 +105,12 @@ def build(extra_sources):
 
         for adapter in snapshot["adapters"]:
             ndis = adapter.get("ndisProperties") or []
-            caps = caps_by_desc.get(adapter["description"], [])
+            caps = []
+            seen_keywords = set()
+            for capability in caps_by_desc.get(adapter["description"], []):
+                if capability["keyword"] not in seen_keywords:
+                    caps.append(capability)
+                    seen_keywords.add(capability["keyword"])
             if not ndis and not caps:
                 continue
             driver = adapter.get("driver") or {}
@@ -110,13 +139,25 @@ def build(extra_sources):
                 "capabilities": caps,
             }
 
+    preserve_characterisations(entries, previous_entries)
+    if not write:
+        return entries
+
+    for path, _ in reports:
+        target = os.path.join(REPORTS, os.path.basename(path))
+        if os.path.abspath(path) != os.path.abspath(target):
+            shutil.copy2(path, target)
+        if os.path.dirname(os.path.abspath(path)) == os.path.abspath(ARCHIVE):
+            os.remove(path)
+    for stale in glob.glob(os.path.join(ARCHIVE, "*.json")):
+        os.remove(stale)
     for key, entry in sorted(entries.items()):
         with open(os.path.join(ARCHIVE, key + ".json"), "w", encoding="utf-8", newline="\n") as handle:
             json.dump(entry, handle, ensure_ascii=False, indent=2)
     return entries
 
 
-def write_index(entries):
+def render_index(entries):
     physical = {k: v for k, v in entries.items() if not v["isVirtual"]}
     virtual = {k: v for k, v in entries.items() if v["isVirtual"]}
     keywords = set()
@@ -188,16 +229,51 @@ def write_index(entries):
         "1. Run `SockTuner.exe --probe` on the machine; it writes a redacted report to the Desktop.",
         "2. Drop the file into this folder, or pass its folder to the build script.",
         "3. Run `python tools/build-probe-archive.py` to file it, split it per model and refresh this index.",
+        "4. Run `python tools/build-probe-archive.py --check` to verify regeneration produces no diff.",
         "",
         "Reports contain no machine name, IP addresses, routes or full MAC addresses; the vendor OUI",
         "prefix and driver identity are kept deliberately, since they are the point of the archive.",
     ]
+    return "\n".join(lines) + "\n"
+
+
+def write_index(entries):
     with open(os.path.join(ARCHIVE, "INDEX.md"), "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(lines) + "\n")
+        handle.write(render_index(entries))
+
+
+def check_archive(entries):
+    expected_names = {key + ".json" for key in entries}
+    actual_names = {os.path.basename(path) for path in glob.glob(os.path.join(ARCHIVE, "*.json"))}
+    failures = sorted(expected_names ^ actual_names)
+    for key, entry in sorted(entries.items()):
+        path = os.path.join(ARCHIVE, key + ".json")
+        expected = json.dumps(entry, ensure_ascii=False, indent=2)
+        try:
+            with open(path, encoding="utf-8") as handle:
+                actual = handle.read()
+        except OSError:
+            continue
+        if actual != expected:
+            failures.append(key + ".json")
+    with open(os.path.join(ARCHIVE, "INDEX.md"), encoding="utf-8") as handle:
+        if handle.read() != render_index(entries):
+            failures.append("INDEX.md")
+    if failures:
+        print("archive differs from regenerated output:", ", ".join(sorted(set(failures))))
+        return False
+    print("archive matches regenerated output")
+    return True
 
 
 if __name__ == "__main__":
-    built = build(sys.argv[1:])
+    check = "--check" in sys.argv[1:]
+    sources = [arg for arg in sys.argv[1:] if arg != "--check"]
+    if check and sources:
+        raise SystemExit("--check does not accept extra report folders")
+    built = build(sources, write=not check)
+    if check:
+        raise SystemExit(0 if check_archive(built) else 1)
     write_index(built)
     for key, entry in sorted(built.items()):
         print(f"  {key}.json  ndis={len(entry['ndisProperties'])} caps={len(entry['capabilities'])}")

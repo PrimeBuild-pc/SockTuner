@@ -20,8 +20,11 @@ default) that the tuning surface uses. Reports captured before schema 12 have on
 | Intel | Intel(R) Ethernet Controller I226-V | 2.1.5.7 | 21 | 21 | 10.0.26200.0 |
 | MediaTek | MediaTek Wi-Fi 7 MT7925 Wireless LAN Card | 5.7.0.4669 | 20 | — (pre-schema-12) | 10.0.26200.0 |
 | Realtek | Realtek 8852CE WiFi 6E PCI-E NIC | 6001.16.172.0 | 13 | — (pre-schema-12) | 10.0.26200.0 |
+| Realtek | Realtek 8922AE WiFi 7 PCI-E NIC | 6102.24.146.0 | 12 | 12 | 10.0.26200.0 |
 | Realtek | Realtek Gaming 2.5GbE Family Controller | 1125.28.20.1224 | 28 | — (pre-schema-12) | 10.0.26200.0 |
 | Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.21.903.2024 | 30 | — (pre-schema-12) | 10.0.26200.0 |
+| Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.31.50.603 | 30 | 30 | 10.0.26200.0 |
+| Realtek | Realtek PCIe 2.5GbE Family Controller | 10.79.50.1003 | 33 | 33 | 10.0.26200.0 |
 
 ## Virtual and filter adapters
 
@@ -34,8 +37,8 @@ Kept for completeness; these are not tuning targets.
 
 ## Coverage
 
-- 6 physical adapter model(s) across 3 vendor(s): Intel, MediaTek, Realtek.
-- 77 distinct NDIS keywords observed.
+- 9 physical adapter model(s) across 3 vendor(s): Intel, MediaTek, Realtek.
+- 82 distinct NDIS keywords observed.
 
 ### Gaps worth filling
 
@@ -52,6 +55,7 @@ Hardware with no report yet, roughly in order of how common it is among the targ
 1. Run `SockTuner.exe --probe` on the machine; it writes a redacted report to the Desktop.
 2. Drop the file into this folder, or pass its folder to the build script.
 3. Run `python tools/build-probe-archive.py` to file it, split it per model and refresh this index.
+4. Run `python tools/build-probe-archive.py --check` to verify regeneration produces no diff.
 
 Reports contain no machine name, IP addresses, routes or full MAC addresses; the vendor OUI
 prefix and driver identity are kept deliberately, since they are the point of the archive.
