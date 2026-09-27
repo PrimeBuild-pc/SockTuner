@@ -382,7 +382,8 @@ public sealed record GamingDiagnosticReport(
     PathMtuResult? PathMtu = null,
     IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null,
     ProbeStatistics? FirstPublicBoundaryProbe = null,
-    GameProfile? Game = null);
+    GameProfile? Game = null,
+    WifiDiagnosticReport? Wifi = null);
 
 internal static class DoubleArrayExtensions
 {

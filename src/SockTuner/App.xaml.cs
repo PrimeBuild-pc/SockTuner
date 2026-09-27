@@ -10,6 +10,23 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Length == 3
+            && string.Equals(e.Args[0], UpdateInstaller.Argument, StringComparison.Ordinal)
+            && int.TryParse(e.Args[1], out var parentProcessId))
+        {
+            var result = UpdateInstaller.Apply(parentProcessId, e.Args[2]);
+            if (!result.Success)
+            {
+                MessageBox.Show(
+                    $"The update could not be installed.{Environment.NewLine}{Environment.NewLine}{result.Error}",
+                    "SockTuner update",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+            Shutdown(result.Success ? 0 : 1);
+            return;
+        }
+
         // Elevated worker mode: connects back to the launching process over the named pipe it
         // was given and serves exactly one typed request.
         if (e.Args.Length == 2 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
@@ -36,12 +53,42 @@ public partial class App : Application
             return;
         }
 
+        // Replace only the shared palette in High Contrast. Native controls and all semantic text
+        // remain intact, while Windows owns the actual accessible colours.
+        ApplyAccessibilityPalette();
+
         // Before the window is built: UiTranslator rewrites what XAML produced, so the language
         // has to be settled first. The console modes above stay English — they answer a terminal.
         Loc.Use(AppPreferences.Load().Language);
 
         MainWindow = new MainWindow();
         MainWindow.Show();
+    }
+
+    private void ApplyAccessibilityPalette()
+    {
+        if (!SystemParameters.HighContrast) return;
+
+        Resources["PageBrush"] = SystemColors.WindowBrush;
+        Resources["PanelBrush"] = SystemColors.ControlBrush;
+        Resources["ControlBrush"] = SystemColors.ControlBrush;
+        Resources["PanelHoverBrush"] = SystemColors.HighlightBrush;
+        Resources["NavigationBrush"] = SystemColors.WindowBrush;
+        Resources["BorderBrush"] = SystemColors.ActiveBorderBrush;
+        Resources["ControlBorderBrush"] = SystemColors.ActiveBorderBrush;
+        Resources["PrimaryBrush"] = SystemColors.HighlightBrush;
+        Resources["PrimaryTextBrush"] = SystemColors.HotTrackBrush;
+        Resources["PrimaryHoverBrush"] = SystemColors.HighlightBrush;
+        Resources["PrimaryPressedBrush"] = SystemColors.HighlightBrush;
+        Resources["PrimaryMutedBrush"] = SystemColors.ControlBrush;
+        Resources["TextBrush"] = SystemColors.WindowTextBrush;
+        Resources["SelectionTextBrush"] = SystemColors.HighlightTextBrush;
+        Resources["MutedTextBrush"] = SystemColors.GrayTextBrush;
+        Resources["WarningBrush"] = SystemColors.HotTrackBrush;
+        Resources["WarningTextBrush"] = SystemColors.HotTrackBrush;
+        Resources["WarningMutedBrush"] = SystemColors.ControlBrush;
+        Resources["DangerBrush"] = SystemColors.WindowTextBrush;
+        Resources["GoodBrush"] = SystemColors.WindowTextBrush;
     }
 
     internal const string VerifyTcpWritesArgument = "--verify-tcp-writes";

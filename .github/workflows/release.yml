@@ -190,7 +190,7 @@ jobs:
             artifacts/${{ steps.package.outputs.archive }}.sha256
           if-no-files-found: error
 
-      - name: Create GitHub pre-release
+      - name: Create GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -202,11 +202,12 @@ jobs:
         run: |
           $liveCommit = (gh api "repos/$env:REPOSITORY/commits/$env:TAG_NAME" --jq '.sha').Trim()
           if ($liveCommit -ne $env:BUILT_COMMIT) { throw "Release tag moved after packaging." }
+          $releaseKind = if ($env:TAG_NAME.Contains('-')) { '--prerelease' } else { '--latest' }
           gh release create "$env:TAG_NAME" `
             "artifacts/$env:ARCHIVE" `
             "artifacts/$env:ARCHIVE.sha256" `
             --repo "$env:REPOSITORY" `
             --title "$env:RELEASE_TITLE" `
             --generate-notes `
-            --prerelease `
+            $releaseKind `
             --verify-tag

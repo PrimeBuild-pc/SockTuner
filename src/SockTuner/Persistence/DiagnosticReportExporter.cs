@@ -20,7 +20,7 @@ public static class DiagnosticReportExporter
 
     public static string SerializeJson(GamingDiagnosticReport report, bool redact = false) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 3,
+        schemaVersion = 4,
         toolVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             ?? "unknown",
@@ -38,6 +38,9 @@ public static class DiagnosticReportExporter
             .Select(item => $"<tr><td>{H(item.Label)}</td><td>{item.Sent}</td><td>{item.Received}</td><td>{item.Lost}</td><td>{F(item.MinimumMs)}</td><td>{F(item.MedianMs)}</td><td>{F(item.AverageMs)}</td><td>{F(item.P95Ms)}</td><td>{F(item.P99Ms)}</td><td>{F(item.MaximumMs)}</td><td>{F(item.JitterMs)}</td><td>{F(item.WindowedJitterMs)}</td></tr>");
         var findings = safe.Findings.Select(item => $"<tr><td>{H(item.Scope.ToString())}</td><td>{H(item.Confidence.ToString())}</td><td>{H(item.Title)}</td><td>{H(item.Evidence)}</td><td>{H(item.Action)}</td></tr>");
         var playability = Playability(safe);
+        var wifi = safe.Wifi is null
+            ? string.Empty
+            : $"<h2>Wi-Fi</h2><p><strong>{H(safe.Wifi.VerdictDisplay)}</strong> — {H(safe.Wifi.Summary)}</p>";
         var json = H(SerializeJson(report, redact));
         return $$"""
 <!doctype html>
@@ -45,6 +48,7 @@ public static class DiagnosticReportExporter
 <style>body{font:14px Segoe UI,Arial;background:#111;color:#f2f2f2;margin:32px}h1,h2{font-weight:500}table{border-collapse:collapse;width:100%;margin:12px 0 28px}th,td{border:1px solid #444;padding:8px;text-align:left;vertical-align:top}th{background:#2b2b2b}pre{white-space:pre-wrap;background:#1f1f1f;border:1px solid #444;padding:16px}.muted{color:#b3b3b3}</style></head>
 <body><h1>{{title}}</h1><p class="muted">Started {{H(safe.StartedAt.ToString("O"))}} · Profile {{H(safe.Profile.DisplayName)}} · Load {{H(safe.LoadCondition.ToString())}} · Duration {{safe.Duration.TotalSeconds:0.0}}s · Redacted {{redact}}</p>
 {{playability}}
+{{wifi}}
 <h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th><th>Jitter (1s windows)</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>
@@ -93,6 +97,34 @@ public static class DiagnosticReportExporter
             Target = "[redacted]",
             Samples = value.Samples.Select(sample => sample with { Error = sample.Error is null ? null : "[detail redacted]" }).ToArray()
         };
+        WifiBssInfo Bss(WifiBssInfo value) => value with { Bssid = "[redacted]", Ssid = "[redacted]" };
+        WifiDiagnosticReport? Wifi(WifiDiagnosticReport? value)
+        {
+            if (value is null) return null;
+            var radio = value.Radio is null ? null : value.Radio with
+            {
+                InterfaceId = "[redacted]",
+                Description = "Wi-Fi adapter",
+                Ssid = "[redacted]",
+                Bssid = "[redacted]",
+                ConnectedBss = value.Radio.ConnectedBss is null ? null : Bss(value.Radio.ConnectedBss),
+                Neighbours = value.Radio.Neighbours.Select(Bss).ToArray()
+            };
+            return value with
+            {
+                Radio = radio,
+                Evidence = value.Evidence.Select(item => item.Name == "Adapter counters"
+                    ? item with { Value = "[detail redacted]" }
+                    : item).ToArray(),
+                Findings = value.Findings.Select(finding => finding with { Evidence = "[detail redacted]" }).ToArray(),
+                Samples = value.Samples.Select(sample => sample with
+                {
+                    InterfaceId = "[redacted]",
+                    Bssid = "[redacted]",
+                    Error = sample.Error is null ? null : "[detail redacted]"
+                }).ToArray()
+            };
+        }
         return report with
         {
             RequestedTarget = "[redacted]",
@@ -110,7 +142,8 @@ public static class DiagnosticReportExporter
             FirstPublicBoundary = report.FirstPublicBoundary is null ? null : "[redacted]",
             PathMtu = report.PathMtu is null ? null : report.PathMtu with { Detail = "[detail redacted]" },
             Findings = report.Findings.Select(finding => finding with { Evidence = "[detail redacted]" }).ToArray(),
-            CounterDeltas = report.CounterDeltas?.Select(delta => delta with { AdapterId = "[redacted]", AdapterName = "Adapter" }).ToArray()
+            CounterDeltas = report.CounterDeltas?.Select(delta => delta with { AdapterId = "[redacted]", AdapterName = "Adapter" }).ToArray(),
+            Wifi = Wifi(report.Wifi)
         };
     }
 

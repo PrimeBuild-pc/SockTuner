@@ -28,11 +28,14 @@ public sealed class NetworkDiagnosticServiceTests
                     ? new PathPingResult(IPStatus.TtlExpired, "203.0.113.1", 1)
                     : new PathPingResult(IPStatus.Success, target, 2)));
         var labels = new List<string>();
+        var progressLabels = new List<string>();
+        var progress = new InlineProgress<DiagnosticTimelineSample>(sample => progressLabels.Add(sample.Label));
         var active = 0;
         var maximumActive = 0;
-        var service = new NetworkDiagnosticService(path, async (label, target, profile, token) =>
+        var service = new NetworkDiagnosticService(path, async (label, target, profile, sampleProgress, token) =>
         {
             lock (labels) labels.Add(label);
+            sampleProgress?.Report(new(label, DateTimeOffset.UtcNow, 5, false, null, null));
             maximumActive = Math.Max(maximumActive, Interlocked.Increment(ref active));
             await Task.Delay(10, token);
             Interlocked.Decrement(ref active);
@@ -40,11 +43,19 @@ public sealed class NetworkDiagnosticServiceTests
         });
         var profile = new DiagnosticProfile("test", "Test", 3, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
-        var report = await service.RunAsync("198.51.100.10", "192.0.2.1", null, profile, CancellationToken.None);
+        var report = await service.RunAsync(
+            "198.51.100.10", "192.0.2.1", null, profile,
+            DiagnosticLoadCondition.Unspecified, progress, CancellationToken.None);
 
         Assert.Contains("First public boundary", labels);
+        Assert.Contains("Game endpoint", progressLabels);
         Assert.Equal("203.0.113.1", report.FirstPublicBoundaryProbe?.Target);
         Assert.True(maximumActive >= 4);
+    }
+
+    private sealed class InlineProgress<T>(Action<T> report) : IProgress<T>
+    {
+        public void Report(T value) => report(value);
     }
 
     [Theory]

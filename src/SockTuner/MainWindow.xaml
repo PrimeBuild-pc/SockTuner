@@ -14,26 +14,27 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" MinWidth="130"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Text="SockTuner" FontSize="26" FontWeight="Light"/>
                 <TextBlock Text="Windows network control and gaming diagnostics" Foreground="{StaticResource MutedTextBrush}" Margin="0,2,0,0"/>
             </StackPanel>
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBox x:Name="InventoryFilterText" Width="210" Margin="0,0,8,0"
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <TextBox x:Name="InventoryFilterText" Width="210" Margin="0,0,8,8"
                          Style="{StaticResource PlaceholderBox}" Tag="Search all inventory  (Ctrl+F)"
                          TextChanged="InventoryFilter_TextChanged" AutomationProperties.Name="Search all inventory"/>
-                <Button Content="Refresh" Click="RefreshInventory_Click" Margin="0,0,8,0"
+                <Button Content="Refresh" Click="RefreshInventory_Click" Margin="0,0,8,8"
                         Style="{StaticResource PrimaryButton}" ToolTip="Re-read the whole Windows network inventory  (F5)"
                         AutomationProperties.Name="Refresh network inventory"/>
-                <Button Content="Copy row" Click="CopyInventorySelected_Click" Margin="0,0,8,0"
+                <Button x:Name="CopyInventoryRowButton" Content="Copy row" Click="CopyInventorySelected_Click"
+                        Margin="0,0,8,8" IsEnabled="False"
                         ToolTip="Copies the selected inventory row as JSON"/>
                 <!-- Three exports that are each used once a session do not each deserve a button
                      the width of the primary action. -->
-                <Button x:Name="ExportMenuButton" Content="Export  ▾" Click="ExportMenu_Click" Margin="0,0,12,0"
+                <Button x:Name="ExportMenuButton" Content="Export  ▾" Click="ExportMenu_Click" Margin="0,0,12,8"
                         AutomationProperties.Name="Export menu">
                     <Button.ContextMenu>
                         <ContextMenu>
@@ -45,12 +46,12 @@
                     </Button.ContextMenu>
                 </Button>
                 <Border Background="{StaticResource PrimaryMutedBrush}" BorderBrush="{StaticResource PrimaryBrush}"
-                        BorderThickness="1" Padding="12,6" VerticalAlignment="Center">
+                        BorderThickness="1" Padding="12,6" Margin="0,0,0,8" VerticalAlignment="Center">
                     <TextBlock x:Name="WriteStateText" Text="INVENTORY ONLY" Foreground="{StaticResource PrimaryTextBrush}"
                                FontSize="11" FontWeight="SemiBold"
                                ToolTip="Writes require accepting the change consent, elevation, and an explicit confirmation in the tuning plan."/>
                 </Border>
-            </StackPanel>
+            </WrapPanel>
         </Grid>
 
         <TabControl x:Name="InventoryTabs" Grid.Row="2" SelectionChanged="InventoryTabs_SelectionChanged">
@@ -131,6 +132,49 @@
                             </StackPanel>
                         </Border>
 
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Network quality" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DashboardNetworkSummaryText"
+                                           Text="Run Gaming diagnostics or a passive Wi-Fi observation to populate these charts."
+                                           Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,16"
+                                           AutomationProperties.LiveSetting="Polite"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="280"/>
+                                        <ColumnDefinition Width="18"/>
+                                        <ColumnDefinition MinWidth="280"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="GAME ENDPOINT LATENCY" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource MutedTextBrush}"/>
+                                        <Border Background="{StaticResource PageBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" Margin="0,8,0,8" Padding="8">
+                                            <Viewbox Stretch="Fill" Height="120">
+                                                <Canvas x:Name="DashboardLatencyCanvas" Width="600" Height="120" ClipToBounds="True"
+                                                        AutomationProperties.Name="Game endpoint latency chart"/>
+                                            </Viewbox>
+                                        </Border>
+                                        <TextBlock x:Name="DashboardLatencyLegendText" Text="No completed latency measurement"
+                                                   Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="WI-FI ASSOCIATION" FontSize="11" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource MutedTextBrush}"/>
+                                        <Border Background="{StaticResource PageBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                                BorderThickness="1" Margin="0,8,0,8" Padding="8">
+                                            <Viewbox Stretch="Fill" Height="120">
+                                                <Canvas x:Name="DashboardWifiCanvas" Width="600" Height="120" ClipToBounds="True"
+                                                        AutomationProperties.Name="Wi-Fi signal and negotiated rate chart"/>
+                                            </Viewbox>
+                                        </Border>
+                                        <TextBlock x:Name="DashboardWifiLegendText" Text="No passive Wi-Fi observation"
+                                                   Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
                         <Grid Margin="0,18,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2*" MinWidth="130"/>
@@ -175,6 +219,33 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Updates" FontSize="18" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="UpdateVersionText" Foreground="{StaticResource MutedTextBrush}"
+                                               Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="UpdateStatusText" Text="Updates have not been checked yet."
+                                               Foreground="{StaticResource MutedTextBrush}" Margin="0,8,20,0"
+                                               TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                                </StackPanel>
+                                <WrapPanel Grid.Row="1" Margin="0,14,0,0" HorizontalAlignment="Right">
+                                    <ComboBox x:Name="UpdateChannelComboBox" Width="110" Margin="0,0,8,8"
+                                              SelectionChanged="UpdateChannel_SelectionChanged"
+                                              AutomationProperties.Name="Update channel"/>
+                                    <Button x:Name="CheckUpdatesButton" Content="Check for updates" Margin="0,0,8,8"
+                                            Click="CheckUpdates_Click"/>
+                                    <Button x:Name="InstallUpdateButton" Content="Download and install" Margin="0,0,0,8"
+                                            Style="{StaticResource PrimaryButton}" IsEnabled="False"
+                                            Click="InstallUpdate_Click"/>
+                                </WrapPanel>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -510,25 +581,16 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Border Style="{StaticResource Card}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" MinWidth="130"/>
-                                    <ColumnDefinition Width="140"/>
-                                    <ColumnDefinition Width="190"/>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                            <WrapPanel>
+                                <StackPanel Width="260" Margin="0,0,12,12">
+                                    <TextBlock Text="ENDPOINT" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="DiagnosticTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
                                              Tag="Host name or IP"
                                              ToolTip="The game server or regional endpoint to measure. A host name or an IP address."
                                              AutomationProperties.Name="Game or regional endpoint"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                                    <TextBlock Text="PROFILE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="140" Margin="0,0,12,12">
+                                    <TextBlock Text="PROFILE" Style="{StaticResource FieldLabelText}"/>
                                     <ComboBox x:Name="DiagnosticProfileComboBox" Margin="0,6,0,0"
                                               AutomationProperties.Name="Diagnostic profile">
                                         <ComboBox.ItemTemplate>
@@ -536,8 +598,8 @@
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                 </StackPanel>
-                                <StackPanel Grid.Column="2" Margin="0,0,12,0">
-                                    <TextBlock Text="GAME (TICK RATE)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="190" Margin="0,0,12,12">
+                                    <TextBlock Text="GAME (TICK RATE)" Style="{StaticResource FieldLabelText}"/>
                                     <ComboBox x:Name="DiagnosticGameComboBox" Margin="0,6,0,0"
                                               ToolTip="Sets the probe's packet size and the thresholds the result is judged against"
                                               AutomationProperties.Name="Game tick rate profile">
@@ -546,21 +608,21 @@
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                 </StackPanel>
-                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
-                                    <TextBlock Text="LOAD" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="130" Margin="0,0,12,12">
+                                    <TextBlock Text="LOAD" Style="{StaticResource FieldLabelText}"/>
                                     <ComboBox x:Name="DiagnosticLoadComboBox" Margin="0,6,0,0" AutomationProperties.Name="Load condition"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="4" Margin="0,0,12,0">
-                                    <TextBlock Text="TCP PORT (OPTIONAL)" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="150" Margin="0,0,12,12">
+                                    <TextBlock Text="TCP PORT (OPTIONAL)" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="DiagnosticPortText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
                                              Tag="e.g. 7777" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Grid.Column="5" Content="Run complete check" Click="RunDiagnostic_Click"
-                                        VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelDiagnosticButton" Grid.Column="6" Content="Cancel" Click="CancelDiagnostic_Click"
-                                        VerticalAlignment="Bottom" IsEnabled="False"/>
-                            </Grid>
+                                <Button x:Name="RunDiagnosticButton" Content="Run complete check" Click="RunDiagnostic_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,12" Style="{StaticResource PrimaryButton}"/>
+                                <Button x:Name="CancelDiagnosticButton" Content="Cancel" Click="CancelDiagnostic_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,0,12" IsEnabled="False"/>
+                            </WrapPanel>
                         </Border>
 
                         <TextBlock Text="Runs the read-only inventory and path checks together. Loaded-latency and throughput tests stay separate because they generate traffic." Foreground="{StaticResource PrimaryTextBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
@@ -783,51 +845,46 @@
                 </ScrollViewer>
             </TabItem>
 
+            <TabItem Header="Wi-Fi diagnostics">
+                <views:WifiDiagnosticsView x:Name="WifiDiagnostics"/>
+            </TabItem>
+
             <TabItem Header="Throughput &amp; bufferbloat">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Border Style="{StaticResource Card}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" MinWidth="130"/>
-                                    <ColumnDefinition Width="*" MinWidth="130"/>
-                                    <ColumnDefinition Width="120"/>
-                                    <ColumnDefinition Width="110"/>
-                                    <ColumnDefinition Width="130"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="THROUGHPUT ENDPOINT" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                            <WrapPanel>
+                                <StackPanel Width="250" Margin="0,0,12,12">
+                                    <TextBlock Text="THROUGHPUT ENDPOINT" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="ThroughputEndpointText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
                                              Tag="Host you may load"
                                              ToolTip="Host that accepts a sustained transfer, for example a speed-test host you control"
                                              AutomationProperties.Name="Throughput endpoint"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                                    <TextBlock Text="LATENCY TARGET" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="250" Margin="0,0,12,12">
+                                    <TextBlock Text="LATENCY TARGET" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="LoadedLatencyTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
                                              Tag="Host to ping"
                                              ToolTip="Pinged idle and again under load to measure queue growth"
                                              AutomationProperties.Name="Latency target"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="2" Margin="0,0,12,0">
-                                    <TextBlock Text="DIRECTION" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="120" Margin="0,0,12,12">
+                                    <TextBlock Text="DIRECTION" Style="{StaticResource FieldLabelText}"/>
                                     <ComboBox x:Name="ThroughputDirectionComboBox" Margin="0,6,0,0" AutomationProperties.Name="Transfer direction"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="3" Margin="0,0,12,0">
-                                    <TextBlock Text="STREAMS" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="110" Margin="0,0,12,12">
+                                    <TextBlock Text="STREAMS" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="ThroughputStreamsText" Text="4" Margin="0,6,0,0" AutomationProperties.Name="Parallel streams"/>
                                 </StackPanel>
-                                <StackPanel Grid.Column="4" Margin="0,0,12,0">
-                                    <TextBlock Text="SECONDS PER PHASE" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                                <StackPanel Width="130" Margin="0,0,12,12">
+                                    <TextBlock Text="SECONDS PER PHASE" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="ThroughputSecondsText" Text="10" Margin="0,6,0,0" AutomationProperties.Name="Seconds per phase"/>
                                 </StackPanel>
-                                <Button x:Name="RunThroughputButton" Grid.Column="5" Content="Measure" Click="RunThroughput_Click"
-                                        VerticalAlignment="Bottom" Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelThroughputButton" Grid.Column="6" Content="Cancel" Click="CancelThroughput_Click"
-                                        VerticalAlignment="Bottom" IsEnabled="False"/>
-                            </Grid>
+                                <Button x:Name="RunThroughputButton" Content="Measure" Click="RunThroughput_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,12" Style="{StaticResource PrimaryButton}"/>
+                                <Button x:Name="CancelThroughputButton" Content="Cancel" Click="CancelThroughput_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,0,12" IsEnabled="False"/>
+                            </WrapPanel>
                         </Border>
 
                         <TextBlock Text="This moves real data over your connection and will saturate it for the duration. Nothing is written to Windows or the adapter. Choose an endpoint you are allowed to load."
@@ -1360,7 +1417,8 @@
                          Background="{StaticResource PanelBrush}" Foreground="{StaticResource PrimaryBrush}"
                          AutomationProperties.Name="Working"/>
             <TextBlock x:Name="StatusText" Grid.Column="1" Text="Ready" Foreground="{StaticResource MutedTextBrush}"
-                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                       TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                       AutomationProperties.LiveSetting="Polite"/>
             <TextBlock x:Name="LogStatusText" Grid.Column="2" Foreground="{StaticResource WarningBrush}" Margin="0,0,18,0"/>
             <TextBlock Grid.Column="3" Text="COMMUNITY ALPHA 0.9" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
         </Grid>

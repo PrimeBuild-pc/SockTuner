@@ -29,6 +29,10 @@ SockTuner exposes only settings that the installed NIC driver actually advertise
 3. Choose **Create compatibility report**, review the plain-text JSON, and let SockTuner open the dedicated GitHub issue form.
 4. Attach the JSON file to the issue.
 
+After the first signed install, **Dashboard → Updates** can check stable or preview GitHub Releases,
+verify the published SHA-256 checksum and Authenticode signature, replace the single executable, and
+restart SockTuner. Unsigned development builds can check for releases but cannot install them automatically.
+
 The report contains the adapter model, driver version, OS version, and driver-advertised keywords and constraints. It excludes all current setting values, persistent adapter/PNP identifiers, MAC and IP addresses, routes, DNS servers, INF and user paths, machine name, and exact timestamps. Creating it is read-only and changes nothing on the PC.
 
 ## Product goals

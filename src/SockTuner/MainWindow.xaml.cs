@@ -1,10 +1,14 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Shapes;
 using Microsoft.Win32;
 using SockTuner.Models;
 using SockTuner.Persistence;
@@ -32,7 +36,11 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private readonly DiagnosticHistoryStore _historyStore = new();
+    private readonly AppUpdateService _updates = new();
     private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
+    private CancellationTokenSource? _updateCancellation;
+    private AppRelease? _availableUpdate;
+    private bool _initializingUpdateChannel = true;
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
@@ -72,6 +80,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         UiTranslator.Apply(this);
         _preferences = AppPreferences.Load();
+        WifiDiagnostics.PreferredInterfaceId = _preferences.WifiInterfaceId;
+        if (_preferences.SelectedSection is { Length: > 0 } section) SelectTab(section);
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
         LogRetentionComboBox.ItemsSource = Enumerable.Range(1, 64);
         LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
@@ -108,6 +118,22 @@ public partial class MainWindow : Window
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
+        UpdateChannelComboBox.ItemsSource = Enum.GetValues<UpdateChannel>()
+            .Select(channel => new UpdateChannelChoice(channel, Loc.T(channel.ToString())))
+            .ToArray();
+        var savedChannel = Enum.TryParse<UpdateChannel>(_preferences.UpdateChannel, true, out var channel)
+            ? channel
+            : UpdateChannel.Stable;
+        UpdateChannelComboBox.SelectedItem = ((UpdateChannelChoice[])UpdateChannelComboBox.ItemsSource)
+            .First(item => item.Channel == savedChannel);
+        _initializingUpdateChannel = false;
+        UpdateVersionText.Text = Loc.F($"Installed version: {AppUpdateService.CurrentVersion}");
+        if (_history.FirstOrDefault()?.Report is { } previousReport)
+            ShowDashboardLatency(previousReport.GameTarget, live: false);
+        else
+            ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", string.Empty, []), live: false);
+        DrawChart(DashboardWifiCanvas, [], (Brush)FindResource("PrimaryBrush"));
+        WifiDiagnostics.ObservationUpdated += (_, samples) => ShowDashboardWifi(samples);
         TuningPlan.Applied += async (_, _) =>
         {
             // Consent is accepted inside the plan view, so the badge is re-read after it acts.
@@ -119,11 +145,20 @@ public partial class MainWindow : Window
         };
         SourceInitialized += (_, _) => ApplyDarkTitleBar();
         RestoreWindowGeometry();
-        Closing += (_, _) => SaveWindowGeometry();
+        Closing += (_, _) =>
+        {
+            CancelActiveWork();
+            SaveWindowGeometry();
+        };
         Loaded += async (_, _) =>
         {
             await RefreshInventoryAsync();
             LoadInterruptAffinity();
+            if (_preferences.LastUpdateCheckAt is not { } checkedAt
+                || DateTimeOffset.UtcNow - checkedAt >= TimeSpan.FromDays(1))
+            {
+                await CheckForUpdatesAsync(quiet: true);
+            }
         };
         ShowWriteState();
         ShowRecoveryState();
@@ -188,11 +223,16 @@ public partial class MainWindow : Window
             var bounds = RestoreBounds;
             if (bounds.IsEmpty || double.IsNaN(bounds.Width)) return;
 
+            var selectedSection = InventoryTabs.SelectedItem is System.Windows.Controls.TabItem tab
+                ? tab.Tag as string ?? tab.Header?.ToString()
+                : null;
             _preferences = _preferences with
             {
                 Window = new WindowGeometry(
                     bounds.Left, bounds.Top, bounds.Width, bounds.Height,
-                    WindowState == WindowState.Maximized)
+                    WindowState == WindowState.Maximized),
+                SelectedSection = selectedSection,
+                WifiInterfaceId = WifiDiagnostics.SelectedInterfaceId ?? WifiDiagnostics.PreferredInterfaceId
             };
             AppPreferences.Save(_preferences);
         }
@@ -219,8 +259,8 @@ public partial class MainWindow : Window
 
     /// <summary>
     /// F5 re-reads the inventory, Ctrl+F goes to the global search, Ctrl+K jumps to a section by
-    /// name, and Ctrl+1..9 select the first tab of each navigation group. Twenty sections is more
-    /// than a mouse should have to carry.
+    /// name, and Ctrl+1..9 select the first nine destinations in navigation order. Twenty sections
+    /// is more than a mouse should have to carry.
     /// </summary>
     private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
     {
@@ -457,6 +497,15 @@ public partial class MainWindow : Window
         SetDiagnosticBusy(true);
         ClearDiagnosticResults("Running…");
         DiagnosticRunSummaryText.Text = Loc.F($"{profile.DisplayName}: resolving {target}, then collecting {profile.SampleCount} concurrent samples per endpoint…");
+        DashboardNetworkSummaryText.Text = Loc.F($"Live measurement of {target}; charts update only while this diagnostic runs.");
+        ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", target, []), live: true);
+        var liveSamples = new List<ProbeSample>();
+        var progress = new Progress<DiagnosticTimelineSample>(sample =>
+        {
+            if (sample.Label != "Game endpoint") return;
+            liveSamples.Add(new(sample.Timestamp, sample.RoundTripTimeMs, sample.Detail, sample.FailureKind));
+            ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", target, liveSamples.ToArray()), live: true);
+        });
         StatusText.Text = Loc.F($"Diagnosing {target}…");
         WriteLog("diagnostic.started", $"Target={target}; Port={port?.ToString() ?? "none"}; Profile={profile.Id}; Load={loadCondition}.");
 
@@ -467,7 +516,8 @@ public partial class MainWindow : Window
             var gateway = await _routeGatewayResolver.ResolveAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
             var beforeCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
-            var report = await _diagnostics.RunAsync(target, gateway, port, profile, loadCondition, _diagnosticCancellation.Token);
+            var report = await _diagnostics.RunAsync(
+                target, gateway, port, profile, loadCondition, progress, _diagnosticCancellation.Token);
             var afterCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             var afterSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
@@ -479,7 +529,23 @@ public partial class MainWindow : Window
                 CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters),
                 Game = game
             };
+            var wifiInventory = await Task.Run(WindowsWifiInventory.Read, _diagnosticCancellation.Token);
+            var wifiRadio = wifiInventory.Radios.FirstOrDefault(item => item.Connected)
+                ?? wifiInventory.Radios.FirstOrDefault();
+            var wifiDelta = FindWifiCounterDelta(report.CounterDeltas, wifiRadio);
+            var wifiReport = GamingWifiDiagnosticEngine.Analyze(new(
+                wifiRadio, Gateway: report.Gateway, CounterDelta: wifiDelta, CapturedAt: wifiInventory.CapturedAt));
+            report = report with
+            {
+                Wifi = wifiReport,
+                Findings = report.Findings.Concat(wifiReport.Findings)
+                    .DistinctBy(finding => (finding.Title, finding.Evidence))
+                    .ToArray()
+            };
+            WifiDiagnostics.SetGamingContext(report.Gateway, wifiDelta, wifiRadio?.InterfaceId);
+            WifiDiagnostics.SetReport(wifiInventory, wifiReport);
             _lastReport = report;
+            ShowDashboardLatency(report.GameTarget, live: false);
             try
             {
                 _history.Insert(0, _historyStore.Save(report));
@@ -517,6 +583,8 @@ public partial class MainWindow : Window
         {
             ClearDiagnosticResults("Canceled");
             DiagnosticRunSummaryText.Text = Loc.F($"Diagnosis for {target} canceled. Partial samples were discarded.");
+            DashboardNetworkSummaryText.Text = Loc.T("Diagnosis canceled; partial chart samples were discarded.");
+            ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", target, []), live: false);
             StatusText.Text = Loc.T("Diagnosis canceled");
             WriteLog("diagnostic.canceled", $"Target={target}.");
         }
@@ -524,6 +592,8 @@ public partial class MainWindow : Window
         {
             ClearDiagnosticResults("Failed");
             DiagnosticRunSummaryText.Text = Loc.F($"Diagnosis for {target} failed: {exception.Message}");
+            DashboardNetworkSummaryText.Text = Loc.F($"Network quality measurement failed: {exception.Message}");
+            ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", target, []), live: false);
             StatusText.Text = Loc.T("Diagnosis failed");
             WriteLog("diagnostic.failed", $"Target={target}; Error={exception.Message}");
         }
@@ -678,7 +748,7 @@ public partial class MainWindow : Window
     private void SaveReport(GamingDiagnosticReport report, bool html, bool redact)
     {
         if (!redact && MessageBox.Show(
-                Loc.T("The full report contains diagnostic targets, addresses, routes, adapter identifiers, and error details. Export it anyway?"),
+                Loc.T("The full report contains diagnostic targets, addresses, routes, adapter identifiers, Wi-Fi network names/BSSIDs, and error details. Export it anyway?"),
                 Loc.T("Export full diagnostic report"),
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning) != MessageBoxResult.Yes)
@@ -802,6 +872,21 @@ public partial class MainWindow : Window
     private void DeleteHistory_Click(object sender, RoutedEventArgs e)
     {
         var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
+        if (selected.Length == 0)
+        {
+            ComparisonText.Text = Loc.T("Select one or more runs to delete.");
+            return;
+        }
+
+        if (MessageBox.Show(
+                Loc.F($"Delete {selected.Length} selected diagnostic run(s)? This cannot be undone."),
+                Loc.T("Delete diagnostic history"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
         try
         {
             foreach (var entry in selected)
@@ -871,6 +956,7 @@ public partial class MainWindow : Window
         {
             _selectedInventoryItem = null;
             _selectedInventoryGrid = null;
+            CopyInventoryRowButton.IsEnabled = false;
         }
     }
 
@@ -885,11 +971,13 @@ public partial class MainWindow : Window
         {
             _selectedInventoryItem = item;
             _selectedInventoryGrid = grid;
+            CopyInventoryRowButton.IsEnabled = true;
         }
         else if (ReferenceEquals(grid, _selectedInventoryGrid))
         {
             _selectedInventoryItem = null;
             _selectedInventoryGrid = null;
+            CopyInventoryRowButton.IsEnabled = false;
         }
     }
 
@@ -1120,6 +1208,109 @@ public partial class MainWindow : Window
         WriteLog("playability.judged", $"Game={game.Id}; Grade={verdict.Grade}; DecidedBy={verdict.DecidedBy}.");
     }
 
+    private void ShowDashboardLatency(ProbeStatistics statistics, bool live)
+    {
+        var values = statistics.Samples.Select(sample => sample.RoundTripTimeMs).ToArray();
+        DrawChart(DashboardLatencyCanvas, values, (Brush)FindResource("PrimaryBrush"));
+        AddLossMarkers(DashboardLatencyCanvas, values);
+
+        DashboardLatencyLegendText.Text = statistics.Received == 0
+            ? live ? Loc.T("Waiting for game-endpoint replies…") : Loc.T("No completed latency measurement")
+            : Loc.F($"{statistics.MedianMs:0.0} ms median · {statistics.P95Ms:0.0} ms P95 · {(statistics.JitterMs is { } jitter ? $"{jitter:0.0} ms" : "n/a")} jitter · {statistics.LossPercent:0.#}% loss");
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            DashboardLatencyCanvas, DashboardLatencyLegendText.Text);
+        if (statistics.Sent > 0)
+        {
+            DashboardNetworkSummaryText.Text = live
+                ? Loc.F($"Live game-endpoint measurement: {statistics.Received}/{statistics.Sent} replies.")
+                : Loc.F($"Latest completed gaming diagnostic for {statistics.Target}.");
+        }
+    }
+
+    private void ShowDashboardWifi(IReadOnlyList<WifiObservationSample> samples)
+    {
+        var signal = samples.Select(sample => sample.RssiDbm is { } rssi ? (double?)rssi : null).ToArray();
+        var rates = samples.Select(sample =>
+        {
+            var rate = Math.Max(sample.ReceiveRateKbps, sample.TransmitRateKbps);
+            return rate > 0 ? (double?)(rate / 1000d) : null;
+        }).ToArray();
+        DrawChart(DashboardWifiCanvas, signal, (Brush)FindResource("PrimaryBrush"));
+        DrawSeries(DashboardWifiCanvas, rates, (Brush)FindResource("WarningBrush"));
+
+        var validSignal = signal.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
+        var validRates = rates.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
+        DashboardWifiLegendText.Text = samples.Count == 0
+            ? Loc.T("No passive Wi-Fi observation")
+            : Loc.F($"{samples.Count} samples · RSSI {Range(validSignal, "dBm")} · rate {Range(validRates, "Mbps")} (independent scales)");
+        DashboardNetworkSummaryText.Text = samples.Count == 0
+            ? Loc.T("Passive Wi-Fi observation started; no samples collected yet.")
+            : Loc.F($"Passive Wi-Fi association observation contains {samples.Count} sample(s).");
+        System.Windows.Automation.AutomationProperties.SetHelpText(
+            DashboardWifiCanvas, DashboardWifiLegendText.Text);
+    }
+
+    private static string Range(double[] values, string unit) => values.Length == 0
+        ? $"n/a {unit}"
+        : $"{values.Min():0.#}–{values.Max():0.#} {unit}";
+
+    private void DrawChart(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values, Brush brush)
+    {
+        canvas.Children.Clear();
+        var gridBrush = (Brush)FindResource("BorderBrush");
+        foreach (var y in new[] { 30d, 60d, 90d })
+        {
+            canvas.Children.Add(new Line
+            {
+                X1 = 0,
+                X2 = 600,
+                Y1 = y,
+                Y2 = y,
+                Stroke = gridBrush,
+                StrokeThickness = 1
+            });
+        }
+        DrawSeries(canvas, values, brush);
+    }
+
+    private static void DrawSeries(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values, Brush brush)
+    {
+        foreach (var segment in SparklineGeometry.Build(values))
+        {
+            if (segment.Count == 1)
+            {
+                var point = segment[0];
+                var marker = new Ellipse { Width = 7, Height = 7, Fill = brush };
+                System.Windows.Controls.Canvas.SetLeft(marker, point.X - 3.5);
+                System.Windows.Controls.Canvas.SetTop(marker, point.Y - 3.5);
+                canvas.Children.Add(marker);
+                continue;
+            }
+
+            canvas.Children.Add(new Polyline
+            {
+                Points = new PointCollection(segment),
+                Stroke = brush,
+                StrokeThickness = 3,
+                StrokeLineJoin = PenLineJoin.Round
+            });
+        }
+    }
+
+    private void AddLossMarkers(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values)
+    {
+        if (values.Count == 0) return;
+        var danger = (Brush)FindResource("DangerBrush");
+        for (var index = 0; index < values.Count; index++)
+        {
+            if (values[index].HasValue) continue;
+            var marker = new Rectangle { Width = 4, Height = 12, Fill = danger };
+            System.Windows.Controls.Canvas.SetLeft(marker, values.Count == 1 ? 298 : index * 596d / (values.Count - 1));
+            System.Windows.Controls.Canvas.SetTop(marker, 104);
+            canvas.Children.Add(marker);
+        }
+    }
+
     private void WriteLog(string eventName, string message)
     {
         var error = AppLog.Write(eventName, message);
@@ -1128,6 +1319,8 @@ public partial class MainWindow : Window
 
     private void ApplyDarkTitleBar()
     {
+        if (SystemParameters.HighContrast) return;
+
         var enabled = 1;
         var handle = new WindowInteropHelper(this).Handle;
         if (DwmSetWindowAttribute(handle, UseImmersiveDarkMode, ref enabled, sizeof(int)) != 0)
@@ -1373,7 +1566,8 @@ public partial class MainWindow : Window
     {
         var report = _lastReport;
         var measured = _lastDownload is not null || _lastUpload is not null;
-        if (report is null && !measured)
+        var wifiMeasured = WifiDiagnostics.LatestReport is { Radio: not null };
+        if (report is null && !measured && !wifiMeasured)
         {
             RecommendationSummaryText.Text =
                 Loc.T("Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online "
@@ -1411,7 +1605,10 @@ public partial class MainWindow : Window
                 globals,
                 path);
 
-            var findings = report?.Findings ?? [];
+            var findings = (report?.Findings ?? [])
+                .Concat(WifiDiagnostics.LatestReport?.Findings ?? [])
+                .DistinctBy(finding => (finding.Title, finding.Evidence))
+                .ToArray();
             var actions = RemediationPlanner.Plan(findings, context).ToList();
 
             // The use-case profile is a deliberate preset rather than a finding, so it is added
@@ -1431,8 +1628,10 @@ public partial class MainWindow : Window
 
             var local = actions.Count(action => action.AppliesLocally);
             var basis = report is null
-                ? $"an imported {_importedBufferbloat?.SourceDisplay ?? "bufferbloat"} result"
-                : $"{findings.Count} finding(s)";
+                ? wifiMeasured && !measured
+                    ? "passive Wi-Fi evidence"
+                    : $"an imported {_importedBufferbloat?.SourceDisplay ?? "bufferbloat"} result"
+                : $"{findings.Length} finding(s)";
             RecommendationSummaryText.Text =
                 Loc.F($"{actions.Count} action(s) from {basis}: {local} this machine can make, "
                 + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.");
@@ -1445,8 +1644,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private static AdapterCounterDelta? FindWifiCounterDelta(
+        IReadOnlyList<AdapterCounterDelta>? deltas, WifiRadioInfo? radio)
+    {
+        if (deltas is null || radio is null || !Guid.TryParse(radio.InterfaceId, out var interfaceId)) return null;
+        return deltas.FirstOrDefault(delta =>
+            Guid.TryParse(delta.AdapterId, out var adapterId) && adapterId == interfaceId);
+    }
+
     private WifiRadioInfo? ShowWifiRadio()
     {
+        if (WifiDiagnostics.LatestReport?.Radio is { } latest)
+        {
+            ShowWifiRadio(latest, WifiDiagnostics.LatestReport.Findings);
+            return latest;
+        }
+
         var inventory = WindowsWifiInventory.Read();
         if (!inventory.Supported || inventory.Radios.Count == 0)
         {
@@ -1456,8 +1669,13 @@ public partial class MainWindow : Window
             return null;
         }
 
-        var radio = inventory.Radios[0];
-        var findings = WifiRadioAnalyzer.Analyze(radio);
+        var radio = inventory.Radios.FirstOrDefault(item => item.Connected) ?? inventory.Radios[0];
+        ShowWifiRadio(radio, WifiRadioAnalyzer.Analyze(radio));
+        return radio;
+    }
+
+    private void ShowWifiRadio(WifiRadioInfo radio, IReadOnlyList<DiagnosticFinding> findings)
+    {
         var lines = new List<string>
         {
             $"{radio.Description}: SSID {radio.Ssid} · {radio.SignalDisplay} · {radio.RateDisplay}"
@@ -1472,7 +1690,6 @@ public partial class MainWindow : Window
 
         if (findings.Count == 0) lines.Add("• Nothing about the radio stood out.");
         WifiRadioText.Text = string.Join(Environment.NewLine, lines);
-        return radio;
     }
 
     private void ShowRouterGuidance(WifiRadioInfo? wifi)
@@ -1517,6 +1734,16 @@ public partial class MainWindow : Window
     {
         _dnsBenchmarkCancellation?.Cancel();
         StatusText.Text = Loc.T("Stopping the resolver benchmark\u2026");
+    }
+
+    private void CancelActiveWork()
+    {
+        _diagnosticCancellation?.Cancel();
+        _monitorCancellation?.Cancel();
+        _throughputCancellation?.Cancel();
+        _dnsBenchmarkCancellation?.Cancel();
+        _updateCancellation?.Cancel();
+        WifiDiagnostics.CancelActiveWork();
     }
 
     private async void RunDnsBenchmark_Click(object sender, RoutedEventArgs e)
@@ -2248,6 +2475,143 @@ public partial class MainWindow : Window
         ShowRecoveryState();
     }
 
+    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) =>
+        await CheckForUpdatesAsync(quiet: false);
+
+    private void UpdateChannel_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        if (_initializingUpdateChannel || UpdateChannelComboBox.SelectedItem is not UpdateChannelChoice choice) return;
+        _availableUpdate = null;
+        InstallUpdateButton.IsEnabled = false;
+        _preferences = _preferences with { UpdateChannel = choice.Channel.ToString(), LastUpdateCheckAt = null };
+        try
+        {
+            AppPreferences.Save(_preferences);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            WriteLog("updates.preference_failed", exception.Message);
+        }
+        SetUpdateStatus(Loc.F($"{choice.DisplayName} channel selected. Check when you are ready."));
+    }
+
+    private async Task CheckForUpdatesAsync(bool quiet)
+    {
+        if (UpdateChannelComboBox.SelectedItem is not UpdateChannelChoice choice) return;
+        _updateCancellation?.Cancel();
+        _updateCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _updateCancellation = cancellation;
+        CheckUpdatesButton.IsEnabled = false;
+        InstallUpdateButton.IsEnabled = false;
+        UpdateStatusText.ToolTip = null;
+        if (!quiet) SetUpdateStatus(Loc.T("Checking GitHub Releases…"));
+
+        try
+        {
+            _availableUpdate = await _updates.CheckAsync(choice.Channel, cancellation.Token);
+            if (_availableUpdate is null)
+            {
+                SetUpdateStatus(Loc.F($"Version {AppUpdateService.CurrentVersion} is up to date on the {choice.DisplayName} channel."));
+            }
+            else
+            {
+                SetUpdateStatus(AppUpdateService.AutomaticInstallationAvailable
+                    ? Loc.F($"Version {_availableUpdate.Version} is available: {_availableUpdate.Name}")
+                    : Loc.F($"Version {_availableUpdate.Version} is available, but automatic installation requires a signed SockTuner build."));
+                UpdateStatusText.ToolTip = _availableUpdate.Notes;
+                InstallUpdateButton.IsEnabled = AppUpdateService.AutomaticInstallationAvailable;
+            }
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            if (!quiet) SetUpdateStatus(Loc.T("Update check canceled."));
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException
+                                           or InvalidDataException)
+        {
+            SetUpdateStatus(Loc.F($"Updates could not be checked: {exception.Message}"));
+            WriteLog("updates.check_failed", exception.Message);
+        }
+        finally
+        {
+            _preferences = _preferences with { LastUpdateCheckAt = DateTimeOffset.UtcNow };
+            try
+            {
+                AppPreferences.Save(_preferences);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                WriteLog("updates.preference_failed", exception.Message);
+            }
+            CheckUpdatesButton.IsEnabled = true;
+            if (ReferenceEquals(_updateCancellation, cancellation)) _updateCancellation = null;
+            cancellation.Dispose();
+        }
+    }
+
+    private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (_availableUpdate is not { } release || Environment.ProcessPath is not { } currentExecutable) return;
+        var notes = string.IsNullOrWhiteSpace(release.Notes)
+            ? string.Empty
+            : Environment.NewLine + Environment.NewLine + release.Notes[..Math.Min(release.Notes.Length, 1200)];
+        if (MessageBox.Show(
+                Loc.F($"Download and install SockTuner {release.Version}? The app will restart after verifying the archive checksum and Authenticode signature.{notes}"),
+                Loc.T("Install SockTuner update"),
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        _updateCancellation?.Cancel();
+        _updateCancellation?.Dispose();
+        var cancellation = new CancellationTokenSource();
+        _updateCancellation = cancellation;
+        CheckUpdatesButton.IsEnabled = false;
+        InstallUpdateButton.IsEnabled = false;
+        SetUpdateStatus(Loc.F($"Downloading and verifying SockTuner {release.Version}…"));
+        try
+        {
+            var prepared = await _updates.PrepareAsync(release, currentExecutable, cancellation.Token);
+            var start = new ProcessStartInfo(prepared.ExecutablePath) { UseShellExecute = true };
+            if (AppUpdateService.InstallationNeedsElevation(currentExecutable)) start.Verb = "runas";
+            start.ArgumentList.Add(UpdateInstaller.Argument);
+            start.ArgumentList.Add(Environment.ProcessId.ToString());
+            start.ArgumentList.Add(currentExecutable);
+            Process.Start(start);
+            Application.Current.Shutdown();
+        }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            SetUpdateStatus(Loc.T("Update installation canceled."));
+            CheckUpdatesButton.IsEnabled = true;
+            InstallUpdateButton.IsEnabled = _availableUpdate is not null;
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or IOException or UnauthorizedAccessException
+                                           or InvalidDataException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            SetUpdateStatus(Loc.F($"The update could not be installed: {exception.Message}"));
+            WriteLog("updates.install_failed", exception.Message);
+            CheckUpdatesButton.IsEnabled = true;
+            InstallUpdateButton.IsEnabled = true;
+        }
+        finally
+        {
+            if (ReferenceEquals(_updateCancellation, cancellation)) _updateCancellation = null;
+            cancellation.Dispose();
+        }
+    }
+
+    private void SetUpdateStatus(string value)
+    {
+        UpdateStatusText.Text = value;
+        var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(UpdateStatusText)
+            ?? new System.Windows.Automation.Peers.FrameworkElementAutomationPeer(UpdateStatusText);
+        peer.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
+    }
+
     private void DashboardCheckDrift_Click(object sender, RoutedEventArgs e)
     {
         TuningPlan.CheckForDrift();
@@ -2618,6 +2982,11 @@ public partial class MainWindow : Window
     }
 
     /// <summary>A policy with the wording shown to the user rather than its enum name.</summary>
+    private sealed record UpdateChannelChoice(UpdateChannel Channel, string DisplayName)
+    {
+        public override string ToString() => DisplayName;
+    }
+
     private sealed record PolicyChoice(InterruptPolicy Policy)
     {
         public string Display => Policy switch

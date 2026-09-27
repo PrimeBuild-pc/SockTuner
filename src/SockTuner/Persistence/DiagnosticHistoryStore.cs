@@ -33,7 +33,7 @@ public sealed class DiagnosticHistoryStore
         maximumEntries = Math.Clamp(maximumEntries, 1, 200);
         if (!IsValidReport(report)) throw new ArgumentException("History report metadata is incomplete or invalid.", nameof(report));
         Directory.CreateDirectory(_directory);
-        var entry = new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.Now, report);
+        var entry = new DiagnosticHistoryEntry(Guid.NewGuid(), DateTimeOffset.Now, MinimizeWifiHistory(report));
         File.WriteAllText(PathFor(entry.Id), JsonSerializer.Serialize(entry, Options));
         foreach (var old in Load().Skip(maximumEntries)) File.Delete(PathFor(old.Id));
         return entry;
@@ -78,6 +78,50 @@ public sealed class DiagnosticHistoryStore
             try { File.Delete(path); } catch (Exception deleteException) when (deleteException is IOException or UnauthorizedAccessException) { }
             return null;
         }
+    }
+
+    private static GamingDiagnosticReport MinimizeWifiHistory(GamingDiagnosticReport report)
+    {
+        if (report.Wifi is not { } wifiReport) return report;
+
+        static WifiBssInfo Bss(WifiBssInfo value) => value with
+        {
+            Ssid = "[not retained in history]",
+            Bssid = "[not retained in history]"
+        };
+
+        var wifiFindingKeys = wifiReport.Findings
+            .Select(finding => (finding.Title, finding.Evidence))
+            .ToHashSet();
+        var radio = wifiReport.Radio;
+        var wifi = wifiReport with
+        {
+            Radio = radio is null ? null : radio with
+            {
+                InterfaceId = "[not retained in history]",
+                Description = "Wi-Fi adapter",
+                Ssid = "[not retained in history]",
+                Bssid = "[not retained in history]",
+                ConnectedBss = radio.ConnectedBss is null ? null : Bss(radio.ConnectedBss),
+                Neighbours = []
+            },
+            Findings = wifiReport.Findings.Select(finding =>
+                finding with { Evidence = "[Wi-Fi detail not retained in history]" }).ToArray(),
+            Samples = wifiReport.Samples.Select(sample => sample with
+            {
+                InterfaceId = "[not retained in history]",
+                Bssid = "[not retained in history]",
+                Error = sample.Error is null ? null : "[detail not retained in history]"
+            }).ToArray()
+        };
+
+        return report with
+        {
+            Wifi = wifi,
+            Findings = report.Findings.Select(finding => wifiFindingKeys.Contains((finding.Title, finding.Evidence))
+                ? finding with { Evidence = "[Wi-Fi detail not retained in history]" }
+                : finding).ToArray()
+        };
     }
 
     private static bool IsValidReport(GamingDiagnosticReport? report) => report is not null
