@@ -19,14 +19,30 @@ public sealed class AppPreferencesTests
         var path = Path.Combine(Path.GetTempPath(), $"SockTuner-{Guid.NewGuid():N}", "preferences.json");
         try
         {
-            AppPreferences.Save(path, new(9));
+            AppPreferences.Save(path, new(
+                9,
+                SelectedSection: "Wi-Fi diagnostics",
+                WifiInterfaceId: "radio-guid",
+                UpdateChannel: "Preview",
+                LastUpdateCheckAt: DateTimeOffset.Parse("2026-01-02T03:04:05Z")));
 
-            Assert.Equal(9, AppPreferences.Load(path).LogFileMegabytes);
+            var loaded = AppPreferences.Load(path);
+            Assert.Equal(9, loaded.LogFileMegabytes);
+            Assert.Equal("Wi-Fi diagnostics", loaded.SelectedSection);
+            Assert.Equal("radio-guid", loaded.WifiInterfaceId);
+            Assert.Equal("Preview", loaded.UpdateChannel);
+            Assert.Equal(DateTimeOffset.Parse("2026-01-02T03:04:05Z"), loaded.LastUpdateCheckAt);
         }
         finally
         {
             Directory.Delete(Path.GetDirectoryName(path)!, true);
         }
+    }
+
+    [Fact]
+    public void Validate_FallsBackToTheStableUpdateChannel()
+    {
+        Assert.Equal("Stable", AppPreferences.Validate(new(UpdateChannel: "invalid")).UpdateChannel);
     }
 
     [Fact]

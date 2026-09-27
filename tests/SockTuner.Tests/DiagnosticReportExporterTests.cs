@@ -1,6 +1,7 @@
 using System.Text.Json;
 using SockTuner.Models;
 using SockTuner.Persistence;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Tests;
 
@@ -11,7 +12,7 @@ public sealed class DiagnosticReportExporterTests
     {
         using var document = JsonDocument.Parse(DiagnosticReportExporter.SerializeJson(Report()));
 
-        Assert.Equal(3, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(4, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.False(document.RootElement.GetProperty("redacted").GetBoolean());
         Assert.Equal(10, document.RootElement.GetProperty("report").GetProperty("gameTarget").GetProperty("samples")[0].GetProperty("roundTripTimeMs").GetDouble());
     }
@@ -34,7 +35,7 @@ public sealed class DiagnosticReportExporterTests
         var json = DiagnosticReportExporter.SerializeJson(Report(), redact: true);
         var html = DiagnosticReportExporter.SerializeHtml(Report(), redact: true);
 
-        foreach (var secret in new[] { "secret.example", "203.0.113.8", "SECRET-ADAPTER", "PRIVATE-ERROR" })
+        foreach (var secret in new[] { "secret.example", "203.0.113.8", "SECRET-ADAPTER", "PRIVATE-ERROR", "SECRET-SSID", "aa:bb:cc:dd:ee:ff" })
         {
             Assert.DoesNotContain(secret, json, StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain(secret, html, StringComparison.OrdinalIgnoreCase);
@@ -63,6 +64,10 @@ public sealed class DiagnosticReportExporterTests
     {
         var sample = new ProbeSample(DateTimeOffset.UnixEpoch, 10);
         var probe = ProbeStatistics.Calculate("Game", "secret.example", [sample]);
+        var bss = WifiBssInfo.FromFrequency("aa:bb:cc:dd:ee:ff", "SECRET-SSID", 5180000, 80, 42, -50);
+        var radio = new WifiRadioInfo(
+            "SECRET-ADAPTER", "SECRET-ADAPTER", bss.Ssid, bss.Bssid, 80, 500_000, 500_000, bss, [bss]);
+        var wifi = GamingWifiDiagnosticEngine.Analyze(new(radio, CapturedAt: DateTimeOffset.UnixEpoch));
         return new GamingDiagnosticReport(
             "secret.example", DateTimeOffset.UnixEpoch, TimeSpan.FromSeconds(1),
             new DiagnosticProfile("quick", "Quick", 12, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
@@ -73,6 +78,7 @@ public sealed class DiagnosticReportExporterTests
             [new DiagnosticFinding(DiagnosticScope.General, DiagnosticConfidence.Low, "<script>", "PRIVATE-ERROR evidence", "Action")],
             [new RouteSample(DateTimeOffset.UnixEpoch, [new RouteHop(1, "203.0.113.8", 1, "TtlExpired")], null)],
             "203.0.113.8", new PathMtuResult(PathMtuState.Discovered, 1500, "PRIVATE-ERROR mtu"),
-            [new AdapterCounterDelta("SECRET-ADAPTER", "SECRET-ADAPTER", 1, 1, 0, 0, 0, 0)]);
+            [new AdapterCounterDelta("SECRET-ADAPTER", "SECRET-ADAPTER", 1, 1, 0, 0, 0, 0)],
+            Wifi: wifi);
     }
 }

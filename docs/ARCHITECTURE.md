@@ -201,6 +201,44 @@ Traceroute hops may rate-limit or deprioritize ICMP, game servers may block prob
 
 Base RTT remains constrained by route, physical distance, access technology, and server behavior. TCP-only changes are not presented as UDP game optimizations, and throughput or bufferbloat results are never inferred from registry state alone.
 
+### Passive Wi-Fi diagnostics
+
+Wi-Fi diagnosis remains inside the same native collection/diagnosis boundary:
+
+```text
+Windows WLAN API cached state
+        ↓
+WindowsWifiInventory (facts only; never calls WlanScan)
+        ↓
+GamingWifiDiagnosticEngine (pure correlation)
+        ↓
+Wi-Fi view · gaming report · recommendations · redacted export
+```
+
+The collector enumerates every WLAN interface and reads the current association, negotiated PHY/rates,
+authentication/cipher, radio and interface capability, cached BSS entries, and bounded information
+elements. HT, VHT and HE operation data determine occupied width where available; RSN, PMF, WPS and BSS
+Load remain facts and are not treated as latency causes by themselves. Unknown or malformed elements are
+ignored rather than guessed.
+
+A 60-second observation samples only the current association at a two-second interval. It is cancellable,
+bounded to five minutes at the service boundary, and never requests an active scan. The diagnosis engine
+correlates signal/rate changes, roaming, cached channel pressure, adapter counters and the already measured
+gateway. Gateway instability without corroborating radio evidence remains inconclusive instead of being
+labelled a Wi-Fi fault.
+
+SSID, BSSID and interface identifiers are present in full local reports because they are diagnostic facts.
+Support/redacted exports replace them. Windows location-policy access denial is a first-class availability
+state with a link to Windows Settings; it is not worked around with elevation or an external process.
+
+External radio tools, including wifit3, are not providers for this path. They may be reconsidered only as
+independent launchers after a documented passive, structured and versioned CLI exists; no external binary,
+firmware or driver is bundled.
+
+The dashboard renders native WPF sparklines from samples already collected by an explicit gaming diagnosis
+or passive Wi-Fi observation. It does not start probes or background monitoring on its own. Missing replies
+remain visible as loss markers rather than being interpolated into a misleading continuous line.
+
 ## 10. Data and packaging
 
 Application-owned data is stored under `%LocalAppData%\PrimeBuild\SockTuner`:
@@ -211,9 +249,15 @@ Reports/     diagnostic and comparison reports
 History/     bounded successful diagnostic runs
 Logs/        bounded operational logs
 Settings/    user preferences and profile copies
+Updates/     verified temporary update payloads
 ```
 
-Initial distribution is a signed, self-contained x64 Windows build. Installer technology, auto-update, ARM64, portable mode, and Microsoft Store packaging are deferred until the core works and deployment constraints are known.
+Distribution is a signed, self-contained x64 Windows build. The dashboard checks GitHub Releases at most
+once per day or on explicit request, with separate stable and preview channels. Installation requires the
+published SHA-256 checksum and trusted Authenticode signatures on both the running build and replacement.
+A verified replacement runs from the update directory, waits for the current process to exit, swaps the
+single executable with rollback on failure, and restarts it. Unsigned preview builds can discover releases
+but cannot install them automatically. ARM64, MSIX and Microsoft Store packaging remain deferred.
 
 ## 11. Test strategy
 

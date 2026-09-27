@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text.Json;
+using SockTuner.Services;
 
 namespace SockTuner.Persistence;
 
@@ -9,7 +10,11 @@ public sealed record UserPreferences(
     DateTimeOffset? WriteConsentAcceptedAt = null,
     WindowGeometry? Window = null,
     /// <summary>Null means "follow Windows", which is what an install that was never told wants.</summary>
-    string? Language = null);
+    string? Language = null,
+    string? SelectedSection = null,
+    string? WifiInterfaceId = null,
+    string UpdateChannel = "Stable",
+    DateTimeOffset? LastUpdateCheckAt = null);
 
 /// <summary>
 /// Where the window was and how big, so a grid the user widened stays widened. Restored only when
@@ -97,6 +102,9 @@ public static class AppPreferences
     internal static UserPreferences Validate(UserPreferences preferences) => preferences with
     {
         LogFileMegabytes = Math.Clamp(preferences.LogFileMegabytes, 1, 64),
+        UpdateChannel = Enum.TryParse<UpdateChannel>(preferences.UpdateChannel, true, out var channel)
+            ? channel.ToString()
+            : UpdateChannel.Stable.ToString(),
         Window = preferences.Window is { } window && double.IsFinite(window.Left) && double.IsFinite(window.Top)
                  && double.IsFinite(window.Width) && double.IsFinite(window.Height)
             ? window with

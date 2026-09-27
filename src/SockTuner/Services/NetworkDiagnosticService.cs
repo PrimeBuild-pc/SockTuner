@@ -11,13 +11,13 @@ public sealed class NetworkDiagnosticService
     private const string ReferenceTarget = "1.1.1.1";
     private readonly GamingDiagnosisAnalyzer _analyzer = new();
     private readonly PathDiagnosticService _pathDiagnostics;
-    private readonly Func<string, string, DiagnosticProfile, CancellationToken, Task<ProbeStatistics>> _probe;
+    private readonly Func<string, string, DiagnosticProfile, IProgress<DiagnosticTimelineSample>?, CancellationToken, Task<ProbeStatistics>> _probe;
 
     public NetworkDiagnosticService() : this(new PathDiagnosticService(), ProbeAsync) { }
 
     internal NetworkDiagnosticService(
         PathDiagnosticService pathDiagnostics,
-        Func<string, string, DiagnosticProfile, CancellationToken, Task<ProbeStatistics>> probe)
+        Func<string, string, DiagnosticProfile, IProgress<DiagnosticTimelineSample>?, CancellationToken, Task<ProbeStatistics>> probe)
     {
         _pathDiagnostics = pathDiagnostics;
         _probe = probe;
@@ -42,12 +42,22 @@ public sealed class NetworkDiagnosticService
         DiagnosticProfile profile,
         CancellationToken cancellationToken) => RunAsync(target, gateway, tcpPort, profile, DiagnosticLoadCondition.Unspecified, cancellationToken);
 
+    public Task<GamingDiagnosticReport> RunAsync(
+        string target,
+        string? gateway,
+        int? tcpPort,
+        DiagnosticProfile profile,
+        DiagnosticLoadCondition loadCondition,
+        CancellationToken cancellationToken) => RunAsync(
+            target, gateway, tcpPort, profile, loadCondition, null, cancellationToken);
+
     public async Task<GamingDiagnosticReport> RunAsync(
         string target,
         string? gateway,
         int? tcpPort,
         DiagnosticProfile profile,
         DiagnosticLoadCondition loadCondition,
+        IProgress<DiagnosticTimelineSample>? progress,
         CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(target);
@@ -67,12 +77,12 @@ public sealed class NetworkDiagnosticService
         var firstPublicBoundary = PathDiagnosticService.FindFirstPublicBoundary([initialRoute]);
         var gatewayTask = string.IsNullOrWhiteSpace(gateway)
             ? Task.FromResult(ProbeStatistics.Calculate("Gateway", "Not detected", [], "No active default gateway detected"))
-            : _probe("Gateway", gateway, profile, cancellationToken);
-        var referenceTask = _probe("Reference", ReferenceTarget, profile, cancellationToken);
-        var gameTask = _probe("Game endpoint", resolvedTarget, profile, cancellationToken);
+            : _probe("Gateway", gateway, profile, progress, cancellationToken);
+        var referenceTask = _probe("Reference", ReferenceTarget, profile, progress, cancellationToken);
+        var gameTask = _probe("Game endpoint", resolvedTarget, profile, progress, cancellationToken);
         var boundaryTask = string.IsNullOrWhiteSpace(firstPublicBoundary)
             ? Task.FromResult<ProbeStatistics?>(null)
-            : ProbeBoundaryAsync(firstPublicBoundary, profile, cancellationToken);
+            : ProbeBoundaryAsync(firstPublicBoundary, profile, progress, cancellationToken);
         var connectionTask = tcpPort.HasValue
             ? MeasureConnectionAsync(target, tcpPort.Value, cancellationToken)
             : Task.FromResult<ConnectionMeasurement?>(null);
@@ -104,10 +114,17 @@ public sealed class NetworkDiagnosticService
             await boundaryTask);
     }
 
+    internal static Task<ProbeStatistics> ProbeAsync(
+        string label,
+        string target,
+        DiagnosticProfile profile,
+        CancellationToken cancellationToken) => ProbeAsync(label, target, profile, null, cancellationToken);
+
     internal static async Task<ProbeStatistics> ProbeAsync(
         string label,
         string target,
         DiagnosticProfile profile,
+        IProgress<DiagnosticTimelineSample>? progress,
         CancellationToken cancellationToken)
     {
         var samples = new List<ProbeSample>(profile.SampleCount);
@@ -124,10 +141,14 @@ public sealed class NetworkDiagnosticService
                 samples.Add(reply.Status == IPStatus.Success
                     ? new ProbeSample(timestamp, reply.RoundtripTime)
                     : new ProbeSample(timestamp, null, reply.Status.ToString(), ClassifyPingStatus(reply.Status)));
+                var sample = samples[^1];
+                progress?.Report(new(label, timestamp, sample.RoundTripTimeMs, false, sample.FailureKind, sample.Error));
             }
             catch (PingException exception)
             {
                 samples.Add(new ProbeSample(timestamp, null, exception.InnerException?.Message ?? exception.Message, DiagnosticFailureKind.LocalApiFailure));
+                var sample = samples[^1];
+                progress?.Report(new(label, timestamp, null, false, sample.FailureKind, sample.Error));
             }
 
             if (index + 1 < profile.SampleCount)
@@ -140,8 +161,8 @@ public sealed class NetworkDiagnosticService
     }
 
     private async Task<ProbeStatistics?> ProbeBoundaryAsync(
-        string target, DiagnosticProfile profile, CancellationToken cancellationToken) =>
-        await _probe("First public boundary", target, profile, cancellationToken);
+        string target, DiagnosticProfile profile, IProgress<DiagnosticTimelineSample>? progress, CancellationToken cancellationToken) =>
+        await _probe("First public boundary", target, profile, progress, cancellationToken);
 
     internal static DiagnosticFailureKind ClassifyPingStatus(IPStatus status) => status switch
     {

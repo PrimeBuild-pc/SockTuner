@@ -12,7 +12,7 @@
                                    Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,8,0,0"/>
                     </StackPanel>
                     <Border x:Name="WriteStateBadge" Grid.Column="1" Background="{StaticResource WarningMutedBrush}"
-                            BorderBrush="#E6C15A" BorderThickness="1" Padding="12,6" VerticalAlignment="Top">
+                            BorderBrush="{StaticResource WarningBrush}" BorderThickness="1" Padding="12,6" VerticalAlignment="Top">
                         <TextBlock x:Name="WriteStateText" Text="ALPHA · LIVE CHANGES" Foreground="{StaticResource WarningBrush}"
                                    FontSize="11" FontWeight="SemiBold"/>
                     </Border>

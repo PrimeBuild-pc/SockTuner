@@ -1,0 +1,133 @@
+<UserControl x:Class="SockTuner.Views.WifiDiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+        <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                <StackPanel>
+                    <TextBlock Text="Wi-Fi diagnostics" Style="{StaticResource PageTitleText}"/>
+                    <TextBlock Text="Passive Windows WLAN data. Refresh and observation use the Windows cache and never trigger a Wi-Fi scan."
+                               Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+                <WrapPanel Grid.Row="1" HorizontalAlignment="Right" Margin="0,12,0,0">
+                    <ComboBox x:Name="InterfaceComboBox" MinWidth="240" Margin="0,0,8,8"
+                              SelectionChanged="Interface_SelectionChanged"
+                              AutomationProperties.Name="Wi-Fi interface">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate><TextBlock Text="{Binding Description}"/></DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button x:Name="RefreshButton" Content="Refresh passive data" Click="Refresh_Click"
+                            Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                    <Button x:Name="ObserveButton" Content="Observe for 60 seconds" Click="Observe_Click"
+                            Margin="0,0,8,8" IsEnabled="False"/>
+                    <Button x:Name="CancelObserveButton" Content="Cancel" Click="CancelObserve_Click"
+                            Margin="0,0,0,8" IsEnabled="False"/>
+                </WrapPanel>
+            </Grid>
+
+            <Border x:Name="PermissionCard" Style="{StaticResource Card}" Margin="0,16,0,0" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="Windows blocked Wi-Fi details" Style="{StaticResource CardTitleText}"/>
+                    <TextBlock Text="Allow desktop apps to use Location in Windows Settings, then refresh. SockTuner does not need your physical location; Windows gates WLAN details behind this permission."
+                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
+                    <Button Content="Open Location settings" Click="OpenLocationSettings_Click" HorizontalAlignment="Left"/>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="StatusText" Text="Refresh to inspect Wi-Fi."
+                       Style="{StaticResource LocalStatusText}" Margin="4,12,0,0"
+                       AutomationProperties.LiveSetting="Polite"/>
+
+            <Grid Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*" MinWidth="260"/>
+                    <ColumnDefinition Width="*" MinWidth="220"/>
+                </Grid.ColumnDefinitions>
+                <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                    <StackPanel>
+                        <TextBlock Text="Current connection" Style="{StaticResource SectionTitleText}"/>
+                        <TextBlock x:Name="ConnectionText" Text="Not inspected." Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        <DataGrid x:Name="EvidenceGrid" AutoGenerateColumns="False" MaxHeight="260" Margin="0,12,0,0"
+                                  Style="{StaticResource ResultGrid}" AutomationProperties.Name="Current connection">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Fact" Binding="{Binding Name}" Width="140"/>
+                                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="2*" MinWidth="130"/>
+                                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="2*" MinWidth="130"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Gaming impact" Style="{StaticResource SectionTitleText}"/>
+                        <TextBlock x:Name="VerdictText" Text="- Not enough data" FontSize="20" FontWeight="SemiBold"
+                                   Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        <TextBlock x:Name="SummaryText" Text="Refresh passive data first."
+                                   Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        <TextBlock Text="Unknowns" Style="{StaticResource CardTitleText}" Margin="0,18,0,0"/>
+                        <TextBlock x:Name="UnknownsText" Text="Not inspected." Foreground="{StaticResource MutedTextBrush}"
+                                   Margin="0,6,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Evidence-ranked Wi-Fi findings" Style="{StaticResource SectionTitleText}"/>
+                    <DataGrid x:Name="FindingsGrid" AutoGenerateColumns="False" Margin="0,12,0,0"
+                              MinHeight="120" MaxHeight="280" RowHeight="NaN" MinRowHeight="40"
+                              Style="{StaticResource ResultGrid}" AutomationProperties.Name="Evidence-ranked Wi-Fi findings">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Confidence" Binding="{Binding Confidence}" Width="100"/>
+                            <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="160" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="3*" MinWidth="180" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="Owner" Binding="{Binding OwnerDisplay}" Width="140"/>
+                            <DataGridTextColumn Header="Action" Binding="{Binding Action}" Width="3*" MinWidth="180" ElementStyle="{StaticResource WrapCellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock x:Name="NoFindingsText" Text="No Wi-Fi finding from the available evidence."
+                               Foreground="{StaticResource GoodBrush}" Margin="0,10,0,0" Visibility="Collapsed"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Nearby channel pressure" Style="{StaticResource SectionTitleText}"/>
+                    <TextBlock Text="Cached beacons show potential pressure, not the airtime used by every client. Utilization appears only when an access point publishes BSS Load."
+                               Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,12" TextWrapping="Wrap"/>
+                    <DataGrid x:Name="ChannelsGrid" AutoGenerateColumns="False" MinHeight="140" MaxHeight="260"
+                              Style="{StaticResource ResultGrid}" AutomationProperties.Name="Nearby channel pressure">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Band" Binding="{Binding BandDisplay}" Width="100"/>
+                            <DataGridTextColumn Header="Channel" Binding="{Binding Channel}" Width="80"/>
+                            <DataGridTextColumn Header="BSS count" Binding="{Binding BssCount}" Width="90"/>
+                            <DataGridTextColumn Header="Strongest RSSI" Binding="{Binding StrongestRssiDbm}" Width="110"/>
+                            <DataGridTextColumn Header="Overlapping" Binding="{Binding OverlappingBssCount}" Width="100"/>
+                            <DataGridTextColumn Header="AP utilization" Binding="{Binding UtilizationDisplay}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <Expander Header="Technical details and passive samples">
+                    <StackPanel Margin="0,12,0,0">
+                        <TextBlock x:Name="TechnicalText" Text="Not inspected." TextWrapping="Wrap"/>
+                        <DataGrid x:Name="SamplesGrid" AutoGenerateColumns="False" MaxHeight="240" Margin="0,12,0,0"
+                                  Style="{StaticResource ResultGrid}" AutomationProperties.Name="Technical details and passive samples">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="190"/>
+                                <DataGridTextColumn Header="BSSID" Binding="{Binding Bssid}" Width="150"/>
+                                <DataGridTextColumn Header="Signal" Binding="{Binding SignalDisplay}" Width="100"/>
+                                <DataGridTextColumn Header="Negotiated rate" Binding="{Binding RateDisplay}" Width="220"/>
+                                <DataGridTextColumn Header="Detail" Binding="{Binding Error}" Width="2*" MinWidth="160"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Expander>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

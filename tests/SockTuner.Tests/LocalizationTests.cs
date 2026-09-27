@@ -41,7 +41,8 @@ public class LocalizationTests
 
     public static TheoryData<string> XamlFiles() =>
         ["MainWindow.xaml", Path.Combine("Views", "TuningPlanView.xaml"),
-         Path.Combine("Views", "CompatibilityReportPreviewWindow.xaml")];
+         Path.Combine("Views", "CompatibilityReportPreviewWindow.xaml"),
+         Path.Combine("Views", "WifiDiagnosticsView.xaml")];
 
     [Theory]
     [MemberData(nameof(XamlFiles))]

@@ -3338,5 +3338,440 @@
   "es": "Confirmar reversión",
   "ru": "Подтвердить откат",
   "zh-Hans": "确认回滚"
+ },
+ "Wi-Fi diagnostics": {
+  "es": "Diagnóstico Wi-Fi",
+  "ru": "Диагностика Wi-Fi",
+  "zh-Hans": "Wi-Fi 诊断"
+ },
+ "Passive Windows WLAN data. Refresh and observation use the Windows cache and never trigger a Wi-Fi scan.": {
+  "es": "Datos WLAN pasivos de Windows. La actualización y la observación usan la caché de Windows y nunca inician un escaneo Wi-Fi.",
+  "ru": "Пассивные данные WLAN Windows. Обновление и наблюдение используют кэш Windows и не запускают сканирование Wi-Fi.",
+  "zh-Hans": "被动读取 Windows WLAN 数据。刷新和观察使用 Windows 缓存，绝不会触发 Wi-Fi 扫描。"
+ },
+ "Wi-Fi interface": {
+  "es": "Interfaz Wi-Fi",
+  "ru": "Интерфейс Wi-Fi",
+  "zh-Hans": "Wi-Fi 接口"
+ },
+ "Refresh passive data": {
+  "es": "Actualizar datos pasivos",
+  "ru": "Обновить пассивные данные",
+  "zh-Hans": "刷新被动数据"
+ },
+ "Observe for 60 seconds": {
+  "es": "Observar durante 60 segundos",
+  "ru": "Наблюдать 60 секунд",
+  "zh-Hans": "观察 60 秒"
+ },
+ "Windows blocked Wi-Fi details": {
+  "es": "Windows bloqueó los detalles Wi-Fi",
+  "ru": "Windows заблокировала сведения Wi-Fi",
+  "zh-Hans": "Windows 阻止了 Wi-Fi 详细信息"
+ },
+ "Allow desktop apps to use Location in Windows Settings, then refresh. SockTuner does not need your physical location; Windows gates WLAN details behind this permission.": {
+  "es": "Permite que las aplicaciones de escritorio usen Ubicación en Configuración de Windows y actualiza. SockTuner no necesita tu ubicación física; Windows protege los detalles WLAN con este permiso.",
+  "ru": "Разрешите классическим приложениям доступ к местоположению в параметрах Windows, затем обновите. SockTuner не нужно ваше физическое местоположение; Windows защищает этим разрешением сведения WLAN.",
+  "zh-Hans": "请在 Windows 设置中允许桌面应用使用位置，然后刷新。SockTuner 不需要你的实际位置；Windows 使用此权限限制 WLAN 详细信息。"
+ },
+ "Open Location settings": {
+  "es": "Abrir configuración de Ubicación",
+  "ru": "Открыть параметры местоположения",
+  "zh-Hans": "打开位置设置"
+ },
+ "Refresh to inspect Wi-Fi.": {
+  "es": "Actualiza para inspeccionar el Wi-Fi.",
+  "ru": "Обновите данные для проверки Wi-Fi.",
+  "zh-Hans": "刷新以检查 Wi-Fi。"
+ },
+ "Current connection": {
+  "es": "Conexión actual",
+  "ru": "Текущее подключение",
+  "zh-Hans": "当前连接"
+ },
+ "Fact": {
+  "es": "Dato",
+  "ru": "Факт",
+  "zh-Hans": "事实"
+ },
+ "Value": {
+  "es": "Valor",
+  "ru": "Значение",
+  "zh-Hans": "值"
+ },
+ "Gaming impact": {
+  "es": "Impacto en juegos",
+  "ru": "Влияние на игры",
+  "zh-Hans": "游戏影响"
+ },
+ "- Not enough data": {
+  "es": "- Datos insuficientes",
+  "ru": "- Недостаточно данных",
+  "zh-Hans": "- 数据不足"
+ },
+ "Refresh passive data first.": {
+  "es": "Actualiza primero los datos pasivos.",
+  "ru": "Сначала обновите пассивные данные.",
+  "zh-Hans": "请先刷新被动数据。"
+ },
+ "Unknowns": {
+  "es": "Datos desconocidos",
+  "ru": "Неизвестные данные",
+  "zh-Hans": "未知项"
+ },
+ "Evidence-ranked Wi-Fi findings": {
+  "es": "Hallazgos Wi-Fi ordenados por evidencia",
+  "ru": "Выводы Wi-Fi по силе доказательств",
+  "zh-Hans": "按证据排序的 Wi-Fi 发现"
+ },
+ "No Wi-Fi finding from the available evidence.": {
+  "es": "La evidencia disponible no muestra ningún hallazgo Wi-Fi.",
+  "ru": "Доступные данные не выявили проблем Wi-Fi.",
+  "zh-Hans": "现有证据未发现 Wi-Fi 问题。"
+ },
+ "Nearby channel pressure": {
+  "es": "Presión en canales cercanos",
+  "ru": "Нагрузка соседних каналов",
+  "zh-Hans": "附近信道压力"
+ },
+ "Cached beacons show potential pressure, not the airtime used by every client. Utilization appears only when an access point publishes BSS Load.": {
+  "es": "Las balizas almacenadas muestran presión potencial, no el tiempo de aire usado por cada cliente. La utilización solo aparece si un punto de acceso publica BSS Load.",
+  "ru": "Кэшированные маяки показывают потенциальную нагрузку, а не эфирное время всех клиентов. Утилизация отображается только когда точка доступа публикует BSS Load.",
+  "zh-Hans": "缓存的信标仅显示潜在压力，并不代表每个客户端使用的空口时间。仅当接入点发布 BSS Load 时才显示利用率。"
+ },
+ "Band": {
+  "es": "Banda",
+  "ru": "Диапазон",
+  "zh-Hans": "频段"
+ },
+ "Channel": {
+  "es": "Canal",
+  "ru": "Канал",
+  "zh-Hans": "信道"
+ },
+ "BSS count": {
+  "es": "Cantidad de BSS",
+  "ru": "Количество BSS",
+  "zh-Hans": "BSS 数量"
+ },
+ "Strongest RSSI": {
+  "es": "RSSI más fuerte",
+  "ru": "Самый сильный RSSI",
+  "zh-Hans": "最强 RSSI"
+ },
+ "Overlapping": {
+  "es": "Solapados",
+  "ru": "Перекрывающиеся",
+  "zh-Hans": "重叠"
+ },
+ "AP utilization": {
+  "es": "Utilización del AP",
+  "ru": "Утилизация точки доступа",
+  "zh-Hans": "AP 利用率"
+ },
+ "Technical details and passive samples": {
+  "es": "Detalles técnicos y muestras pasivas",
+  "ru": "Технические сведения и пассивные образцы",
+  "zh-Hans": "技术详情和被动样本"
+ },
+ "BSSID": {
+  "es": "BSSID",
+  "ru": "BSSID",
+  "zh-Hans": "BSSID"
+ },
+ "Signal": {
+  "es": "Señal",
+  "ru": "Сигнал",
+  "zh-Hans": "信号"
+ },
+ "Negotiated rate": {
+  "es": "Velocidad negociada",
+  "ru": "Согласованная скорость",
+  "zh-Hans": "协商速率"
+ },
+ "Reading passive Windows WLAN data…": {
+  "es": "Leyendo datos WLAN pasivos de Windows…",
+  "ru": "Чтение пассивных данных WLAN Windows…",
+  "zh-Hans": "正在读取 Windows WLAN 被动数据…"
+ },
+ "No Wi-Fi radio was found.": {
+  "es": "No se encontró ninguna radio Wi-Fi.",
+  "ru": "Радиоинтерфейс Wi-Fi не найден.",
+  "zh-Hans": "未找到 Wi-Fi 无线电。"
+ },
+ "Passive Wi-Fi data refreshed at {0:HH:mm:ss}. Windows may return cached beacons.": {
+  "es": "Datos Wi-Fi pasivos actualizados a las {0:HH:mm:ss}. Windows puede devolver balizas almacenadas.",
+  "ru": "Пассивные данные Wi-Fi обновлены в {0:HH:mm:ss}. Windows может вернуть кэшированные маяки.",
+  "zh-Hans": "Wi-Fi 被动数据已于 {0:HH:mm:ss} 刷新。Windows 可能返回缓存的信标。"
+ },
+ "Wi-Fi refresh failed: {0}": {
+  "es": "Error al actualizar Wi-Fi: {0}",
+  "ru": "Не удалось обновить Wi-Fi: {0}",
+  "zh-Hans": "Wi-Fi 刷新失败：{0}"
+ },
+ "Observing the current association for 60 seconds without triggering a scan…": {
+  "es": "Observando la asociación actual durante 60 segundos sin iniciar un escaneo…",
+  "ru": "Наблюдение за текущим подключением в течение 60 секунд без запуска сканирования…",
+  "zh-Hans": "正在观察当前关联 60 秒，不触发扫描…"
+ },
+ "Observed {0} passive sample(s)…": {
+  "es": "Se observaron {0} muestra(s) pasivas…",
+  "ru": "Получено пассивных образцов: {0}…",
+  "zh-Hans": "已观察 {0} 个被动样本…"
+ },
+ "Observation complete: {0} passive sample(s).": {
+  "es": "Observación completa: {0} muestra(s) pasivas.",
+  "ru": "Наблюдение завершено: пассивных образцов {0}.",
+  "zh-Hans": "观察完成：{0} 个被动样本。"
+ },
+ "Observation stopped; {0} passive sample(s) retained.": {
+  "es": "Observación detenida; se conservaron {0} muestra(s) pasivas.",
+  "ru": "Наблюдение остановлено; сохранено пассивных образцов: {0}.",
+  "zh-Hans": "观察已停止；保留了 {0} 个被动样本。"
+ },
+ "Wi-Fi observation failed: {0}": {
+  "es": "Error en la observación Wi-Fi: {0}",
+  "ru": "Ошибка наблюдения Wi-Fi: {0}",
+  "zh-Hans": "Wi-Fi 观察失败：{0}"
+ },
+ "Nothing required for this assessment is unknown.": {
+  "es": "No falta ningún dato necesario para esta evaluación.",
+  "ru": "Все необходимые для этой оценки данные известны.",
+  "zh-Hans": "此评估所需信息均已知。"
+ },
+ "No active Wi-Fi connection.": {
+  "es": "No hay ninguna conexión Wi-Fi activa.",
+  "ru": "Нет активного подключения Wi-Fi.",
+  "zh-Hans": "没有活动的 Wi-Fi 连接。"
+ },
+ "Location settings opened. Return here and refresh after changing access.": {
+  "es": "Se abrió la configuración de Ubicación. Vuelve aquí y actualiza después de cambiar el acceso.",
+  "ru": "Параметры местоположения открыты. После изменения доступа вернитесь и обновите данные.",
+  "zh-Hans": "已打开位置设置。更改访问权限后返回此处并刷新。"
+ },
+ "Location settings could not be opened: {0}": {
+  "es": "No se pudo abrir la configuración de Ubicación: {0}",
+  "ru": "Не удалось открыть параметры местоположения: {0}",
+  "zh-Hans": "无法打开位置设置：{0}"
+ },
+ "Select one or more runs to delete.": {
+  "es": "Selecciona una o varias ejecuciones para eliminar.",
+  "ru": "Выберите один или несколько запусков для удаления.",
+  "zh-Hans": "请选择一个或多个要删除的运行。"
+ },
+ "Delete {0} selected diagnostic run(s)? This cannot be undone.": {
+  "es": "¿Eliminar {0} ejecución(es) de diagnóstico seleccionada(s)? No se puede deshacer.",
+  "ru": "Удалить выбранные диагностические запуски ({0})? Это действие нельзя отменить.",
+  "zh-Hans": "删除选中的 {0} 个诊断运行？此操作无法撤销。"
+ },
+ "Delete diagnostic history": {
+  "es": "Eliminar historial de diagnóstico",
+  "ru": "Удалить журнал диагностики",
+  "zh-Hans": "删除诊断历史记录"
+ },
+ "The full report contains diagnostic targets, addresses, routes, adapter identifiers, Wi-Fi network names/BSSIDs, and error details. Export it anyway?": {
+  "es": "El informe completo contiene destinos de diagnóstico, direcciones, rutas, identificadores de adaptador, nombres de redes Wi-Fi/BSSID y detalles de errores. ¿Exportarlo de todos modos?",
+  "ru": "Полный отчёт содержит цели диагностики, адреса, маршруты, идентификаторы адаптеров, имена сетей Wi-Fi/BSSID и сведения об ошибках. Всё равно экспортировать?",
+  "zh-Hans": "完整报告包含诊断目标、地址、路由、适配器标识符、Wi-Fi 网络名称/BSSID 和错误详情。仍要导出吗？"
+ },
+ "Passive Wi-Fi data is partial: {0}": {
+  "es": "Los datos Wi-Fi pasivos están incompletos: {0}",
+  "ru": "Пассивные данные Wi-Fi неполны: {0}",
+  "zh-Hans": "Wi-Fi 被动数据不完整：{0}"
+ },
+ "Wi-Fi evidence updated by Gaming diagnostics.": {
+  "es": "Evidencia Wi-Fi actualizada por el diagnóstico de juegos.",
+  "ru": "Данные Wi-Fi обновлены игровой диагностикой.",
+  "zh-Hans": "游戏诊断已更新 Wi-Fi 证据。"
+ },
+ "Network quality": {
+  "es": "Calidad de red",
+  "ru": "Качество сети",
+  "zh-Hans": "网络质量"
+ },
+ "Run Gaming diagnostics or a passive Wi-Fi observation to populate these charts.": {
+  "es": "Ejecuta el diagnóstico de juegos o una observación Wi-Fi pasiva para completar estos gráficos.",
+  "ru": "Запустите игровую диагностику или пассивное наблюдение Wi-Fi, чтобы заполнить эти графики.",
+  "zh-Hans": "运行游戏诊断或 Wi-Fi 被动观察以填充这些图表。"
+ },
+ "GAME ENDPOINT LATENCY": {
+  "es": "LATENCIA DEL ENDPOINT DEL JUEGO",
+  "ru": "ЗАДЕРЖКА ИГРОВОГО УЗЛА",
+  "zh-Hans": "游戏端点延迟"
+ },
+ "Game endpoint latency chart": {
+  "es": "Gráfico de latencia del endpoint del juego",
+  "ru": "График задержки игрового узла",
+  "zh-Hans": "游戏端点延迟图表"
+ },
+ "No completed latency measurement": {
+  "es": "No hay ninguna medición de latencia completada",
+  "ru": "Нет завершённого измерения задержки",
+  "zh-Hans": "没有已完成的延迟测量"
+ },
+ "WI-FI ASSOCIATION": {
+  "es": "ASOCIACIÓN WI-FI",
+  "ru": "ПОДКЛЮЧЕНИЕ WI-FI",
+  "zh-Hans": "WI-FI 关联"
+ },
+ "Wi-Fi signal and negotiated rate chart": {
+  "es": "Gráfico de señal Wi-Fi y velocidad negociada",
+  "ru": "График сигнала Wi-Fi и согласованной скорости",
+  "zh-Hans": "Wi-Fi 信号和协商速率图表"
+ },
+ "No passive Wi-Fi observation": {
+  "es": "No hay ninguna observación Wi-Fi pasiva",
+  "ru": "Нет пассивного наблюдения Wi-Fi",
+  "zh-Hans": "没有 Wi-Fi 被动观察"
+ },
+ "Updates": {
+  "es": "Actualizaciones",
+  "ru": "Обновления",
+  "zh-Hans": "更新"
+ },
+ "Updates have not been checked yet.": {
+  "es": "Aún no se han comprobado las actualizaciones.",
+  "ru": "Обновления ещё не проверялись.",
+  "zh-Hans": "尚未检查更新。"
+ },
+ "Update channel": {
+  "es": "Canal de actualizaciones",
+  "ru": "Канал обновлений",
+  "zh-Hans": "更新通道"
+ },
+ "Check for updates": {
+  "es": "Buscar actualizaciones",
+  "ru": "Проверить обновления",
+  "zh-Hans": "检查更新"
+ },
+ "Download and install": {
+  "es": "Descargar e instalar",
+  "ru": "Скачать и установить",
+  "zh-Hans": "下载并安装"
+ },
+ "Stable": {
+  "es": "Estable",
+  "ru": "Стабильный",
+  "zh-Hans": "稳定版"
+ },
+ "Preview": {
+  "es": "Vista previa",
+  "ru": "Предварительный",
+  "zh-Hans": "预览版"
+ },
+ "Installed version: {0}": {
+  "es": "Versión instalada: {0}",
+  "ru": "Установленная версия: {0}",
+  "zh-Hans": "已安装版本：{0}"
+ },
+ "Live measurement of {0}; charts update only while this diagnostic runs.": {
+  "es": "Medición en vivo de {0}; los gráficos solo se actualizan mientras se ejecuta este diagnóstico.",
+  "ru": "Измерение {0} в реальном времени; графики обновляются только во время этой диагностики.",
+  "zh-Hans": "正在实时测量 {0}；图表仅在此诊断运行时更新。"
+ },
+ "Diagnosis canceled; partial chart samples were discarded.": {
+  "es": "Diagnóstico cancelado; se descartaron las muestras parciales del gráfico.",
+  "ru": "Диагностика отменена; неполные выборки графика отброшены.",
+  "zh-Hans": "诊断已取消；部分图表样本已丢弃。"
+ },
+ "Network quality measurement failed: {0}": {
+  "es": "Falló la medición de calidad de red: {0}",
+  "ru": "Не удалось измерить качество сети: {0}",
+  "zh-Hans": "网络质量测量失败：{0}"
+ },
+ "Waiting for game-endpoint replies…": {
+  "es": "Esperando respuestas del endpoint del juego…",
+  "ru": "Ожидание ответов игрового узла…",
+  "zh-Hans": "正在等待游戏端点回复…"
+ },
+ "{0:0.0} ms median · {1:0.0} ms P95 · {2} jitter · {3:0.#}% loss": {
+  "es": "mediana {0:0.0} ms · P95 {1:0.0} ms · jitter {2} · pérdida {3:0.#}%",
+  "ru": "медиана {0:0.0} мс · P95 {1:0.0} мс · джиттер {2} · потери {3:0.#}%",
+  "zh-Hans": "中位数 {0:0.0} 毫秒 · P95 {1:0.0} 毫秒 · 抖动 {2} · 丢包 {3:0.#}%"
+ },
+ "Live game-endpoint measurement: {0}/{1} replies.": {
+  "es": "Medición en vivo del endpoint del juego: {0}/{1} respuestas.",
+  "ru": "Измерение игрового узла: ответов {0}/{1}.",
+  "zh-Hans": "游戏端点实时测量：{0}/{1} 个回复。"
+ },
+ "Latest completed gaming diagnostic for {0}.": {
+  "es": "Último diagnóstico de juegos completado para {0}.",
+  "ru": "Последняя завершённая игровая диагностика для {0}.",
+  "zh-Hans": "{0} 最近完成的游戏诊断。"
+ },
+ "{0} samples · RSSI {1} · rate {2} (independent scales)": {
+  "es": "{0} muestras · RSSI {1} · velocidad {2} (escalas independientes)",
+  "ru": "выборок: {0} · RSSI {1} · скорость {2} (независимые шкалы)",
+  "zh-Hans": "{0} 个样本 · RSSI {1} · 速率 {2}（独立刻度）"
+ },
+ "Passive Wi-Fi observation started; no samples collected yet.": {
+  "es": "Observación Wi-Fi pasiva iniciada; aún no se han recogido muestras.",
+  "ru": "Пассивное наблюдение Wi-Fi начато; выборок пока нет.",
+  "zh-Hans": "Wi-Fi 被动观察已开始；尚未收集样本。"
+ },
+ "Passive Wi-Fi association observation contains {0} sample(s).": {
+  "es": "La observación pasiva de la asociación Wi-Fi contiene {0} muestra(s).",
+  "ru": "Пассивное наблюдение подключения Wi-Fi содержит выборок: {0}.",
+  "zh-Hans": "Wi-Fi 关联被动观察包含 {0} 个样本。"
+ },
+ "{0} channel selected. Check when you are ready.": {
+  "es": "Canal {0} seleccionado. Comprueba cuando quieras.",
+  "ru": "Выбран канал «{0}». Запустите проверку, когда будете готовы.",
+  "zh-Hans": "已选择{0}通道。准备好后即可检查。"
+ },
+ "Checking GitHub Releases…": {
+  "es": "Comprobando GitHub Releases…",
+  "ru": "Проверка GitHub Releases…",
+  "zh-Hans": "正在检查 GitHub Releases…"
+ },
+ "Version {0} is up to date on the {1} channel.": {
+  "es": "La versión {0} está actualizada en el canal {1}.",
+  "ru": "Версия {0} актуальна для канала «{1}».",
+  "zh-Hans": "版本 {0} 在{1}通道上是最新的。"
+ },
+ "Version {0} is available: {1}": {
+  "es": "La versión {0} está disponible: {1}",
+  "ru": "Доступна версия {0}: {1}",
+  "zh-Hans": "版本 {0} 可用：{1}"
+ },
+ "Version {0} is available, but automatic installation requires a signed SockTuner build.": {
+  "es": "La versión {0} está disponible, pero la instalación automática requiere una compilación firmada de SockTuner.",
+  "ru": "Доступна версия {0}, но для автоматической установки требуется подписанная сборка SockTuner.",
+  "zh-Hans": "版本 {0} 可用，但自动安装需要已签名的 SockTuner 构建。"
+ },
+ "Update check canceled.": {
+  "es": "Comprobación de actualizaciones cancelada.",
+  "ru": "Проверка обновлений отменена.",
+  "zh-Hans": "更新检查已取消。"
+ },
+ "Updates could not be checked: {0}": {
+  "es": "No se pudieron comprobar las actualizaciones: {0}",
+  "ru": "Не удалось проверить обновления: {0}",
+  "zh-Hans": "无法检查更新：{0}"
+ },
+ "Download and install SockTuner {0}? The app will restart after verifying the archive checksum and Authenticode signature.{1}": {
+  "es": "¿Descargar e instalar SockTuner {0}? La aplicación se reiniciará después de verificar la suma de comprobación del archivo y la firma Authenticode.{1}",
+  "ru": "Скачать и установить SockTuner {0}? Приложение перезапустится после проверки контрольной суммы архива и подписи Authenticode.{1}",
+  "zh-Hans": "下载并安装 SockTuner {0}？验证存档校验和与 Authenticode 签名后，应用将重新启动。{1}"
+ },
+ "Install SockTuner update": {
+  "es": "Instalar actualización de SockTuner",
+  "ru": "Установка обновления SockTuner",
+  "zh-Hans": "安装 SockTuner 更新"
+ },
+ "Downloading and verifying SockTuner {0}…": {
+  "es": "Descargando y verificando SockTuner {0}…",
+  "ru": "Загрузка и проверка SockTuner {0}…",
+  "zh-Hans": "正在下载并验证 SockTuner {0}…"
+ },
+ "Update installation canceled.": {
+  "es": "Instalación de la actualización cancelada.",
+  "ru": "Установка обновления отменена.",
+  "zh-Hans": "更新安装已取消。"
+ },
+ "The update could not be installed: {0}": {
+  "es": "No se pudo instalar la actualización: {0}",
+  "ru": "Не удалось установить обновление: {0}",
+  "zh-Hans": "无法安装更新：{0}"
  }
 }

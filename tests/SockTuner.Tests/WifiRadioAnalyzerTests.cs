@@ -37,6 +37,103 @@ public sealed class WifiRadioAnalyzerTests
     }
 
     [Fact]
+    public void HtAndVhtOperationElementsSupplyChannelWidthAndCentre()
+    {
+        byte[] elements =
+        [
+            61, 2, 36, 1,
+            192, 3, 1, 42, 0
+        ];
+
+        var parsed = WindowsWifiInventory.ParseInformationElements(elements, WifiBand.FiveGhz);
+
+        Assert.Equal(80, parsed.WidthMhz);
+        Assert.Equal(42, parsed.CentreChannel);
+    }
+
+    [Fact]
+    public void PartialEhtIsReportedWithoutGuessingAWidth()
+    {
+        var parsed = WindowsWifiInventory.ParseInformationElements([255, 1, 106], WifiBand.SixGhz);
+
+        Assert.True(parsed.EhtAdvertised);
+        Assert.Equal(20, parsed.WidthMhz);
+        Assert.Null(parsed.CentreChannel);
+    }
+
+    [Fact]
+    public void InformationElementsExposeLoadSecurityWpsAndPmf()
+    {
+        byte[] elements =
+        [
+            11, 5, 1, 0, 128, 0, 0,
+            48, 20,
+            1, 0, 0, 15, 172, 4,
+            1, 0, 0, 15, 172, 4,
+            1, 0, 0, 15, 172, 8,
+            192, 0,
+            221, 4, 0, 80, 242, 4
+        ];
+
+        var parsed = WindowsWifiInventory.ParseInformationElements(elements, WifiBand.FiveGhz);
+
+        Assert.Equal(50, parsed.ChannelUtilizationPercent);
+        Assert.Equal("WPA3-SAE", parsed.Security?.Authentication);
+        Assert.Equal("CCMP-128", parsed.Security?.Cipher);
+        Assert.True(parsed.Security?.PmfCapable);
+        Assert.True(parsed.Security?.PmfRequired);
+        Assert.True(parsed.WpsAdvertised);
+    }
+
+    [Fact]
+    public void ConnectionSecurityKeepsPmfFlagsFromTheBeacon()
+    {
+        var connection = new WifiSecurityInfo("WPA3-SAE", "CCMP-128", true, false);
+        var beacon = new WifiSecurityInfo("WPA3-SAE", "CCMP-128", true, false, true, true);
+
+        var merged = WindowsWifiInventory.MergeSecurity(connection, beacon);
+
+        Assert.True(merged?.PmfCapable);
+        Assert.True(merged?.PmfRequired);
+        Assert.Contains("PMF required", merged?.Display, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HeSixGhzOperationSuppliesTheAdvertisedWidth()
+    {
+        byte[] elements =
+        [
+            255, 12,
+            36, 0, 0, 2, 0, 0, 0,
+            5, 2, 7, 0, 0
+        ];
+
+        var parsed = WindowsWifiInventory.ParseInformationElements(elements, WifiBand.SixGhz);
+
+        Assert.True(parsed.HeAdvertised);
+        Assert.Equal(80, parsed.WidthMhz);
+        Assert.Equal(7, parsed.CentreChannel);
+    }
+
+    [Fact]
+    public void TruncatedInformationElementIsIgnoredRatherThanReadPastTheBuffer()
+    {
+        var parsed = WindowsWifiInventory.ParseInformationElements([48, 20, 1, 0], WifiBand.FiveGhz);
+
+        Assert.Equal(20, parsed.WidthMhz);
+        Assert.Null(parsed.Security);
+    }
+
+    [Fact]
+    public void AccessDeniedIsReportedAsLocationPermissionRatherThanGenericFailure()
+    {
+        Assert.Equal(WifiInventoryAvailability.LocationPermissionDenied, WindowsWifiInventory.Availability(5));
+        Assert.Contains("Location", WindowsWifiInventory.DescribeError("test", 5), StringComparison.Ordinal);
+        Assert.Equal(WifiInventoryAvailability.ServiceStopped, WindowsWifiInventory.Availability(1062));
+        Assert.Equal(WifiInventoryAvailability.Failed, WindowsWifiInventory.Availability(1234));
+    }
+
+    [Fact]
     public void StrongUncongestedLinkProducesNoFindings()
     {
         var radio = Radio(Bss("aa", "Home", 5180000, 80, 42, -45));
@@ -152,6 +249,7 @@ public sealed class WindowsWifiInventoryLiveTests
     {
         var result = WindowsWifiInventory.Read();
 
+        Assert.NotNull(result.CapturedAt);
         Assert.True(result.Supported || result.Error is not null || result.Radios.Count == 0);
         Assert.All(result.Radios, radio => Assert.All(radio.Neighbours, bss =>
             Assert.InRange(bss.ChannelWidthMhz, 20, 160)));

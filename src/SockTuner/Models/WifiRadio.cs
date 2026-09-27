@@ -8,10 +8,61 @@ public enum WifiBand
     SixGhz
 }
 
+public enum WifiPhyKind
+{
+    Unknown,
+    Fhss,
+    Dsss,
+    Infrared,
+    Ofdm,
+    HrDsss,
+    Erp,
+    Ht,
+    Vht,
+    Dmg,
+    He,
+    Eht
+}
+
+public enum WifiInterfaceState
+{
+    Unknown,
+    NotReady,
+    Connected,
+    AdHocFormed,
+    Disconnecting,
+    Disconnected,
+    Associating,
+    Discovering,
+    Authenticating
+}
+
+public enum WifiInventoryAvailability
+{
+    Available,
+    UnsupportedPlatform,
+    ServiceStopped,
+    LocationPermissionDenied,
+    Failed
+}
+
+public sealed record WifiSecurityInfo(
+    string Authentication,
+    string Cipher,
+    bool SecurityEnabled,
+    bool OneXEnabled,
+    bool? PmfCapable = null,
+    bool? PmfRequired = null)
+{
+    public string Display => !SecurityEnabled
+        ? "Open"
+        : $"{Authentication} · {Cipher}"
+          + (PmfRequired == true ? " · PMF required" : PmfCapable == true ? " · PMF capable" : string.Empty);
+}
+
 /// <summary>
 /// One beacon as the radio heard it. The span is the frequency range the BSS actually occupies,
-/// taken from its HT/VHT operation elements rather than assumed from the primary channel — a
-/// neighbour on a 40 or 80 MHz channel interferes far beyond the channel number it advertises.
+/// taken from its operation elements rather than assumed from the primary channel.
 /// </summary>
 public sealed record WifiBssInfo(
     string Bssid,
@@ -21,7 +72,13 @@ public sealed record WifiBssInfo(
     int ChannelWidthMhz,
     int SpanLowMhz,
     int SpanHighMhz,
-    int RssiDbm)
+    int RssiDbm,
+    int? ChannelUtilizationPercent = null,
+    WifiSecurityInfo? Security = null,
+    bool WpsAdvertised = false,
+    WifiPhyKind Phy = WifiPhyKind.Unknown,
+    bool HeAdvertised = false,
+    bool EhtAdvertised = false)
 {
     public bool Overlaps(WifiBssInfo other) =>
         Band == other.Band && SpanLowMhz < other.SpanHighMhz && other.SpanLowMhz < SpanHighMhz;
@@ -40,12 +97,11 @@ public sealed record WifiBssInfo(
         _ => "unknown band"
     };
 
-    /// <summary>
-    /// Builds a BSS from the beacon's centre frequency and its advertised width. Frequencies come
-    /// from Windows in kHz.
-    /// </summary>
+    /// <summary>Builds a BSS from the beacon's centre frequency and advertised width.</summary>
     public static WifiBssInfo FromFrequency(
-        string bssid, string ssid, int frequencyKhz, int widthMhz, int? widthCentreChannel, int rssiDbm)
+        string bssid, string ssid, int frequencyKhz, int widthMhz, int? widthCentreChannel, int rssiDbm,
+        int? channelUtilizationPercent = null, WifiSecurityInfo? security = null, bool wpsAdvertised = false,
+        WifiPhyKind phy = WifiPhyKind.Unknown, bool heAdvertised = false, bool ehtAdvertised = false)
     {
         var megahertz = frequencyKhz / 1000;
         var band = ClassifyBand(megahertz);
@@ -57,7 +113,9 @@ public sealed record WifiBssInfo(
         var centre = widthCentreChannel is { } centreChannel && band != WifiBand.Unknown
             ? FrequencyFor(band, centreChannel)
             : megahertz;
-        return new WifiBssInfo(bssid, ssid, band, channel, width, centre - (width / 2), centre + (width / 2), rssiDbm);
+        return new WifiBssInfo(
+            bssid, ssid, band, channel, width, centre - (width / 2), centre + (width / 2), rssiDbm,
+            channelUtilizationPercent, security, wpsAdvertised, phy, heAdvertised, ehtAdvertised);
     }
 
     public static WifiBand ClassifyBand(int megahertz) => megahertz switch
@@ -86,9 +144,8 @@ public sealed record WifiBssInfo(
 }
 
 /// <summary>
-/// One wireless interface: what it is associated with, and every other BSS its radio can currently
-/// hear. The neighbour list is read from the cached scan results — SockTuner never triggers a scan,
-/// which would interrupt the connection.
+/// One wireless interface: its current association plus the cached BSS list supplied by Windows.
+/// SockTuner never triggers a scan to populate this model.
 /// </summary>
 public sealed record WifiRadioInfo(
     string InterfaceId,
@@ -100,7 +157,14 @@ public sealed record WifiRadioInfo(
     uint ReceiveRateKbps,
     WifiBssInfo? ConnectedBss,
     IReadOnlyList<WifiBssInfo> Neighbours,
-    string? Error = null)
+    string? Error = null,
+    WifiInterfaceState State = WifiInterfaceState.Unknown,
+    WifiPhyKind Phy = WifiPhyKind.Unknown,
+    string ConnectionMode = "Unknown",
+    WifiSecurityInfo? Security = null,
+    IReadOnlyList<WifiPhyKind>? SupportedPhys = null,
+    bool? SoftwareRadioOn = null,
+    bool? HardwareRadioOn = null)
 {
     public bool Connected => Bssid.Length > 0;
 
@@ -112,7 +176,24 @@ public sealed record WifiRadioInfo(
         ? $"{bss.RssiDbm} dBm ({SignalQualityPercent}%)"
         : $"{SignalQualityPercent}%";
 
-    /// <summary>Other BSSs whose spectrum overlaps the one this radio is using.</summary>
+    public string PhyDisplay => Phy switch
+    {
+        WifiPhyKind.Ht => "Wi‑Fi 4 (802.11n)",
+        WifiPhyKind.Vht => "Wi‑Fi 5 (802.11ac)",
+        WifiPhyKind.He => "Wi‑Fi 6/6E (802.11ax)",
+        WifiPhyKind.Eht => "Wi‑Fi 7 (802.11be)",
+        WifiPhyKind.Unknown => "Not reported",
+        _ => Phy.ToString()
+    };
+
+    public string RadioStateDisplay => (SoftwareRadioOn, HardwareRadioOn) switch
+    {
+        (false, _) => "Off in software",
+        (_, false) => "Off in hardware",
+        (true, true) => "On",
+        _ => "Not reported"
+    };
+
     public IReadOnlyList<WifiBssInfo> OverlappingNeighbours => ConnectedBss is not { } bss
         ? []
         : Neighbours
@@ -121,4 +202,12 @@ public sealed record WifiRadioInfo(
             .ToArray();
 }
 
-public sealed record WifiInventoryResult(IReadOnlyList<WifiRadioInfo> Radios, bool Supported, string? Error);
+public sealed record WifiInventoryResult(
+    IReadOnlyList<WifiRadioInfo> Radios,
+    bool Supported,
+    string? Error,
+    WifiInventoryAvailability Availability = WifiInventoryAvailability.Available,
+    DateTimeOffset? CapturedAt = null)
+{
+    public bool LocationPermissionRequired => Availability == WifiInventoryAvailability.LocationPermissionDenied;
+}

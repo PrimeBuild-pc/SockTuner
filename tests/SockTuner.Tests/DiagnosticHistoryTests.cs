@@ -1,6 +1,8 @@
+using System.Text.Json.Nodes;
 using SockTuner.Models;
 using SockTuner.Persistence;
 using SockTuner.Services;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Tests;
 
@@ -30,6 +32,61 @@ public sealed class DiagnosticHistoryTests
             Assert.Equal("three", loaded[0].Target);
             store.Delete(newest.Id);
             Assert.Single(store.Load());
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public void Store_DoesNotRetainNearbyWifiIdentity()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"SockTuner-History-{Guid.NewGuid():N}");
+        try
+        {
+            var bss = WifiBssInfo.FromFrequency("aa:bb:cc:dd:ee:ff", "SECRET-SSID", 5180000, 80, 42, -50);
+            var radio = new WifiRadioInfo(
+                "SECRET-INTERFACE", "SECRET-ADAPTER", bss.Ssid, bss.Bssid, 80, 500_000, 500_000, bss, [bss]);
+            var wifi = GamingWifiDiagnosticEngine.Analyze(new(radio));
+            var report = Report("game", 10) with
+            {
+                Wifi = wifi,
+                Findings = wifi.Findings
+            };
+
+            var saved = new DiagnosticHistoryStore(directory).Save(report);
+            var json = File.ReadAllText(Path.Combine(directory, $"{saved.Id:N}.json"));
+
+            Assert.DoesNotContain("SECRET-SSID", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("aa:bb:cc:dd:ee:ff", json, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("SECRET-INTERFACE", json, StringComparison.Ordinal);
+            Assert.DoesNotContain("SECRET-ADAPTER", json, StringComparison.Ordinal);
+            Assert.Empty(saved.Report.Wifi!.Radio!.Neighbours);
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public void Store_LoadsHistoryWrittenBeforeTheWifiFieldExisted()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), $"SockTuner-History-{Guid.NewGuid():N}");
+        try
+        {
+            var store = new DiagnosticHistoryStore(directory);
+            var saved = store.Save(Report("legacy", 10));
+            var path = Path.Combine(directory, $"{saved.Id:N}.json");
+            var root = JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+            root["report"]!.AsObject().Remove("wifi");
+            File.WriteAllText(path, root.ToJsonString());
+
+            var loaded = Assert.Single(store.Load());
+
+            Assert.Equal("legacy", loaded.Target);
+            Assert.Null(loaded.Report.Wifi);
         }
         finally
         {
