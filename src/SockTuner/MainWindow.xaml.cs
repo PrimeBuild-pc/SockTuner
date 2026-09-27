@@ -1262,8 +1262,12 @@ public partial class MainWindow : Window
         {
             canvas.Children.Add(new Line
             {
-                X1 = 0, X2 = 600, Y1 = y, Y2 = y,
-                Stroke = gridBrush, StrokeThickness = 1
+                X1 = 0,
+                X2 = 600,
+                Y1 = y,
+                Y2 = y,
+                Stroke = gridBrush,
+                StrokeThickness = 1
             });
         }
         DrawSeries(canvas, values, brush);

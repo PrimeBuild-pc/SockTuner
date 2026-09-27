@@ -435,15 +435,30 @@ internal static class WindowsWifiInventory
         return cipher
             ? suite[3] switch
             {
-                0 => "Group cipher", 1 => "WEP-40", 2 => "TKIP", 4 => "CCMP-128", 5 => "WEP-104",
-                6 => "BIP-CMAC-128", 8 => "GCMP-128", 9 => "GCMP-256", 10 => "CCMP-256",
-                11 => "BIP-GMAC-128", 12 => "BIP-GMAC-256", 13 => "BIP-CMAC-256", _ => "RSN cipher"
+                0 => "Group cipher",
+                1 => "WEP-40",
+                2 => "TKIP",
+                4 => "CCMP-128",
+                5 => "WEP-104",
+                6 => "BIP-CMAC-128",
+                8 => "GCMP-128",
+                9 => "GCMP-256",
+                10 => "CCMP-256",
+                11 => "BIP-GMAC-128",
+                12 => "BIP-GMAC-256",
+                13 => "BIP-CMAC-256",
+                _ => "RSN cipher"
             }
             : suite[3] switch
             {
-                1 => "WPA2-Enterprise", 2 => "WPA2-Personal", 5 => "WPA2-Enterprise SHA-256",
-                6 => "WPA2-Personal SHA-256", 8 => "WPA3-SAE", 11 or 12 => "WPA3-Enterprise",
-                18 => "OWE", _ => "RSN"
+                1 => "WPA2-Enterprise",
+                2 => "WPA2-Personal",
+                5 => "WPA2-Enterprise SHA-256",
+                6 => "WPA2-Personal SHA-256",
+                8 => "WPA3-SAE",
+                11 or 12 => "WPA3-Enterprise",
+                18 => "OWE",
+                _ => "RSN"
             };
     }
 
@@ -513,16 +528,34 @@ internal static class WindowsWifiInventory
 
     private static string MapAuthentication(uint authentication) => authentication switch
     {
-        1 => "Open", 2 => "Shared key", 3 => "WPA-Enterprise", 4 => "WPA-Personal", 5 => "WPA-None",
-        6 => "WPA2-Enterprise", 7 => "WPA2-Personal", 8 => "WPA3", 9 => "WPA3-SAE", 10 => "OWE",
-        11 => "WPA3-Enterprise 192-bit", _ => $"Authentication {authentication}"
+        1 => "Open",
+        2 => "Shared key",
+        3 => "WPA-Enterprise",
+        4 => "WPA-Personal",
+        5 => "WPA-None",
+        6 => "WPA2-Enterprise",
+        7 => "WPA2-Personal",
+        8 => "WPA3",
+        9 => "WPA3-SAE",
+        10 => "OWE",
+        11 => "WPA3-Enterprise 192-bit",
+        _ => $"Authentication {authentication}"
     };
 
     private static string MapCipher(uint cipher) => cipher switch
     {
-        0 => "None", 1 => "WEP-40", 2 => "TKIP", 4 => "CCMP-128", 5 => "WEP-104", 6 => "BIP",
-        8 => "GCMP-128", 9 => "GCMP-256", 10 => "CCMP-256", 0x100 => "Use group cipher",
-        0x101 => "WEP", _ => $"Cipher {cipher}"
+        0 => "None",
+        1 => "WEP-40",
+        2 => "TKIP",
+        4 => "CCMP-128",
+        5 => "WEP-104",
+        6 => "BIP",
+        8 => "GCMP-128",
+        9 => "GCMP-256",
+        10 => "CCMP-256",
+        0x100 => "Use group cipher",
+        0x101 => "WEP",
+        _ => $"Cipher {cipher}"
     };
 
     internal static readonly int InterfaceInfoSize = Marshal.SizeOf<WlanInterfaceInfo>();
