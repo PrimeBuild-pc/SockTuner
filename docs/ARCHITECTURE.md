@@ -1,209 +1,143 @@
-# SockTuner Architecture Proposal
+# SockTuner Architecture
 
-## 1. Context
+SockTuner is a Windows 10/11 desktop application that inspects, measures and — when the user asks —
+changes the Windows TCP/IP and Winsock layers, interfaces, routes, DNS, MTU, QoS, offloads, interrupt
+placement and driver-advertised NIC properties. It is built for technical users: controls can be
+advanced, but every change is predictable, verified, audited and reversible.
 
-SockTuner is a Windows 10/11 desktop application for advanced inspection, testing, and modification of:
-
-- the Windows TCP/IP and Winsock layers;
-- IPv4 and IPv6 interfaces, routes, DNS, MTU, and QoS;
-- NDIS and global offload behavior;
-- physical and virtual network adapters;
-- driver-advertised NIC properties;
-- network quality before and after a change.
-
-The application is for technical users. The interface can expose advanced controls, but applying them must still be predictable, reversible, and auditable.
-
-## 2. Architectural decisions
+## 1. Decisions
 
 | Decision | Choice | Reason |
 | --- | --- | --- |
 | Language | C# on .NET 10 LTS | Strong Windows interop, type safety, mature diagnostics APIs, long support window |
-| UI | WPF | Stable on Windows 10/11, low dependency surface, good desktop tooling and accessibility support |
-| Process model | One executable with normal UI mode and short-lived elevated worker mode | Keeps read-only use unelevated without introducing a service or second installed product |
-| Platform access | Supported API first, registry only where it is the documented/driver-defined interface | Avoids fragile parsing and unsupported global edits |
-| External tools | None for normal operation; allowlisted Windows inbox fallback only when no usable API exists | Avoids PowerShell, curl, tshark, and similar runtime dependencies |
-| Persistence | Versioned JSON snapshots, plans, reports, and logs | Human-inspectable, exportable, and supported by .NET without a database |
-| Production projects | One WPF application plus one test project initially | No speculative service, plugin system, or library split |
+| UI | WPF with the Fluent theme | Native on Windows 10/11, no browser runtime, low dependency surface |
+| Process model | One executable: a normal-user UI and a short-lived elevated worker mode | Read-only use never needs elevation; no service or second installed product |
+| Platform access | Supported APIs first; registry only where it is the documented or driver-defined interface | Avoids fragile parsing and unsupported global edits |
+| External tools | None at runtime; the app never starts a shell, `netsh` or PowerShell | Localized output, suppressed errors and unverifiable side effects |
+| Persistence | Versioned JSON files under the user's profile | Human-inspectable, exportable, no database |
+| Projects | One WPF application and one xUnit test project | No speculative service, plugin system or library split |
 
-### Why not the alternatives?
+WinUI 3 would add Windows App SDK deployment without a needed capability; Electron would add a browser
+runtime and a privileged bridge to a Windows-only tool; C++ or Rust would raise interop cost for no
+measured gain.
 
-- **PowerShell** remains useful for research, but it is not the application runtime: property names can be localized, errors are often suppressed, and large GUI scripts are difficult to validate and maintain.
-- **WinUI 3** adds Windows App SDK and deployment complexity without providing a required capability for this product.
-- **Electron or another web shell** adds a browser runtime and a privileged bridge to a Windows-only utility.
-- **C++ or Rust** would increase development and interop cost. A small native component can be introduced later only if a measured requirement cannot be met from C#.
-
-## 3. Runtime shape
+## 2. Runtime shape
 
 ```text
 ┌──────────────────────────────────────────────────────────┐
-│ SockTuner UI — normal user                              │
-│ inventory · diagnostics · plan editor · reports         │
+│ SockTuner UI — normal user                               │
+│ inventory · diagnostics · tuning plan · reports          │
 └───────────────────────┬──────────────────────────────────┘
-                        │ typed, validated change plan
-                        │ UAC only when Apply is requested
+                        │ typed request over a private named pipe
+                        │ UAC only when a change is applied
 ┌───────────────────────▼──────────────────────────────────┐
-│ SockTuner elevated worker — same signed executable      │
-│ snapshot · validate again · apply · verify · rollback   │
+│ SockTuner --elevated-worker — same executable            │
+│ re-read · validate again · apply · verify · audit        │
 └───────────────────────┬──────────────────────────────────┘
                         │
 ┌───────────────────────▼──────────────────────────────────┐
-│ Windows management surfaces                            │
-│ IP Helper · Winsock · ICMP · SetupAPI/Configuration     │
-│ Manager · WMI/CIM · Registry · ETW where appropriate    │
+│ Windows management surfaces                              │
+│ .NET networking · CIM (root/StandardCimv2) · Registry    │
+│ WLAN API · Winsock catalog · ICMP                        │
 └──────────────────────────────────────────────────────────┘
 ```
 
-The elevated mode accepts only versioned, typed, allowlisted operations. It never executes arbitrary commands from a plan. It re-reads the target and current value immediately before writing, so a stale UI plan cannot silently overwrite a changed system.
+The worker serves exactly one request and exits. It accepts only versioned, typed operations on
+catalogued settings, re-reads every target immediately before writing, and refuses a value that drifted
+since the preview. Views hand a change to it through one helper (`Views/ElevatedChange`), which turns
+every failure — a declined UAC prompt, a worker that dies without answering — into a status line.
 
-A permanent Windows service is explicitly deferred. It should exist only if a future feature needs continuous privileged monitoring or policy enforcement.
+## 3. Source layout
 
-## 4. Internal modules
-
-These are folders/namespaces in one production project, not separate assemblies at the start.
-
-| Module | Responsibility |
+| Folder | Responsibility |
 | --- | --- |
-| Presentation | WPF views, navigation, validation, accessibility, and progress |
-| Inventory | OS, CPU, adapter, driver, interface, route, DNS, binding, and capability discovery |
-| Settings | Setting catalog, current/proposed values, plans, risk, compatibility, and evidence metadata |
-| Apply | Snapshot, execution ordering, read-back verification, journaling, and rollback |
-| Diagnostics | Ping, loss, jitter, DNS, TCP-connect timing, traceroute, path MTU, and comparison |
-| Platform.Windows | Small wrappers around Windows APIs, CIM/WMI, and registry access |
-| Persistence | Versioned JSON snapshots, reports, preferences, and logs |
+| `Views/` | One WPF view per page (tuning plan, Wi-Fi, throughput, DNS, interfaces, interrupts, recommendations, history, preferences, updates); `MainWindow` hosts them and owns inventory, gaming diagnostics and the dashboard |
+| `Models/` | Immutable records for inventory, measurements, settings and reports |
+| `Services/` | Windows inventories, setting specifications and stores, the transaction service, the elevated worker, updates and localization |
+| `Services/Collection/` | Active probes and passive collectors (throughput, loaded latency, route quality, DNS benchmark, Wi-Fi, interrupt affinity) |
+| `Services/Diagnosis/` | Pure analyzers over collected facts: playability, bottleneck location, stability, Wi-Fi, health check, drift |
+| `Services/Remediation/` | Turns findings into tuning-plan changes and router guidance |
+| `Persistence/` | Preferences, transaction audit, diagnostic history, logs and exports |
 
-A plugin API, dependency-injection framework, command bus, database, cloud backend, and background service are not needed for the first release.
+## 4. Windows integration rules
 
-## 5. Windows integration strategy
+1. Identify an adapter by its GUID/PnP identity, never by a name such as `Ethernet`.
+2. Use driver registry keywords and advertised enum/range metadata, not English display strings.
+3. Never create a driver parameter the driver does not advertise.
+4. Gate settings by OS build, adapter capability, driver version and current topology.
+5. Never invoke a command shell or inbox utility to read or change state.
+6. Keyword characterisation is advisory, never an allowlist. `NicKeywordCatalog` annotates what a driver
+   already advertises; it never adds or hides one. The one exception runs the other way: a keyword marked
+   `Rejected` resolves to evidence level `Blocked` and is refused, so characterisation can withhold a
+   write but never authorise one.
 
-| Capability | Preferred surface |
-| --- | --- |
-| Adapter and address inventory | IP Helper API (`GetAdaptersAddresses` and related tables) |
-| Device identity and restart | SetupAPI and Configuration Manager APIs |
-| Driver metadata and advertised values | NDIS/driver metadata through supported WMI/CIM providers; `Ndi\Params` metadata as a guarded fallback |
-| TCP, interface, QoS, and offload state | `root/StandardCimv2` management classes where available |
-| Registry-backed settings | `Microsoft.Win32.Registry`, with explicit value type and absent-value handling |
-| Winsock catalog | Winsock 2 catalog APIs such as `WSAEnumProtocols`; repair operations remain separately risk-gated |
-| ICMP and path MTU | .NET networking APIs and Windows ICMP APIs |
-| DNS and socket tests | .NET DNS, socket, and HTTP APIs |
-| Trace and event diagnostics | ETW only where it adds a validated requirement |
+## 5. Settings and evidence
 
-Implementation rules:
-
-1. Identify an adapter by stable GUID/PNP identity, never by a name such as `Ethernet`.
-2. Use driver registry keywords and advertised enum/range metadata, not English `DisplayName` strings.
-3. Never create an unsupported driver parameter merely to make it appear in the adapter UI.
-4. Gate settings by OS build, adapter capability, driver version, and current topology.
-5. Do not invoke a command shell. If an inbox utility is temporarily required, call its absolute path with fixed argument construction, capture its exit code, and verify state independently.
-6. PowerShell is a development/reference tool, not an end-user prerequisite.
-7. Keyword characterisation is advisory metadata, never an allowlist. `NicKeywordCatalog`
-   annotates what a driver already advertises; it never adds or hides one. The driver decides
-   what exists. The one exception runs the other way: a keyword marked `Rejected` resolves to
-   evidence level `Blocked` and is refused by `AdapterSettingCapability.Validate`, so
-   characterisation can withhold a write but never authorise one.
-
-## 6. Setting catalog
-
-Every exposed setting needs a catalog entry before implementation:
-
-- stable setting ID and category;
-- target scope: global, TCP template, interface, adapter, driver, or process;
-- read and write mechanism;
-- data type, allowed values, and driver-advertised range;
-- supported Windows builds and hardware constraints;
-- default behavior and how to represent an absent registry value;
-- restart requirement: none, adapter, sign-out, or system reboot;
-- connectivity and stability risk;
-- expected trade-off, not just an expected benefit;
-- evidence level and source references;
-- exact verification and rollback procedure.
-
-### Evidence levels
+Every writable setting has a catalog entry or a driver-derived specification with: a stable ID and scope,
+its read/write mechanism, type and accepted values, how an absent value is represented, the restart it
+needs, its risk and trade-off, its evidence level, and how it is verified and rolled back.
 
 1. **Documented** — supported by Microsoft or the hardware vendor.
 2. **Driver-advertised** — exposed as a supported property by the installed driver.
-3. **Experimental** — plausible but requires an explicit benchmark and warning.
-4. **Blocked** — undocumented, obsolete, contradictory, security-sensitive, or not exactly reversible.
+3. **Experimental** — plausible, needs a benchmark, and needs a typed `APPLY` to confirm.
+4. **Blocked** — undocumented, obsolete, contradictory, security-sensitive or not exactly reversible;
+   never writable.
 
-Profiles may include levels 1 and 2. Level 3 remains opt-in and cannot be silently applied by a preset. Level 4 is never writable through SockTuner.
+## 6. Transactions and rollback
 
-## 7. Transaction and rollback model
+A change goes through one path:
 
-Each Apply operation follows one path:
+1. **Prepare** reads every current value through a read-only store and builds the plan the user previews.
+2. **Apply** takes the single apply lock and, for each change in a deterministic order, re-reads the value,
+   refuses it if it no longer matches the preview, writes, and reads it back.
+3. On any failure the changes already made are restored in reverse order.
+4. The result is written to the transaction audit, then touched adapters are restarted and checked back
+   to their previous link state.
 
-1. Acquire the single apply lock.
-2. Re-detect the OS, adapter, driver, and capabilities.
-3. Re-read every current value and reject stale or unsupported entries.
-4. Save a versioned snapshot containing exact values and value absence.
-5. Show or confirm the final diff and disruption requirements.
-6. Apply operations in a deterministic order.
-7. Read every value back from Windows.
-8. Record success, unsupported status, or failure without suppressing errors.
-9. On failure, restore already changed values in reverse order where safe.
-10. Persist the result and any pending restart state.
+Rollback writes back exactly the values the audit captured, and only where the current value is still the
+one SockTuner wrote; anything changed externally since is reported, not overwritten. It never runs broad
+resets such as `netsh int ip reset` or guesses "Windows defaults". Reapplying a matching plan writes nothing.
 
-Rollback restores the captured values; it does not run broad commands such as `netsh int ip reset`, remove devices, or guess “Windows defaults.” A snapshot belongs to the same system and adapter identity and cannot be imported blindly onto unrelated hardware.
+## 7. Safety and privacy
 
-Operations must be idempotent. Reapplying an already-matching plan should result in no writes.
+- Read-only pages run without elevation; UAC is requested per change.
+- Live changes need a one-time, versioned consent that can be withdrawn in Preferences.
+- A change over a remote session on the adapter it affects needs a typed confirmation.
+- Requests cannot carry executable paths, scripts, shell fragments or arbitrary registry paths.
+- Support exports and compatibility reports redact addresses, MAC and device identifiers, SSIDs, paths
+  and the machine name. There is no telemetry, account or cloud service.
+- Logs are bounded (two rotating files of a user-chosen size).
 
-## 8. Safety and security
+## 8. Gaming diagnostics
 
-- Read-only screens run without elevation; UAC is requested only for protected changes.
-- The elevated worker exposes a strict operation allowlist and validates all values again.
-- Plans cannot contain executable paths, scripts, shell fragments, or arbitrary registry paths.
-- Active-link disruption, adapter restart, reboot, and remote-session risk are shown before confirmation.
-- Destructive repair actions are separate from tuning and require stronger confirmation.
-- Exported reports warn before including public IP addresses, MAC addresses, hostnames, routes, or adapter identifiers.
-- No telemetry, remote control, account system, or cloud synchronization is planned for v1.
-- Logs use bounded retention and redact unnecessary personal data.
-- Public builds must be code-signed; updates must verify signatures before installation.
-
-## 9. Gaming diagnostics and root-cause model
-
-Gaming diagnosis is a first-class product area, not a generic ping screen. SockTuner should test consecutive network boundaries so it can identify where degradation first appears.
+Gaming diagnosis tests consecutive network boundaries to find where degradation first appears.
 
 | Boundary | Signals | Likely findings | Local action when possible |
 | --- | --- | --- | --- |
-| PC and NIC | Link state/speed, driver state, error/discard counters, offloads, power state, local resource pressure | Driver fault, power transition, bad setting, local packet drops | Verified driver/NIC change or exact rollback |
-| LAN or Wi-Fi | Gateway RTT, loss, jitter, link rate, retransmission/error indicators | Wi-Fi interference, weak signal, duplex/link problem, local congestion | Adapter fix, channel/cabling guidance, or router-side recommendation |
-| Router/modem and access link | Gateway versus first public-hop behavior; idle versus loaded latency | Router overload, queueing, bufferbloat, access-link saturation | Safe endpoint QoS guidance; explain when router SQM/AQM is required |
-| ISP edge | Repeated first-hop and downstream measurements | Access or ISP loss, congestion, unstable first mile | Evidence package for the ISP; no fake local fix |
-| Routing and peering | Repeated traceroute samples, route changes, latency step, destination comparison | Bad route, congested transit/peering, wrong region | Region/endpoint guidance and ISP escalation data |
-| Game endpoint | RTT, jitter, loss, reachability, protocol, selected region, and session timing | Remote server load, distant region, game-specific path issue | Prefer a nearer available region or report the remote issue |
-| Name resolution | Resolver timing, failures, returned addresses, and cache behavior | Slow/failing DNS or region selection affected during connection setup | Verified resolver/configuration change |
+| PC and NIC | Link state/speed, driver state, error/discard counters, offloads, power state | Driver fault, power transition, bad setting, local drops | Verified NIC change or exact rollback |
+| LAN or Wi-Fi | Gateway RTT, loss, jitter, link rate, radio facts | Interference, weak signal, link problem, local congestion | Adapter fix, channel/cabling guidance, router recommendation |
+| Router and access link | Gateway versus first public hop; idle versus loaded latency | Router overload, bufferbloat, access-link saturation | Router SQM/AQM guidance computed from the measured rate |
+| ISP edge | Repeated first-hop and downstream measurements | Access or ISP loss, congestion | Evidence for the ISP; no fake local fix |
+| Routing and peering | Repeated route samples, latency steps | Bad route, congested transit, wrong region | Region guidance and ISP escalation data |
+| Game endpoint | RTT, jitter, loss, reachability against the game's tick rate | Remote load, distant region | Prefer a nearer region or report the remote issue |
+| Name resolution | Resolver timing and failures | Slow or failing DNS at connection setup | Verified resolver change |
 
-A DNS result must not be blamed for steady in-match latency: DNS normally affects lookup and connection setup, not packet RTT after the game session is established.
+DNS is never blamed for steady in-match latency: it affects lookup and connection setup, not packet RTT
+once a session is established.
 
-### Diagnostic sequence
+A run captures adapters, routes, DNS and counters first; probes the gateway, a neutral reference and the
+game endpoint concurrently; reports minimum, median, P95, P99, maximum, loss and a named jitter measure;
+samples the route repeatedly; tests DNS and TCP setup separately; checks path MTU and detects ICMP
+blocking instead of guessing. Loaded-latency and throughput tests generate traffic, so they stay separate
+and opt-in. A run made before a change becomes the baseline for the identical run after it.
 
-1. Capture adapter, route, DNS, and relevant Windows counters before probing.
-2. Run concurrent, timestamped probes to the gateway, first reachable ISP boundary, neutral reference targets, and the selected game endpoint.
-3. Report minimum, median, average, P95, P99, maximum, loss, and a named jitter calculation rather than relying on an average alone.
-4. Sample the route repeatedly; a single traceroute is insufficient.
-5. Test DNS resolution and TCP connection setup separately from game-path latency.
-6. Run path-MTU checks and detect explicit ICMP blocking rather than guessing an MTU.
-7. When loaded-latency testing is enabled, measure the same boundaries before, during, and after controlled download and upload load.
-8. Compare the result with an identical baseline and retain raw samples in the report.
+The analysis returns ranked candidate causes with the observations for and against each, who owns the
+fix (local, LAN/router, ISP/routing or remote server), a SockTuner change only where it can safely make
+one, and **inconclusive** when the evidence cannot isolate the fault. An intermediate hop is not labelled
+faulty unless repeated end-to-end measurements support it, TCP-only changes are not presented as UDP game
+fixes, and throughput or bufferbloat is never inferred from registry state.
 
-The game endpoint can initially come from a game/region profile or direct user input. Automatic process-to-flow detection can later use native ETW events; it does not justify a custom packet-capture driver in v1.
-
-### Diagnosis output
-
-The analysis engine correlates where a symptom begins and returns:
-
-- one or more candidate causes ranked by confidence;
-- the observations supporting and contradicting each cause;
-- whether the cause is local, LAN/router, ISP/routing, or remote-server controlled;
-- a targeted SockTuner change only when the application can safely affect it;
-- otherwise, concrete router guidance or an exportable ISP/support report;
-- an **inconclusive** result when the evidence cannot isolate the fault.
-
-Traceroute hops may rate-limit or deprioritize ICMP, game servers may block probes, and geographic data may be approximate. SockTuner must not label an intermediate hop as faulty unless end-to-end and repeated measurements support that conclusion.
-
-Base RTT remains constrained by route, physical distance, access technology, and server behavior. TCP-only changes are not presented as UDP game optimizations, and throughput or bufferbloat results are never inferred from registry state alone.
-
-### Passive Wi-Fi diagnostics
-
-Wi-Fi diagnosis remains inside the same native collection/diagnosis boundary:
+## 9. Passive Wi-Fi diagnostics
 
 ```text
 Windows WLAN API cached state
@@ -215,67 +149,43 @@ GamingWifiDiagnosticEngine (pure correlation)
 Wi-Fi view · gaming report · recommendations · redacted export
 ```
 
-The collector enumerates every WLAN interface and reads the current association, negotiated PHY/rates,
-authentication/cipher, radio and interface capability, cached BSS entries, and bounded information
-elements. HT, VHT and HE operation data determine occupied width where available; RSN, PMF, WPS and BSS
-Load remain facts and are not treated as latency causes by themselves. Unknown or malformed elements are
-ignored rather than guessed.
+The collector enumerates every WLAN interface and reads the current association, negotiated PHY and rates,
+authentication and cipher, radio capability, cached BSS entries and bounded information elements. HT, VHT
+and HE operation data give the occupied width; RSN, PMF, WPS and BSS Load stay facts and are not latency
+causes by themselves. Unknown or malformed elements are ignored rather than guessed.
 
-A 60-second observation samples only the current association at a two-second interval. It is cancellable,
-bounded to five minutes at the service boundary, and never requests an active scan. The diagnosis engine
-correlates signal/rate changes, roaming, cached channel pressure, adapter counters and the already measured
-gateway. Gateway instability without corroborating radio evidence remains inconclusive instead of being
-labelled a Wi-Fi fault.
+The 60-second observation samples only the current association every two seconds, is cancellable, and
+never requests an active scan. Gateway instability without corroborating radio evidence stays
+inconclusive instead of being labelled a Wi-Fi fault. Windows location-policy denial is reported with a
+link to Settings; it is not worked around with elevation. The decision record is
+[ADR 0001](adr/0001-native-passive-wifi-diagnostics.md).
 
-SSID, BSSID and interface identifiers are present in full local reports because they are diagnostic facts.
-Support/redacted exports replace them. Windows location-policy access denial is a first-class availability
-state with a link to Windows Settings; it is not worked around with elevation or an external process.
+The dashboard draws sparklines only from samples an explicit diagnosis or observation already collected;
+it never starts probes on its own, and missing replies stay visible as loss markers.
 
-External radio tools, including wifit3, are not providers for this path. They may be reconsidered only as
-independent launchers after a documented passive, structured and versioned CLI exists; no external binary,
-firmware or driver is bundled.
+## 10. Data and distribution
 
-The dashboard renders native WPF sparklines from samples already collected by an explicit gaming diagnosis
-or passive Wi-Fi observation. It does not start probes or background monitoring on its own. Missing replies
-remain visible as loss markers rather than being interpolated into a misleading continuous line.
-
-## 10. Data and packaging
-
-Application-owned data is stored under `%LocalAppData%\PrimeBuild\SockTuner`:
+Application data lives under `%LocalAppData%\PrimeBuild\SockTuner`:
 
 ```text
-Snapshots/   exact rollback data
-Reports/     diagnostic and comparison reports
-History/     bounded successful diagnostic runs
-Logs/        bounded operational logs
-Settings/    user preferences and profile copies
-Updates/     verified temporary update payloads
+TransactionAudit/  one JSON record per apply or rollback (newest 100), the source of every undo
+History/           saved diagnostic runs (newest 20)
+Logs/              current and previous log file
+Settings/          preferences.json
+Updates/           downloaded update executables
 ```
 
-Distribution is a signed, self-contained x64 Windows build. The dashboard checks GitHub Releases at most
-once per day or on explicit request, with separate stable and preview channels. Installation requires the
-published SHA-256 checksum and trusted Authenticode signatures on both the running build and replacement.
-A verified replacement runs from the update directory, waits for the current process to exit, swaps the
-single executable with rollback on failure, and restarts it. Unsigned preview builds can discover releases
-but cannot install them automatically. ARM64, MSIX and Microsoft Store packaging remain deferred.
+Releases are self-contained single-file x64 builds published to GitHub Releases with a SHA-256 checksum.
+Alpha builds are unsigned. The release workflow signs the executable when a certificate is configured;
+automatic update installation requires both the installed app and the update to carry trusted
+Authenticode signatures from the same publisher, so unsigned builds can find updates but not install them.
 
-## 11. Test strategy
+## 11. Tests
 
-- Unit tests for plan validation, setting serialization, ranges, ordering, and rollback semantics.
-- Integration tests for each Windows surface on disposable VMs.
-- Read/apply/read/rollback/read tests for every writable setting.
-- Tests on English and Italian Windows to detect localization assumptions.
-- Hardware coverage for common Intel and Realtek Ethernet drivers first; unsupported hardware remains read-only rather than receiving guessed values.
-- Failure injection around access denied, driver rejection, adapter disappearance, network loss, cancellation, and reboot-required states.
-- Performance benchmarks only where a setting is claimed to affect latency, jitter, throughput, or CPU use.
-
-## 12. Approval points
-
-Implementation should start only after agreement on these decisions:
-
-- C#/.NET 10 LTS and WPF;
-- Windows 10 22H2 and supported Windows 11 x64 releases as the initial matrix;
-- normally unelevated UI plus same-executable elevated worker;
-- native/API-first behavior with no third-party runtime tools;
-- evidence-gated settings and exact rollback rather than an aggressive “apply everything” model;
-- no packet-capture driver, service, cloud backend, or plugin system in v1.
+- Unit tests (xUnit) for specifications, plan validation, transactions and rollback, the elevated worker
+  protocol, analyzers, importers, exports and localization coverage; CI runs them with a formatting check.
+- Read-only live inventory tests run when `SOCKTUNER_LIVE_INVENTORY=1`.
+- `--verify-tcp-writes` and `--verify-device-writes` exercise real write, read-back and rollback; they
+  only arm when `SOCKTUNER_VM_WRITE_TEST=1`, for a disposable VM.
+- Hardware coverage comes from compatibility reports, summarised in the
+  [capability archive](../alpha-tester-output/INDEX.md); unsupported hardware stays read-only.
