@@ -45,7 +45,8 @@ public class LocalizationTests
          Path.Combine("Views", "WifiDiagnosticsView.xaml"),
          Path.Combine("Views", "DnsResolversView.xaml"),
          Path.Combine("Views", "InterruptAffinityView.xaml"),
-         Path.Combine("Views", "UpdatesCard.xaml")];
+         Path.Combine("Views", "UpdatesCard.xaml"),
+         Path.Combine("Views", "ThroughputView.xaml")];
 
     [Theory]
     [MemberData(nameof(XamlFiles))]
