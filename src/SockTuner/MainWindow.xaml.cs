@@ -1,8 +1,6 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
@@ -14,7 +12,6 @@ using SockTuner.Persistence;
 using SockTuner.Services;
 using SockTuner.Services.Collection;
 using SockTuner.Services.Diagnosis;
-using SockTuner.Services.Remediation;
 using SockTuner.Views;
 
 namespace SockTuner;
@@ -22,8 +19,6 @@ namespace SockTuner;
 public partial class MainWindow : Window
 {
     private const int MonitorMaximumSamples = 1000;
-    private const string CompatibilityIssueUrl =
-        "https://github.com/PrimeBuild-pc/SockTuner/issues/new?template=compatibility-report.yml";
 
     /// <summary>The catalogue, plus whatever tick rate an imported capture brought with it.</summary>
     private readonly ObservableCollection<GameProfile> _gameProfiles = new(GameProfiles.All);
@@ -39,7 +34,6 @@ public partial class MainWindow : Window
     private readonly RouteQualityProbe _routeQuality = new();
     private GameFlowReport? _importedReport;
     private readonly BottleneckLocator _bottleneck = new();
-    private IReadOnlyList<RouterGuidanceItem> _routerGuidance = [];
 
     // The run that was current when a plan was applied. Held so the identical run afterwards has
     // something to be compared against; this is the whole verify-after-apply loop.
@@ -60,18 +54,12 @@ public partial class MainWindow : Window
         WifiDiagnostics.PreferredInterfaceId = _preferences.WifiInterfaceId;
         if (_preferences.SelectedSection is { Length: > 0 } section) SelectTab(section);
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
-        LogRetentionComboBox.ItemsSource = Enumerable.Range(1, 64);
-        LogRetentionComboBox.SelectedItem = _preferences.LogFileMegabytes;
-        LanguageComboBox.ItemsSource = Loc.Languages;
-        LanguageComboBox.SelectedItem = Loc.Languages.First(language => language.Tag == Loc.CurrentTag);
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
         DiagnosticGameComboBox.ItemsSource = _gameProfiles;
         DiagnosticGameComboBox.SelectedItem = _gameProfiles[0];
         DiagnosticLoadComboBox.ItemsSource = Enum.GetValues<DiagnosticLoadCondition>();
         DiagnosticLoadComboBox.SelectedIndex = 0;
-        UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
-        UseCaseComboBox.SelectedIndex = 0;
         QosProtocolComboBox.ItemsSource = new[] { "UDP", "TCP", "*" };
         QosProtocolComboBox.SelectedIndex = 0;
         ReferenceLinkList.ItemsSource = ReferenceLinks.All;
@@ -89,14 +77,22 @@ public partial class MainWindow : Window
         Interfaces.Plan = TuningPlan;
         Interfaces.StatusChanged += (_, text) => StatusText.Text = text;
         Interfaces.OpenPlanRequested += (_, _) => SelectTab("Tuning plan");
+        Preferences.Snapshot = () => _snapshot;
+        Preferences.StatusChanged += (_, text) => StatusText.Text = text;
         Throughput.StatusChanged += (_, text) => StatusText.Text = text;
         Throughput.BusyChanged += (_, busy) => SetBusy(busy);
         Throughput.CurrentGame = () => DiagnosticGameComboBox.SelectedItem as GameProfile;
         Throughput.RecommendationsRequested += (_, _) =>
         {
-            BuildRecommendations_Click(this, new RoutedEventArgs());
+            Recommendations.Build();
             SelectTab("Recommendations");
         };
+        Recommendations.LastDiagnosis = () => _lastReport;
+        Recommendations.Throughput = Throughput;
+        Recommendations.Wifi = WifiDiagnostics;
+        Recommendations.Plan = TuningPlan;
+        Recommendations.StatusChanged += (_, text) => StatusText.Text = text;
+        Recommendations.OpenPlanRequested += (_, _) => SelectTab("Tuning plan");
         // Consent is granted or withdrawn by whichever surface asked for it; the cached preferences
         // follow, so a later save of window geometry cannot quietly write the old consent back.
         WriteConsentDialog.Changed += (_, _) =>
@@ -152,23 +148,7 @@ public partial class MainWindow : Window
         var foreground = (Brush)FindResource(accepted ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush");
         WriteStateIcon.Foreground = foreground;
         WriteStateText.Foreground = foreground;
-        LiveChangesSwitch.IsChecked = accepted;
-    }
-
-    /// <summary>
-    /// The Preferences switch. On asks the same alpha risk notice as the first apply; off withdraws
-    /// consent, after which every write path — plan, resolvers, interrupts — asks again.
-    /// </summary>
-    private void LiveChangesSwitch_Click(object sender, RoutedEventArgs e)
-    {
-        var problem = default(string);
-        var saved = LiveChangesSwitch.IsChecked == true
-            ? WriteConsentDialog.Ensure(out problem)
-            : WriteConsentDialog.Revoke(out problem);
-        if (!saved) ShowWriteState();
-        PreferenceStatusText.Text = problem ?? (WriteConsent.IsAccepted(_preferences)
-            ? Loc.T("Live network changes are enabled.")
-            : Loc.T("Live network changes are disabled. SockTuner only reads."));
+        Preferences.ShowLiveChanges(accepted);
     }
 
     /// <summary>
@@ -398,6 +378,7 @@ public partial class MainWindow : Window
         Interfaces.SetAdapters(snapshot.Adapters);
         DnsResolvers.SetAdapters(snapshot.Adapters);
         Throughput.SetAdapters(snapshot.Adapters);
+        Recommendations.SetAdapters(snapshot.Adapters);
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -660,73 +641,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void CreateCompatibilityReport_Click(object sender, RoutedEventArgs e)
-    {
-        if (_snapshot is null)
-        {
-            StatusText.Text = Loc.T("Refresh inventory before creating a compatibility report.");
-            return;
-        }
-
-        if (MessageBox.Show(
-                Loc.T("The report includes adapter model, driver version and supported setting constraints. It excludes all current values, persistent device IDs, addresses, paths, machine name and exact timestamps. Save it for review?"),
-                Loc.T("Create compatibility report"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Information) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        var report = CompatibilityReportExporter.Serialize(_snapshot);
-        var preview = new CompatibilityReportPreviewWindow(report) { Owner = this };
-        if (preview.ShowDialog() != true) return;
-
-        var dialog = new SaveFileDialog
-        {
-            Filter = Loc.T("SockTuner compatibility report (*.json)|*.json"),
-            DefaultExt = ".json",
-            AddExtension = true,
-            FileName = $"SockTuner-compatibility-{Guid.NewGuid():N}.json"
-        };
-        if (dialog.ShowDialog(this) != true) return;
-
-        try
-        {
-            File.WriteAllText(dialog.FileName, report);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            ContributionStatusText.Text = Loc.F($"Compatibility report failed: {exception.Message}");
-            WriteLog("compatibility_report.failed", exception.Message);
-            return;
-        }
-
-        ContributionStatusText.Text = Loc.F($"Compatibility report saved to {dialog.FileName}.");
-        StatusText.Text = Loc.T("Compatibility report saved.");
-        WriteLog("compatibility_report.saved", "A privacy-safe compatibility report was saved.");
-
-        if (MessageBox.Show(
-                Loc.T("The JSON file is plain text. Inspect it if you wish, then attach it to the GitHub issue. Open the issue form now?"),
-                Loc.T("Compatibility report saved"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(CompatibilityIssueUrl)
-            {
-                UseShellExecute = true
-            });
-            ContributionStatusText.Text = Loc.T("GitHub issue form opened. Attach the saved JSON file before submitting.");
-        }
-        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-            ContributionStatusText.Text = Loc.F($"Report saved, but the GitHub issue form could not be opened: {exception.Message}");
-        }
-    }
+    private void CreateCompatibilityReport_Click(object sender, RoutedEventArgs e) => Preferences.CreateCompatibilityReport();
 
     private void ExportReportJson_Click(object sender, RoutedEventArgs e) => SaveReport(html: false, redact: false);
     private void ExportReportHtml_Click(object sender, RoutedEventArgs e) => SaveReport(html: true, redact: false);
@@ -811,50 +726,6 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusText.Text = Loc.F($"Log export failed: {exception.Message}");
-        }
-    }
-
-    private void LogRetention_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (LogRetentionComboBox.SelectedItem is not int megabytes)
-        {
-            return;
-        }
-
-        try
-        {
-            _preferences = AppPreferences.Update(preferences => preferences with { LogFileMegabytes = megabytes });
-            var error = AppLog.ConfigureRetention(megabytes);
-            PreferenceStatusText.Text = error is null
-                ? Loc.F($"Retention saved: two files of up to {megabytes} MB each.")
-                : Loc.F($"Retention saved, but existing logs could not be trimmed: {error}");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
-        }
-    }
-
-    /// <summary>
-    /// Saved immediately, applied on the next start. Retranslating a live window would mean holding
-    /// the English original of every string that has since been replaced, which is a cache to keep
-    /// correct in exchange for saving one restart.
-    /// </summary>
-    private void Language_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (LanguageComboBox.SelectedItem is not Loc.Language language) return;
-        if (string.Equals(_preferences.Language, language.Tag, StringComparison.Ordinal)) return;
-
-        try
-        {
-            _preferences = AppPreferences.Update(preferences => preferences with { Language = language.Tag });
-            PreferenceStatusText.Text = language.Tag == Loc.CurrentTag
-                ? Loc.F($"Language saved: {language.NativeName}.")
-                : Loc.F($"Language saved: {language.NativeName}. Restart SockTuner to apply it.");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
         }
     }
 
@@ -1001,7 +872,11 @@ public partial class MainWindow : Window
         SetMonitorStatus("Monitoring…");
         try
         {
-            _snapshot ??= await Task.Run(_inventory.Capture, _monitorCancellation.Token);
+            if (_snapshot is null)
+            {
+                _snapshot = await Task.Run(_inventory.Capture, _monitorCancellation.Token);
+                ShowSnapshot(_snapshot);
+            }
             var gateway = await _routeGatewayResolver.ResolveAsync(target, _snapshot, _monitorCancellation.Token);
             var resolvedTarget = IPAddress.TryParse(target, out _)
                 ? target
@@ -1304,179 +1179,12 @@ public partial class MainWindow : Window
             adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
     }
 
-    private void RemediationGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
-        SendToPlanButton.IsEnabled = RemediationGrid.SelectedItem is RemediationAction { AppliesLocally: true };
-
-    /// <summary>
-    /// Turns what the last runs established into actions. Everything here is derived from facts
-    /// already collected — nothing is measured, and nothing is written.
-    /// </summary>
-    private void BuildRecommendations_Click(object sender, RoutedEventArgs e)
-    {
-        var report = _lastReport;
-        var measured = Throughput.LastDownload is not null || Throughput.LastUpload is not null;
-        var wifiMeasured = WifiDiagnostics.LatestReport is { Radio: not null };
-        if (report is null && !measured && !wifiMeasured)
-        {
-            RecommendationSummaryText.Text =
-                Loc.T("Nothing to derive from yet. Run a diagnosis, measure bufferbloat, or import an online "
-                + "bufferbloat result — recommendations come from a measurement, never from a preset alone.");
-            return;
-        }
-
-        try
-        {
-            var adapter = _snapshot?.Adapters.FirstOrDefault(item =>
-                item.Kind == AdapterKind.Physical
-                && item.Status == System.Net.NetworkInformation.OperationalStatus.Up
-                && Guid.TryParse(item.Id, out _));
-            var adapterId = adapter is not null && Guid.TryParse(adapter.Id, out var parsed) ? parsed : (Guid?)null;
-
-            var capabilities = WindowsAdapterCapabilityInventory.Read().Capabilities;
-            var globals = WindowsGlobalSettingInventory.Read().Capabilities;
-
-            // The receive-window advice is computed from this path, so it is only offered when a
-            // throughput run actually measured one.
-            TcpPathMeasurement? path = null;
-            var loadedForPath = Throughput.LastDownload ?? Throughput.LastUpload;
-            if (loadedForPath is { } loaded && loaded.Load.BitsPerSecond > 0 && loaded.Idle.MedianMs is { } rtt)
-            {
-                path = new TcpPathMeasurement(
-                    loaded.Load.BitsPerSecond,
-                    rtt,
-                    loaded.LatencyIncreaseMs is { } increase ? LoadedLatencyAnalyzer.Grade(increase) : null);
-            }
-
-            var context = new RemediationContext(
-                adapterId,
-                capabilities,
-                report?.PathMtu is { State: PathMtuState.IcmpBlackHole, Mtu: { } mtu } ? mtu : null,
-                globals,
-                path);
-
-            var findings = (report?.Findings ?? [])
-                .Concat(WifiDiagnostics.LatestReport?.Findings ?? [])
-                .DistinctBy(finding => (finding.Title, finding.Evidence))
-                .ToArray();
-            var actions = RemediationPlanner.Plan(findings, context).ToList();
-
-            // The use-case profile is a deliberate preset rather than a finding, so it is added
-            // explicitly and only when there is an adapter whose advertised keywords can carry it.
-            if (UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
-            {
-                actions.Insert(0, UseCaseProfiles.PlanFor(profile, id, capabilities));
-            }
-
-            RemediationGrid.ItemsSource = actions;
-            SendToPlanButton.IsEnabled = false;
-            SendAllToPlanButton.IsEnabled = actions.Any(action => action.AppliesLocally);
-            ExportChecklistButton.IsEnabled = actions.Count > 0;
-
-            var wifi = ShowWifiRadio();
-            ShowRouterGuidance(wifi);
-
-            var local = actions.Count(action => action.AppliesLocally);
-            var basis = report is null
-                ? wifiMeasured && !measured
-                    ? "passive Wi-Fi evidence"
-                    : $"an imported {Throughput.ImportedReport?.SourceDisplay ?? "bufferbloat"} result"
-                : $"{findings.Length} finding(s)";
-            RecommendationSummaryText.Text =
-                Loc.F($"{actions.Count} action(s) from {basis}: {local} this machine can make, "
-                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.");
-            WriteLog("recommendations.built", $"Actions={actions.Count}; Local={local}; Imported={report is null}.");
-        }
-        catch (Exception exception)
-        {
-            RecommendationSummaryText.Text = Loc.F($"Recommendations could not be built: {exception.Message}");
-            WriteLog("recommendations.failed", exception.Message);
-        }
-    }
-
     private static AdapterCounterDelta? FindWifiCounterDelta(
         IReadOnlyList<AdapterCounterDelta>? deltas, WifiRadioInfo? radio)
     {
         if (deltas is null || radio is null || !Guid.TryParse(radio.InterfaceId, out var interfaceId)) return null;
         return deltas.FirstOrDefault(delta =>
             Guid.TryParse(delta.AdapterId, out var adapterId) && adapterId == interfaceId);
-    }
-
-    private WifiRadioInfo? ShowWifiRadio()
-    {
-        if (WifiDiagnostics.LatestReport?.Radio is { } latest)
-        {
-            ShowWifiRadio(latest, WifiDiagnostics.LatestReport.Findings);
-            return latest;
-        }
-
-        var inventory = WindowsWifiInventory.Read();
-        if (!inventory.Supported || inventory.Radios.Count == 0)
-        {
-            WifiRadioText.Text = inventory.Error is { } error
-                ? Loc.F($"Wi-Fi radio inventory unavailable: {error}")
-                : Loc.T("No Wi-Fi radio is connected; this connection is wired.");
-            return null;
-        }
-
-        var radio = inventory.Radios.FirstOrDefault(item => item.Connected) ?? inventory.Radios[0];
-        ShowWifiRadio(radio, WifiRadioAnalyzer.Analyze(radio));
-        return radio;
-    }
-
-    private void ShowWifiRadio(WifiRadioInfo radio, IReadOnlyList<DiagnosticFinding> findings)
-    {
-        var lines = new List<string>
-        {
-            $"{radio.Description}: SSID {radio.Ssid} · {radio.SignalDisplay} · {radio.RateDisplay}"
-        };
-        lines.AddRange(findings.Select(finding => $"• {finding.Title} — {finding.Evidence} {finding.Action}".TrimEnd()));
-        if (WifiRadioAnalyzer.RecommendChannel(radio) is { } channel)
-        {
-            lines.Add(channel.AlreadyBest
-                ? $"• Channel {channel.Channel} is already the least congested of those seen."
-                : $"• Channel {channel.Channel} is less congested than the one in use.");
-        }
-
-        if (findings.Count == 0) lines.Add("• Nothing about the radio stood out.");
-        WifiRadioText.Text = string.Join(Environment.NewLine, lines);
-    }
-
-    private void ShowRouterGuidance(WifiRadioInfo? wifi)
-    {
-        var items = RouterGuidance.For(new RouterGuidanceInput(Throughput.LastDownload, Throughput.LastUpload, wifi));
-        _routerGuidance = items;
-        if (items.Count == 0)
-        {
-            RouterGuidanceText.Text = Throughput.LastDownload is null && Throughput.LastUpload is null
-                ? Loc.T("Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one.")
-                : Loc.T("Nothing measured here needs a router change.");
-            return;
-        }
-
-        var lines = new List<string>();
-        foreach (var item in items)
-        {
-            lines.Add($"{item.Title}  [{item.Owner}]");
-            lines.AddRange(item.Instructions.Select(instruction => $"    • {instruction.Summary}"));
-            lines.Add($"    Verify: {item.Verification}");
-        }
-
-        RouterGuidanceText.Text = string.Join(Environment.NewLine, lines);
-    }
-
-    private void SendRecommendationToPlan_Click(object sender, RoutedEventArgs e)
-    {
-        if (RemediationGrid.SelectedItem is not RemediationAction { AppliesLocally: true } action)
-        {
-            StatusText.Text = Loc.T("Select an action that this machine can make.");
-            return;
-        }
-
-        var accepted = TuningPlan.Propose(action.Changes);
-        StatusText.Text = accepted == action.Changes.Count
-            ? Loc.F($"Sent {accepted} change(s) to the tuning plan. Nothing is applied until you review and confirm there.")
-            : Loc.F($"Sent {accepted} of {action.Changes.Count} change(s); the rest are not advertised for the selected adapter.");
-        WriteLog("recommendations.sent_to_plan", $"Action={action.Id}; Accepted={accepted}/{action.Changes.Count}.");
     }
 
     private void CancelActiveWork()
@@ -1520,91 +1228,6 @@ public partial class MainWindow : Window
 
 
     // ---- Network devices -------------------------------------------------------------------
-
-    /// <summary>
-    /// The automatic path: every action this machine can make, queued in one click. It stops where
-    /// the manual path stops — on the tuning plan — because the preview, the read-back check and
-    /// the typed confirmation are what make any of this reversible, and no button skips them.
-    /// </summary>
-    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e)
-    {
-        if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
-        {
-            StatusText.Text = Loc.T("Build recommendations first.");
-            return;
-        }
-
-        var applicable = actions.Where(action => action.AppliesLocally).ToArray();
-        if (applicable.Length == 0)
-        {
-            StatusText.Text = Loc.T("Nothing here is a change this machine can make.");
-            return;
-        }
-
-        var requested = 0;
-        var accepted = 0;
-        foreach (var action in applicable)
-        {
-            requested += action.Changes.Count;
-            accepted += TuningPlan.Propose(action.Changes);
-        }
-
-        StatusText.Text = accepted == requested
-            ? Loc.F($"Sent {accepted} change(s) from {applicable.Length} action(s) to the tuning plan. "
-              + $"Nothing is applied until you preview and confirm it there.")
-            : Loc.F($"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver.");
-        WriteLog("recommendations.sent_all", $"Actions={applicable.Length}; Accepted={accepted}/{requested}.");
-        if (accepted > 0) SelectTab("Tuning plan");
-    }
-
-    /// <summary>
-    /// Writes the recommendations out as a checklist. The router half is the point: those changes
-    /// are made in another device's web interface or over SSH, where a panel inside this window is
-    /// no help at all.
-    /// </summary>
-    private void ExportChecklist_Click(object sender, RoutedEventArgs e)
-    {
-        if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
-        {
-            StatusText.Text = Loc.T("Build recommendations first.");
-            return;
-        }
-
-        var dialog = new SaveFileDialog
-        {
-            Title = Loc.T("Export the action checklist"),
-            Filter = Loc.T("Markdown (*.md)|*.md|All files (*.*)|*.*"),
-            FileName = $"socktuner-checklist-{DateTime.Now:yyyyMMdd-HHmmss}.md"
-        };
-
-        if (dialog.ShowDialog(this) != true) return;
-
-        try
-        {
-            var basis = new List<string>();
-            if (Throughput.ImportedReport is { } imported)
-            {
-                basis.Add($"Imported {imported.SourceDisplay}, test {imported.TestId}, captured {imported.CapturedAt:yyyy-MM-dd HH:mm}.");
-            }
-
-            foreach (var direction in new[] { Throughput.LastDownload, Throughput.LastUpload })
-            {
-                if (direction is not null) basis.Add(direction.Summary);
-            }
-
-            if (_lastReport is { } report) basis.Add($"Diagnosis of {report.RequestedTarget} at {report.StartedAt:yyyy-MM-dd HH:mm}.");
-
-            File.WriteAllText(dialog.FileName, ActionChecklistExporter.ToMarkdown(
-                [.. actions], _routerGuidance, string.Join(Environment.NewLine + Environment.NewLine, basis)));
-            StatusText.Text = Loc.F($"Checklist exported to {dialog.FileName}.");
-            WriteLog("checklist.exported", $"Actions={actions.Count()}; Router={_routerGuidance.Count}.");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            StatusText.Text = Loc.F($"Checklist export failed: {exception.Message}");
-            WriteLog("checklist.export_failed", exception.Message);
-        }
-    }
 
     // ---- Did the change help? ---------------------------------------------------------------
 

@@ -535,88 +535,7 @@
             <TabItem Header="Act" Style="{StaticResource NavGroupHeader}"/>
 
             <TabItem Header="Recommendations">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
-                    <StackPanel>
-                        <Border Style="{StaticResource Card}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" MinWidth="130"/>
-                                    <ColumnDefinition Width="240"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="WHAT THIS CONNECTION IS FOR" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
-                                    <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,6,0,0"
-                                                    ToolTip="Recommendations are derived from a measurement: the last diagnosis, the last bufferbloat run, or an online bufferbloat result imported on the Throughput tab. Run or import one first; nothing here measures anything by itself."/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                                    <TextBlock Text="USE-CASE PROFILE" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
-                                    <ComboBox x:Name="UseCaseComboBox" Margin="0,6,0,0" AutomationProperties.Name="Use-case profile">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
-                                </StackPanel>
-                                <Button x:Name="BuildRecommendationsButton" Grid.Column="2" Content="Build recommendations" ContentTemplate="{StaticResource IconContent}" Tag="&#xE82F;"
-                                        Click="BuildRecommendations_Click" VerticalAlignment="Bottom" Style="{StaticResource PrimaryButton}"/>
-                            </Grid>
-                        </Border>
-
-                        <TextBlock x:Name="RecommendationSummaryText" Text="No recommendations yet." Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
-
-                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
-                            <StackPanel>
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Text="Changes this machine can make" FontSize="20" FontWeight="SemiBold"/>
-                                        <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,12"
-                                                        ToolTip="Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back."/>
-                                    </StackPanel>
-                                    <Button x:Name="SendAllToPlanButton" Grid.Column="1" Content="Send all to tuning plan" ContentTemplate="{StaticResource IconContent}" Tag="&#xE724;"
-                                            Click="SendAllRecommendationsToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
-                                            Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"
-                                            ToolTip="Queues every action this machine can make. The plan still previews, verifies and records them, and applying is still a separate confirmed step."/>
-                                    <Button x:Name="SendToPlanButton" Grid.Column="2" Content="Send selected" ContentTemplate="{StaticResource IconContent}" Tag="&#xE724;"
-                                            Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
-                                            Margin="0,0,8,0" ToolTip="Queues only the selected action"/>
-                                    <Button x:Name="ExportChecklistButton" Grid.Column="3" Content="Export checklist…" ContentTemplate="{StaticResource IconContent}" Tag="&#xEDE1;"
-                                            Click="ExportChecklist_Click" VerticalAlignment="Top" IsEnabled="False"
-                                            ToolTip="Writes every action, including the router instructions and their OpenWrt commands, as a Markdown checklist"/>
-                                </Grid>
-                                <DataGrid x:Name="RemediationGrid" AutoGenerateColumns="False" MinHeight="150" RowHeight="NaN" MinRowHeight="40"
-                                          Style="{StaticResource ResultGrid}"
-                                          SelectionChanged="RemediationGrid_SelectionChanged">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Segment" Binding="{Binding Segment}" Width="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="140" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Changes" Binding="{Binding ChangesDisplay}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Expected effect" Binding="{Binding ExpectedEffect}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Trade-off" Binding="{Binding TradeOff}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="How to verify" Binding="{Binding Verification}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
-                            <StackPanel>
-                                <TextBlock Text="Changes only the router can make" FontSize="20" FontWeight="SemiBold"/>
-                                <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,12"
-                                                ToolTip="The queue that causes bufferbloat lives on the device in front of the slow link. No amount of local tuning drains it."/>
-                                <TextBlock x:Name="RouterGuidanceText" Text="No run yet." TextWrapping="Wrap" FontSize="15"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Border Style="{StaticResource Card}" Margin="0,12,0,0">
-                            <StackPanel>
-                                <TextBlock Text="Wi-Fi radio" FontSize="20" FontWeight="SemiBold"/>
-                                <TextBlock x:Name="WifiRadioText" Text="Not inspected." Margin="0,5,0,0" TextWrapping="Wrap" FontSize="15"/>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
+                <views:RecommendationsView x:Name="Recommendations"/>
             </TabItem>
 
             <TabItem Header="Tuning plan">
@@ -1000,48 +919,7 @@
             </TabItem>
 
             <TabItem Header="Preferences">
-                <StackPanel Margin="0,20,0,0" HorizontalAlignment="Stretch">
-                    <TextBlock Text="Live network changes" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Text="When off, SockTuner only reads. Turning it on shows the alpha risk notice first, and you can turn it off again at any time."
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
-                    <CheckBox x:Name="LiveChangesSwitch" Style="{StaticResource ToggleSwitch}" Margin="0,0,0,26"
-                              Content="Allow SockTuner to change network settings" Click="LiveChangesSwitch_Click"
-                              AutomationProperties.Name="Allow SockTuner to change network settings"/>
-
-                    <TextBlock Text="Language" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Text="Interface language. Measurements, findings and log entries stay in English."
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
-                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left" Margin="0,0,0,26">
-                        <TextBlock Text="Display language" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ComboBox x:Name="LanguageComboBox" Width="200"
-                                  SelectionChanged="Language_SelectionChanged"
-                                  AutomationProperties.Name="Display language"/>
-                    </StackPanel>
-
-                    <TextBlock Text="Local retention" FontSize="22" FontWeight="SemiBold"/>
-                    <TextBlock Text="SockTuner keeps the current log plus one rotated file. Choose the maximum size of each file."
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,16"/>
-                    <StackPanel Orientation="Horizontal" MaxWidth="620" HorizontalAlignment="Left">
-                        <TextBlock Text="Log file size" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <ComboBox x:Name="LogRetentionComboBox" Width="150" SelectionChanged="LogRetention_SelectionChanged"
-                                  AutomationProperties.Name="Maximum log file size"/>
-                        <TextBlock Text="MB per file" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                    </StackPanel>
-                    <TextBlock x:Name="PreferenceStatusText" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,12,0,0"/>
-
-                    <Border Style="{StaticResource Card}" Margin="0,28,0,0" MaxWidth="760" HorizontalAlignment="Left">
-                        <StackPanel>
-                            <TextBlock Text="Help improve SockTuner" FontSize="22" FontWeight="SemiBold"/>
-                            <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,6,0,14"
-                                            ToolTip="Create a privacy-safe hardware capability report. It includes adapter model, driver version and supported setting constraints; it excludes current values, device IDs, addresses, paths, machine name and exact timestamps."/>
-                            <Button Content="Create compatibility report…" ContentTemplate="{StaticResource IconContent}" Tag="&#xE9F9;" Click="CreateCompatibilityReport_Click"
-                                    HorizontalAlignment="Left" AutomationProperties.Name="Create compatibility report"/>
-                            <TextBlock x:Name="ContributionStatusText" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                       TextWrapping="Wrap" Margin="0,10,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                </StackPanel>
+                <views:PreferencesView x:Name="Preferences"/>
             </TabItem>
         </TabControl>
 
