@@ -1,0 +1,92 @@
+<UserControl x:Class="SockTuner.Views.InterfacesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+        <StackPanel>
+            <Border Style="{StaticResource Card}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,18,0">
+                        <TextBlock Text="Network devices" FontSize="22" FontWeight="SemiBold"/>
+                        <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,0"
+                                        ToolTip="Every interface this machine has, what it is doing right now, and what it costs to leave it up. The adapter carrying the default route is never offered for disabling: it is the way back in."/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,12,0" VerticalAlignment="Bottom">
+                        <TextBlock Text="PROFILE" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
+                        <ComboBox x:Name="InterfaceProfileComboBox" Width="230" Margin="0,6,0,0"
+                                  SelectionChanged="InterfaceProfile_SelectionChanged"
+                                  AutomationProperties.Name="Interface profile">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+                    <Button Grid.Column="2" Content="Open Device Manager" ContentTemplate="{StaticResource IconContent}" Tag="&#xE772;" Click="OpenDeviceManager_Click"
+                            VerticalAlignment="Bottom" Margin="0,0,8,0"
+                            ToolTip="Opens devmgmt.msc. Nothing is changed by opening it."/>
+                    <Button Grid.Column="3" Content="Open connections" ContentTemplate="{StaticResource IconContent}" Tag="&#xE839;" Click="OpenNetworkConnections_Click"
+                            VerticalAlignment="Bottom"
+                            ToolTip="Opens the Windows Network Connections folder (ncpa.cpl)"/>
+                </Grid>
+            </Border>
+
+            <TextBlock x:Name="InterfaceSummaryAdviceText" Text="Refresh the inventory to list network devices."
+                       Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="4,12,0,0" TextWrapping="Wrap"/>
+
+            <DataGrid x:Name="InterfaceAdviceGrid" AutoGenerateColumns="False" Margin="0,10,0,0"
+                      MinHeight="220" MaxHeight="330" RowHeight="NaN" MinRowHeight="40"
+                      SelectionChanged="InterfaceAdvice_SelectionChanged"
+                      AutomationProperties.Name="Network devices and advice">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Adapter" Binding="{Binding Name}" Width="150" ElementStyle="{StaticResource WrapCellText}"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" MinWidth="150" ElementStyle="{StaticResource WrapCellText}"/>
+                    <DataGridTextColumn Header="Kind" Binding="{Binding KindDisplay}" Width="100" ElementStyle="{StaticResource WrapCellText}"/>
+                    <DataGridTextColumn Header="Role" Binding="{Binding RoleDisplay}" Width="130" ElementStyle="{StaticResource WrapCellText}"/>
+                    <DataGridTextColumn Header="Advice" Binding="{Binding VerdictDisplay}" Width="150"
+                                        ElementStyle="{StaticResource VerdictCellText}"/>
+                    <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="*" MinWidth="170"
+                                        ElementStyle="{StaticResource WrapCellText}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <Border Style="{StaticResource Card}" Margin="0,10,0,0" Padding="14,12">
+                <StackPanel>
+                    <TextBlock x:Name="InterfaceDetailHeadingText" Text="Select a device" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock x:Name="InterfaceDetailText" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                               Text="The reason behind each verdict, and what disabling the device would cost, are shown here."
+                               TextWrapping="Wrap" Margin="0,6,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Act on the selected device" FontSize="18" FontWeight="SemiBold"/>
+                    <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,12"
+                                    ToolTip="Nothing here writes anything on its own. Each button queues one typed change on the tuning plan, where it is previewed against the live state, confirmed by hand, verified by read-back and recorded so it can be rolled back."/>
+                    <WrapPanel>
+                        <Button x:Name="DisableInterfaceButton" Content="Queue: disable adapter" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                                Click="QueueDisableInterface_Click" IsEnabled="False" Margin="0,0,8,8"
+                                ToolTip="Only offered for a device this profile flags, and never for the adapter carrying the default route"/>
+                        <Button x:Name="EnableInterfaceButton" Content="Queue: enable adapter" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                                Click="QueueEnableInterface_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="PowerOffInterfaceButton" Content="Queue: no power saving" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                                Click="QueuePowerOff_Click" IsEnabled="False" Margin="0,0,8,8"
+                                ToolTip="Clears both power-management checkboxes on this adapter. Takes effect when the adapter next restarts."/>
+                        <Button x:Name="PowerDefaultInterfaceButton" Content="Queue: restore power default" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                                Click="QueuePowerDefault_Click" IsEnabled="False" Margin="0,0,8,8"
+                                ToolTip="Removes the override so the driver own INF decides again"/>
+                        <Button x:Name="OpenPlanButton" Content="Go to tuning plan" ContentTemplate="{StaticResource IconContent}" Tag="&#xE72A;" Click="OpenTuningPlan_Click"
+                                Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="InterfaceActionStatusText" Text="Nothing queued."
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
