@@ -217,10 +217,10 @@ public partial class WifiDiagnosticsView : UserControl
 
         VerdictText.Foreground = report.Verdict switch
         {
-            WifiDiagnosticVerdict.Healthy => (System.Windows.Media.Brush)FindResource("GoodBrush"),
-            WifiDiagnosticVerdict.AtRisk => (System.Windows.Media.Brush)FindResource("WarningBrush"),
-            WifiDiagnosticVerdict.Degraded => (System.Windows.Media.Brush)FindResource("DangerBrush"),
-            _ => (System.Windows.Media.Brush)FindResource("MutedTextBrush")
+            WifiDiagnosticVerdict.Healthy => (System.Windows.Media.Brush)FindResource("SystemFillColorSuccessBrush"),
+            WifiDiagnosticVerdict.AtRisk => (System.Windows.Media.Brush)FindResource("SystemFillColorCautionBrush"),
+            WifiDiagnosticVerdict.Degraded => (System.Windows.Media.Brush)FindResource("SystemFillColorCriticalBrush"),
+            _ => (System.Windows.Media.Brush)FindResource("TextFillColorSecondaryBrush")
         };
 
         if (report.Radio is not { } radio)

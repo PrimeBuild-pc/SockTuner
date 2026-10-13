@@ -5,6 +5,7 @@ using System.IO.Pipes;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using SockTuner.Persistence;
 
 namespace SockTuner.Services;
 
@@ -82,6 +83,8 @@ public sealed class ElevatedWorkerClient
         var startInfo = new ProcessStartInfo(executable) { UseShellExecute = true, Verb = "runas" };
         startInfo.ArgumentList.Add(WorkerArgument);
         startInfo.ArgumentList.Add(pipeName);
+        // This user's audit folder, which an elevation as another administrator would not find.
+        startInfo.ArgumentList.Add(TransactionAuditStore.DefaultDirectory);
 
         try
         {
@@ -101,7 +104,7 @@ internal static class ElevatedWorkerHost
 {
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(30);
 
-    internal static async Task<int> RunAsync(string pipeName, CancellationToken cancellationToken)
+    internal static async Task<int> RunAsync(string pipeName, string auditDirectory, CancellationToken cancellationToken)
     {
         try
         {
@@ -111,7 +114,7 @@ internal static class ElevatedWorkerHost
 
             using var reader = new StreamReader(pipe, new UTF8Encoding(false), leaveOpen: true);
             var writer = new StreamWriter(pipe, new UTF8Encoding(false), leaveOpen: true) { AutoFlush = true };
-            var exitCode = await ElevatedWorker.RunAsync(reader, writer, cancellationToken);
+            var exitCode = await ElevatedWorker.RunAsync(reader, writer, cancellationToken, auditDirectory: auditDirectory);
             pipe.WaitForPipeDrain();
             return exitCode;
         }

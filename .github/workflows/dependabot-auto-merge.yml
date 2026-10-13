@@ -1,7 +1,9 @@
 name: Dependabot auto-merge
 
 # pull_request_target keeps write permissions for dependabot-triggered runs;
-# safe here: the job never checks out or executes PR code and is actor-guarded.
+# safe here: the job never checks out or executes PR code. It is guarded on who
+# opened the PR and where its branch lives, not on github.actor: a fork can make
+# its own Dependabot push to a PR, which turns the actor into dependabot[bot].
 on:
   pull_request_target:
     branches: [main]
@@ -12,7 +14,9 @@ permissions:
 
 jobs:
   auto-merge:
-    if: github.actor == 'dependabot[bot]'
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 5
 

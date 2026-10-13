@@ -28,7 +28,8 @@ public sealed class DiagnosticHistoryTests
 
             var loaded = store.Load();
             Assert.Equal(2, loaded.Count);
-            Assert.Equal(2, Directory.GetFiles(directory, "*.json").Length);
+            // The three unreadable files are skipped but stay on disk: a newer version may read them.
+            Assert.Equal(5, Directory.GetFiles(directory, "*.json").Length);
             Assert.Equal("three", loaded[0].Target);
             store.Delete(newest.Id);
             Assert.Single(store.Load());

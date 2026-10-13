@@ -63,7 +63,7 @@ public sealed class TransactionAuditStoreTests : IDisposable
     }
 
     [Fact]
-    public void Load_DeletesStructurallyUnknownAudit()
+    public void Load_SkipsStructurallyUnknownAuditWithoutDeletingIt()
     {
         var store = new TransactionAuditStore(_directory);
         var saved = store.SaveApply(Result(success: true));
@@ -74,7 +74,23 @@ public sealed class TransactionAuditStoreTests : IDisposable
         var entries = store.Load();
 
         Assert.Empty(entries);
-        Assert.False(File.Exists(path));
+        // A newer version may have written it; it stays for that version to read.
+        Assert.True(File.Exists(path));
+    }
+
+    [Theory]
+    [InlineData(@"C:\Windows\System32")]
+    [InlineData(@"relative\PrimeBuild\SockTuner\TransactionAudit")]
+    [InlineData(@"C:\Users\a\AppData\Local\PrimeBuild\SockTuner\TransactionAudit\..\..\..\Microsoft")]
+    public void ForWorker_RefusesAFolderThatIsNotAnAuditFolder(string directory)
+    {
+        Assert.Throws<ArgumentException>(() => TransactionAuditStore.ForWorker(directory));
+    }
+
+    [Fact]
+    public void ForWorker_AcceptsTheLaunchingUsersAuditFolder()
+    {
+        Assert.NotNull(TransactionAuditStore.ForWorker(TransactionAuditStore.DefaultDirectory));
     }
 
     [Fact]
@@ -86,7 +102,7 @@ public sealed class TransactionAuditStoreTests : IDisposable
         File.WriteAllText(path, File.ReadAllText(path).Replace("\"before\": {", "\"omittedBefore\": {"));
 
         Assert.Empty(store.Load());
-        Assert.False(File.Exists(path));
+        Assert.True(File.Exists(path));
     }
 
     [Fact]

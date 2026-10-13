@@ -66,16 +66,12 @@ public sealed class DiagnosticHistoryStore
             var entry = JsonSerializer.Deserialize<DiagnosticHistoryEntry>(File.ReadAllText(path), Options);
             var fileIdValid = Guid.TryParseExact(Path.GetFileNameWithoutExtension(path), "N", out var fileId)
                 && entry is not null && entry.Id == fileId;
-            if (!fileIdValid || entry!.Id == Guid.Empty || !IsValidReport(entry.Report))
-            {
-                File.Delete(path);
-                return null;
-            }
+            // Unreadable entries are skipped, not deleted: a newer version may have written them.
+            if (!fileIdValid || entry!.Id == Guid.Empty || !IsValidReport(entry.Report)) return null;
             return entry;
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
         {
-            try { File.Delete(path); } catch (Exception deleteException) when (deleteException is IOException or UnauthorizedAccessException) { }
             return null;
         }
     }

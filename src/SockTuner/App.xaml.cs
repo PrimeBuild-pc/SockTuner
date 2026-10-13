@@ -28,10 +28,10 @@ public partial class App : Application
         }
 
         // Elevated worker mode: connects back to the launching process over the named pipe it
-        // was given and serves exactly one typed request.
-        if (e.Args.Length == 2 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
+        // was given, serves exactly one typed request and audits it in the launching user's folder.
+        if (e.Args.Length == 3 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
         {
-            Shutdown(ElevatedWorkerHost.RunAsync(e.Args[1], CancellationToken.None).GetAwaiter().GetResult());
+            Shutdown(ElevatedWorkerHost.RunAsync(e.Args[1], e.Args[2], CancellationToken.None).GetAwaiter().GetResult());
             return;
         }
 
@@ -53,42 +53,12 @@ public partial class App : Application
             return;
         }
 
-        // Replace only the shared palette in High Contrast. Native controls and all semantic text
-        // remain intact, while Windows owns the actual accessible colours.
-        ApplyAccessibilityPalette();
-
         // Before the window is built: UiTranslator rewrites what XAML produced, so the language
         // has to be settled first. The console modes above stay English — they answer a terminal.
         Loc.Use(AppPreferences.Load().Language);
 
         MainWindow = new MainWindow();
         MainWindow.Show();
-    }
-
-    private void ApplyAccessibilityPalette()
-    {
-        if (!SystemParameters.HighContrast) return;
-
-        Resources["PageBrush"] = SystemColors.WindowBrush;
-        Resources["PanelBrush"] = SystemColors.ControlBrush;
-        Resources["ControlBrush"] = SystemColors.ControlBrush;
-        Resources["PanelHoverBrush"] = SystemColors.HighlightBrush;
-        Resources["NavigationBrush"] = SystemColors.WindowBrush;
-        Resources["BorderBrush"] = SystemColors.ActiveBorderBrush;
-        Resources["ControlBorderBrush"] = SystemColors.ActiveBorderBrush;
-        Resources["PrimaryBrush"] = SystemColors.HighlightBrush;
-        Resources["PrimaryTextBrush"] = SystemColors.HotTrackBrush;
-        Resources["PrimaryHoverBrush"] = SystemColors.HighlightBrush;
-        Resources["PrimaryPressedBrush"] = SystemColors.HighlightBrush;
-        Resources["PrimaryMutedBrush"] = SystemColors.ControlBrush;
-        Resources["TextBrush"] = SystemColors.WindowTextBrush;
-        Resources["SelectionTextBrush"] = SystemColors.HighlightTextBrush;
-        Resources["MutedTextBrush"] = SystemColors.GrayTextBrush;
-        Resources["WarningBrush"] = SystemColors.HotTrackBrush;
-        Resources["WarningTextBrush"] = SystemColors.HotTrackBrush;
-        Resources["WarningMutedBrush"] = SystemColors.ControlBrush;
-        Resources["DangerBrush"] = SystemColors.WindowTextBrush;
-        Resources["GoodBrush"] = SystemColors.WindowTextBrush;
     }
 
     internal const string VerifyTcpWritesArgument = "--verify-tcp-writes";

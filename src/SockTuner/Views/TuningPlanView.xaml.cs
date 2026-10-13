@@ -481,30 +481,9 @@ public partial class TuningPlanView : UserControl
 
     private bool EnsureWriteConsent()
     {
-        var preferences = AppPreferences.Load();
-        if (WriteConsent.IsAccepted(preferences)) return true;
-
-        if (MessageBox.Show(
-                Loc.T(WriteConsent.Text),
-                Loc.T("Enable live network changes"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
-        {
-            SetStatus(Loc.T("Live changes stay disabled until the alpha risk notice is accepted."));
-            return false;
-        }
-
-        try
-        {
-            AppPreferences.Save(WriteConsent.Accept(preferences));
-            return true;
-        }
-        catch (Exception exception) when (exception is System.IO.IOException or UnauthorizedAccessException)
-        {
-            SetStatus(Loc.F($"Consent could not be saved: {exception.Message}"));
-            return false;
-        }
+        if (WriteConsentDialog.Ensure(out var problem)) return true;
+        SetStatus(problem!);
+        return false;
     }
 
     private void RefreshAuditHistory() => TransactionAuditGrid.ItemsSource = _auditStore.Load();
