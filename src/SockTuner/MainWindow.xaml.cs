@@ -32,8 +32,6 @@ public partial class MainWindow : Window
     private readonly NetworkDiagnosticService _diagnostics = new();
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
-    private readonly DiagnosticHistoryStore _historyStore = new();
-    private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
@@ -78,9 +76,8 @@ public partial class MainWindow : Window
         QosProtocolComboBox.SelectedIndex = 0;
         ReferenceLinkList.ItemsSource = ReferenceLinks.All;
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
-        foreach (var entry in _historyStore.Load()) _history.Add(entry);
-        HistoryGrid.ItemsSource = _history;
-        if (_history.FirstOrDefault()?.Report is { } previousReport)
+        History.ExportRequested += (_, report) => SaveReport(report, html: true, redact: true);
+        if (History.Latest?.Report is { } previousReport)
             ShowDashboardLatency(previousReport.GameTarget, live: false);
         else
             ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", string.Empty, []), live: false);
@@ -555,15 +552,7 @@ public partial class MainWindow : Window
             WifiDiagnostics.SetReport(wifiInventory, wifiReport);
             _lastReport = report;
             ShowDashboardLatency(report.GameTarget, live: false);
-            try
-            {
-                _history.Insert(0, _historyStore.Save(report));
-                while (_history.Count > 20) _history.RemoveAt(_history.Count - 1);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                WriteLog("history.save_failed", exception.Message);
-            }
+            History.Add(report);
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -822,92 +811,6 @@ public partial class MainWindow : Window
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             StatusText.Text = Loc.F($"Log export failed: {exception.Message}");
-        }
-    }
-
-    /// <summary>
-    /// A single spot test cannot answer "has this got worse". Only the history can, and only when
-    /// there are enough comparable runs on each side of the window.
-    /// </summary>
-    private void CheckDrift_Click(object sender, RoutedEventArgs e)
-    {
-        var report = BaselineAnalyzer.Compare(_history.ToArray(), TimeSpan.FromDays(7), DateTimeOffset.Now);
-        var lines = new List<string> { report.Verdict };
-        if (report.Comparable)
-        {
-            lines.Add($"{report.RecentRuns} recent run(s) against {report.BaselineRuns} earlier one(s).");
-            lines.AddRange(report.Changes.Select(change => (change.Significant ? "• " : "  ") + change.Summary));
-        }
-
-        ComparisonText.Text = string.Join(Environment.NewLine, lines);
-        WriteLog("baseline.checked", report.Verdict);
-    }
-
-    private void CompareHistory_Click(object sender, RoutedEventArgs e)
-    {
-        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().OrderBy(entry => entry.SavedAt).ToArray();
-        if (selected.Length != 2)
-        {
-            ComparisonText.Text = Loc.T("Select exactly two runs.");
-            return;
-        }
-
-        var comparison = DiagnosticComparisonService.Compare(selected[0].Report, selected[1].Report);
-        ComparisonText.Text = comparison.Comparable
-            ? comparison.Reason + "\n" + string.Join("\n", comparison.Metrics.Select(metric => metric.Summary))
-            : Loc.F($"Not comparable: {comparison.Reason}");
-    }
-
-    private void TrendHistory_Click(object sender, RoutedEventArgs e)
-    {
-        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
-        var trend = DiagnosticComparisonService.Trend(selected);
-        ComparisonText.Text = trend.Comparable
-            ? trend.Reason + "\n" + string.Join("\n", trend.Points.Select(point => point.Summary))
-            : Loc.F($"Not comparable: {trend.Reason}");
-    }
-
-    private void ExportHistory_Click(object sender, RoutedEventArgs e)
-    {
-        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
-        if (selected.Length != 1)
-        {
-            ComparisonText.Text = Loc.T("Select exactly one run to export.");
-            return;
-        }
-        SaveReport(selected[0].Report, html: true, redact: true);
-    }
-
-    private void DeleteHistory_Click(object sender, RoutedEventArgs e)
-    {
-        var selected = HistoryGrid.SelectedItems.Cast<DiagnosticHistoryEntry>().ToArray();
-        if (selected.Length == 0)
-        {
-            ComparisonText.Text = Loc.T("Select one or more runs to delete.");
-            return;
-        }
-
-        if (MessageBox.Show(
-                Loc.F($"Delete {selected.Length} selected diagnostic run(s)? This cannot be undone."),
-                Loc.T("Delete diagnostic history"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        try
-        {
-            foreach (var entry in selected)
-            {
-                _historyStore.Delete(entry.Id);
-                _history.Remove(entry);
-            }
-            ComparisonText.Text = Loc.F($"Deleted {selected.Length} run(s).");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            ComparisonText.Text = Loc.F($"Delete failed: {exception.Message}");
         }
     }
 

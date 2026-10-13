@@ -47,7 +47,8 @@ public class LocalizationTests
          Path.Combine("Views", "InterruptAffinityView.xaml"),
          Path.Combine("Views", "UpdatesCard.xaml"),
          Path.Combine("Views", "ThroughputView.xaml"),
-         Path.Combine("Views", "InterfacesView.xaml")];
+         Path.Combine("Views", "InterfacesView.xaml"),
+         Path.Combine("Views", "HistoryView.xaml")];
 
     [Theory]
     [MemberData(nameof(XamlFiles))]

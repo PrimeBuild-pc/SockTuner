@@ -966,33 +966,7 @@
             </TabItem>
 
             <TabItem Header="History &amp; comparison">
-                <Grid Margin="0,20,0,0">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="12"/><RowDefinition/><RowDefinition Height="12"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <Grid>
-                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <StackPanel><TextBlock Text="Diagnostic run history" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Select exactly two identical-parameter runs to compare." Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/></StackPanel>
-                        <!-- One row, one panel. Two of these buttons used to share Grid.Column="2"
-                             and drew on top of each other. -->
-                        <WrapPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-                            <Button Content="Compare selected" ContentTemplate="{StaticResource IconContent}" Tag="&#xE8F1;" Click="CompareHistory_Click" Margin="8,0,0,4"/>
-                            <Button Content="Trend selected" ContentTemplate="{StaticResource IconContent}" Tag="&#xE9D2;" Click="TrendHistory_Click" Margin="8,0,0,4"/>
-                            <Button Content="Check drift" ContentTemplate="{StaticResource IconContent}" Tag="&#xE9D9;" Click="CheckDrift_Click" Margin="8,0,0,4"
-                                    ToolTip="Compares the most recent runs against older ones to show whether this connection has drifted"/>
-                            <Button Content="Export redacted" ContentTemplate="{StaticResource IconContent}" Tag="&#xEDE1;" Click="ExportHistory_Click" Margin="8,0,0,4"
-                                    ToolTip="Exports the selected runs with addresses removed"/>
-                            <Button Content="Delete selected" ContentTemplate="{StaticResource IconContent}" Tag="&#xE74D;" Click="DeleteHistory_Click" Margin="8,0,0,4"/>
-                        </WrapPanel>
-                    </Grid>
-                    <DataGrid x:Name="HistoryGrid" Grid.Row="2" AutoGenerateColumns="False" SelectionMode="Extended">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Saved" Binding="{Binding SavedAt}" Width="190" ElementStyle="{StaticResource WrapCellText}"/>
-                            <DataGridTextColumn Header="Target" Binding="{Binding Target}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                            <DataGridTextColumn Header="Profile" Binding="{Binding Profile}" Width="110" ElementStyle="{StaticResource WrapCellText}"/>
-                            <DataGridTextColumn Header="Game summary" Binding="{Binding GameSummary}" Width="3*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <TextBlock x:Name="ComparisonText" Grid.Row="4" Text="No comparison selected." TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                </Grid>
+                <views:HistoryView x:Name="History"/>
             </TabItem>
 
             <TabItem Header="Tools &amp; references">
