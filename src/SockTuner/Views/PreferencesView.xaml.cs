@@ -55,7 +55,8 @@ public partial class PreferencesView : UserControl
 
     private void LogRetention_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LogRetentionComboBox.SelectedItem is not int megabytes)
+        // The constructor's own selection is not a choice; saving it would pin today's values.
+        if (!IsLoaded || LogRetentionComboBox.SelectedItem is not int megabytes)
         {
             return;
         }
@@ -81,7 +82,9 @@ public partial class PreferencesView : UserControl
     /// </summary>
     private void Language_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (LanguageComboBox.SelectedItem is not Loc.Language language) return;
+        // Without the IsLoaded guard the first start saved the Windows language as a choice, and
+        // the app stopped following Windows from then on.
+        if (!IsLoaded || LanguageComboBox.SelectedItem is not Loc.Language language) return;
         if (string.Equals(AppPreferences.Load().Language, language.Tag, StringComparison.Ordinal)) return;
 
         try

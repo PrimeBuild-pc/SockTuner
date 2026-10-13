@@ -411,7 +411,10 @@
                     <ControlTemplate TargetType="TabControl">
                         <DockPanel KeyboardNavigation.TabNavigation="Local">
                             <TabPanel DockPanel.Dock="Top" IsItemsHost="True" Margin="0,4,0,0" KeyboardNavigation.TabIndex="1"/>
-                            <ContentPresenter Content="{TemplateBinding SelectedContent}"
+                            <!-- The name is load-bearing: TabItem's automation peer exposes the page to
+                                 Narrator and UI Automation only through PART_SelectedContentHost. -->
+                            <ContentPresenter x:Name="PART_SelectedContentHost"
+                                              Content="{TemplateBinding SelectedContent}"
                                               ContentTemplate="{TemplateBinding SelectedContentTemplate}"
                                               ContentStringFormat="{TemplateBinding SelectedContentStringFormat}"/>
                         </DockPanel>
@@ -448,7 +451,9 @@
                                     <TextBlock DockPanel.Dock="Top" Style="{StaticResource PageTitleText}" Margin="0,14,0,0"
                                                Foreground="{DynamicResource TextFillColorPrimaryBrush}"
                                                Text="{Binding SelectedItem.Header, RelativeSource={RelativeSource TemplatedParent}}"/>
-                                    <ContentPresenter Content="{TemplateBinding SelectedContent}"
+                                    <!-- Named so Narrator and UI Automation can reach the page; see PivotTabControl. -->
+                                    <ContentPresenter x:Name="PART_SelectedContentHost"
+                                                      Content="{TemplateBinding SelectedContent}"
                                                       ContentTemplate="{TemplateBinding SelectedContentTemplate}"
                                                       ContentStringFormat="{TemplateBinding SelectedContentStringFormat}"
                                                       SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
