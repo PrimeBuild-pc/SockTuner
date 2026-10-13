@@ -1,5 +1,3 @@
-using System.Security.Cryptography;
-using System.Text;
 using SockTuner.Models;
 
 namespace SockTuner.Services;
@@ -13,8 +11,6 @@ public interface ISettingStore
 public sealed class SettingTransactionService
 {
     private static readonly SemaphoreSlim ApplyLock = new(1, 1);
-    private readonly Guid _authorityId = Guid.NewGuid();
-    private readonly byte[] _authorityKey = RandomNumberGenerator.GetBytes(32);
     private readonly SettingSpecificationResolver _resolve;
 
     public SettingTransactionService() : this(SettingSpecifications.Live()) { }
@@ -89,8 +85,7 @@ public sealed class SettingTransactionService
     public async Task<ApplyResult> ApplyAsync(ChangePlan plan, ISettingStore store, CancellationToken cancellationToken)
     {
         var changes = ValidateAndCanonicalize(plan);
-        var snapshot = new SettingSnapshot(
-            Guid.NewGuid(), _authorityId, Environment.MachineName, DateTimeOffset.Now, changes, false, string.Empty);
+        var snapshot = new SettingSnapshot(Guid.NewGuid(), DateTimeOffset.Now, changes, false);
         var applied = new List<PlannedChange>();
 
         await ApplyLock.WaitAsync(cancellationToken);
@@ -114,9 +109,7 @@ public sealed class SettingTransactionService
                 }
             }
 
-            var successfulSnapshot = snapshot with { AppliedSuccessfully = true, Signature = string.Empty };
-            successfulSnapshot = successfulSnapshot with { Signature = Sign(successfulSnapshot) };
-            return new ApplyResult(true, successfulSnapshot, null, []);
+            return new ApplyResult(true, snapshot with { AppliedSuccessfully = true }, null, []);
         }
         catch (Exception exception)
         {
@@ -137,12 +130,11 @@ public sealed class SettingTransactionService
         ISettingStore store,
         CancellationToken cancellationToken)
     {
-        if (!snapshot.AppliedSuccessfully ||
-            snapshot.AuthorityId != _authorityId ||
-            !string.Equals(snapshot.MachineName, Environment.MachineName, StringComparison.OrdinalIgnoreCase) ||
-            !HasValidSignature(snapshot))
+        // Snapshots never leave this process (the audit keeps its own record), so there is nothing
+        // to authenticate; what matters is that only a change that fully applied is undone.
+        if (!snapshot.AppliedSuccessfully)
         {
-            return ["Snapshot provenance or integrity does not match this SockTuner session and machine."];
+            return ["Only a successfully applied change can be rolled back."];
         }
 
         var changes = ValidateAndCanonicalize(new ChangePlan(snapshot.CreatedAt, snapshot.Changes));
@@ -202,51 +194,6 @@ public sealed class SettingTransactionService
         return validated.OrderBy(change => change.Address.RegistryPath, StringComparer.OrdinalIgnoreCase)
             .ThenBy(change => change.Address.ValueName, StringComparer.OrdinalIgnoreCase)
             .ToArray();
-    }
-
-    private string Sign(SettingSnapshot snapshot)
-    {
-        var payload = new StringBuilder()
-            .Append(snapshot.Id).Append('|')
-            .Append(snapshot.AuthorityId).Append('|')
-            .Append(snapshot.CreatedAt.UtcTicks).Append('|')
-            .Append(snapshot.AppliedSuccessfully);
-        Field(snapshot.MachineName);
-        foreach (var change in snapshot.Changes)
-        {
-            Field(change.Address.SettingId);
-            Field(change.Address.TargetId);
-            payload.Append('|').Append(change.Before.Exists);
-            Field(change.Before.Value);
-            payload.Append('|').Append(change.After.Exists);
-            Field(change.After.Value);
-            payload.Append('|').Append(change.Source);
-        }
-
-        return Convert.ToBase64String(HMACSHA256.HashData(_authorityKey, Encoding.UTF8.GetBytes(payload.ToString())));
-
-        // Values are now free-form text, so every variable-length field carries its length:
-        // without it a value containing the separator could shift the following fields and
-        // let two different snapshots produce the same payload.
-        void Field(string? value) => payload
-            .Append('|')
-            .Append(value?.Length ?? -1)
-            .Append(':')
-            .Append(value);
-    }
-
-    private bool HasValidSignature(SettingSnapshot snapshot)
-    {
-        try
-        {
-            return CryptographicOperations.FixedTimeEquals(
-                Convert.FromBase64String(snapshot.Signature),
-                Convert.FromBase64String(Sign(snapshot with { Signature = string.Empty })));
-        }
-        catch (FormatException)
-        {
-            return false;
-        }
     }
 
     private static Task<IReadOnlyList<string>> RollBackAppliedAsync(

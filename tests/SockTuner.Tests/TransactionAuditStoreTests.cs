@@ -133,8 +133,7 @@ public sealed class TransactionAuditStoreTests : IDisposable
             new StoredSettingValue(true, "20"),
             new StoredSettingValue(true, "10"),
             ChangeSource.Manual);
-        var snapshot = new SettingSnapshot(
-            Guid.NewGuid(), Guid.NewGuid(), "test", DateTimeOffset.Now, [change], success, success ? "signature" : string.Empty);
+        var snapshot = new SettingSnapshot(Guid.NewGuid(), DateTimeOffset.Now, [change], success);
         return new ApplyResult(success, snapshot, success ? null : "apply failed", []);
     }
 

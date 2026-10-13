@@ -174,12 +174,9 @@ public sealed record ChangePlan(DateTimeOffset CreatedAt, IReadOnlyList<PlannedC
 
 public sealed record SettingSnapshot(
     Guid Id,
-    Guid AuthorityId,
-    string MachineName,
     DateTimeOffset CreatedAt,
     IReadOnlyList<PlannedChange> Changes,
-    bool AppliedSuccessfully,
-    string Signature);
+    bool AppliedSuccessfully);
 
 public sealed record ApplyResult(
     bool Success,
