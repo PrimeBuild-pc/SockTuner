@@ -38,15 +38,9 @@ public partial class MainWindow : Window
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
     private CancellationTokenSource? _monitorCancellation;
-    private readonly ThroughputProbe _throughput = new();
     private readonly RouteQualityProbe _routeQuality = new();
     private GameFlowReport? _importedReport;
     private readonly BottleneckLocator _bottleneck = new();
-    private CancellationTokenSource? _throughputCancellation;
-    private LoadedLatencyResult? _lastLoadedLatency;
-    private LoadedLatencyResult? _lastDownload;
-    private LoadedLatencyResult? _lastUpload;
-    private ImportedBufferbloatReport? _importedBufferbloat;
     private IReadOnlyList<RouterGuidanceItem> _routerGuidance = [];
 
     // The run that was current when a plan was applied. Held so the identical run afterwards has
@@ -79,8 +73,6 @@ public partial class MainWindow : Window
         DiagnosticGameComboBox.SelectedItem = _gameProfiles[0];
         DiagnosticLoadComboBox.ItemsSource = Enum.GetValues<DiagnosticLoadCondition>();
         DiagnosticLoadComboBox.SelectedIndex = 0;
-        ThroughputDirectionComboBox.ItemsSource = Enum.GetValues<TransferDirection>();
-        ThroughputDirectionComboBox.SelectedIndex = 0;
         UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
         UseCaseComboBox.SelectedIndex = 0;
         InterfaceAdviceGrid.ItemsSource = _interfaceAdvice;
@@ -101,6 +93,14 @@ public partial class MainWindow : Window
         DnsResolvers.StatusChanged += (_, text) => StatusText.Text = text;
         DnsResolvers.BusyChanged += (_, busy) => SetBusy(busy);
         DnsResolvers.Applied += async (_, _) => await RefreshInventoryAsync();
+        Throughput.StatusChanged += (_, text) => StatusText.Text = text;
+        Throughput.BusyChanged += (_, busy) => SetBusy(busy);
+        Throughput.CurrentGame = () => DiagnosticGameComboBox.SelectedItem as GameProfile;
+        Throughput.RecommendationsRequested += (_, _) =>
+        {
+            BuildRecommendations_Click(this, new RoutedEventArgs());
+            SelectTab("Recommendations");
+        };
         // Consent is granted or withdrawn by whichever surface asked for it; the cached preferences
         // follow, so a later save of window geometry cannot quietly write the old consent back.
         WriteConsentDialog.Changed += (_, _) =>
@@ -401,6 +401,7 @@ public partial class MainWindow : Window
         TuningPlan.SetAdapters(snapshot.Adapters);
         ShowInterfaceAdvice();
         DnsResolvers.SetAdapters(snapshot.Adapters);
+        Throughput.SetAdapters(snapshot.Adapters);
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -1401,153 +1402,6 @@ public partial class MainWindow : Window
             adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
     }
 
-    private void CancelThroughput_Click(object sender, RoutedEventArgs e)
-    {
-        _throughputCancellation?.Cancel();
-        StatusText.Text = Loc.T("Stopping the transfer…");
-    }
-
-    private async void RunThroughput_Click(object sender, RoutedEventArgs e)
-    {
-        var endpoint = ThroughputEndpointText.Text.Trim();
-        var latencyTarget = LoadedLatencyTargetText.Text.Trim();
-        if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(latencyTarget))
-        {
-            StatusText.Text = Loc.T("Enter both a throughput endpoint and a latency target.");
-            return;
-        }
-
-        if (!int.TryParse(ThroughputStreamsText.Text.Trim(), out var streams)
-            || streams < 1 || streams > ThroughputProbe.MaximumStreams)
-        {
-            StatusText.Text = Loc.F($"Streams must be between 1 and {ThroughputProbe.MaximumStreams}.");
-            return;
-        }
-
-        if (!int.TryParse(ThroughputSecondsText.Text.Trim(), out var seconds)
-            || seconds < 1 || seconds > ThroughputProbe.MaximumDuration.TotalSeconds)
-        {
-            StatusText.Text = Loc.F($"Seconds per phase must be between 1 and {ThroughputProbe.MaximumDuration.TotalSeconds:0}.");
-            return;
-        }
-
-        if (ThroughputDirectionComboBox.SelectedItem is not TransferDirection direction)
-        {
-            StatusText.Text = Loc.T("Select a transfer direction.");
-            return;
-        }
-
-        _throughputCancellation?.Dispose();
-        _throughputCancellation = new CancellationTokenSource();
-        SetThroughputBusy(true);
-        BufferbloatGradeText.Text = Loc.T("Measuring…");
-        ThroughputResultText.Text = Loc.T("Running…");
-        LoadedLatencyResultText.Text = Loc.T("Running…");
-        BufferbloatAssessmentText.Text = Loc.T("Running…");
-        StatusText.Text = Loc.F($"Measuring {direction.ToString().ToLowerInvariant()} throughput and loaded latency…");
-        WriteLog("throughput.started", $"Endpoint={endpoint}; Latency={latencyTarget}; Direction={direction}; Streams={streams}; Seconds={seconds}.");
-
-        try
-        {
-            // The same adapter counters the diagnostics tab uses, so an idle baseline taken while
-            // something else was already filling the link is reported as such instead of graded.
-            var beforeCounters = await Task.Run(_inventory.CaptureCounters, _throughputCancellation.Token);
-            var startedAt = DateTimeOffset.Now;
-
-            var profile = new DiagnosticProfile(
-                "loaded-latency", "Loaded latency", Math.Max(seconds * 2, 10),
-                TimeSpan.FromMilliseconds(250), TimeSpan.FromSeconds(1));
-
-            var probe = LoadedLatencyProbe.For(
-                latencyTarget, endpoint, streams, NetworkDiagnosticService.ProbeAsync, _throughput);
-
-            var result = await probe.RunAsync(
-                direction, profile, LoadedLatencyProbe.DefaultWarmUp, _throughputCancellation.Token);
-
-            var afterCounters = await Task.Run(_inventory.CaptureCounters, _throughputCancellation.Token);
-            var elapsed = DateTimeOffset.Now - startedAt;
-            var utilization = BuildUtilization(beforeCounters, afterCounters, elapsed);
-
-            _lastLoadedLatency = result;
-            if (result.Direction == TransferDirection.Download) _lastDownload = result;
-            else _lastUpload = result;
-            ShowLoadedLatency(result, utilization);
-            StatusText.Text = Loc.T("Measurement complete.");
-            WriteLog("throughput.completed", result.Summary);
-        }
-        catch (OperationCanceledException)
-        {
-            BufferbloatGradeText.Text = Loc.T("Cancelled");
-            BufferbloatAssessmentText.Text = Loc.T("The run was cancelled before it could be graded.");
-            StatusText.Text = Loc.T("Measurement cancelled.");
-            WriteLog("throughput.cancelled", "Cancelled by the operator.");
-        }
-        catch (Exception exception)
-        {
-            BufferbloatGradeText.Text = Loc.T("Failed");
-            BufferbloatAssessmentText.Text = exception.Message;
-            StatusText.Text = Loc.T("Measurement failed.");
-            WriteLog("throughput.failed", exception.Message);
-        }
-        finally
-        {
-            SetThroughputBusy(false);
-        }
-    }
-
-    private IReadOnlyList<LinkUtilization> BuildUtilization(
-        IReadOnlyList<AdapterCounterSample> before, IReadOnlyList<AdapterCounterSample> after, TimeSpan elapsed)
-    {
-        var speeds = (_snapshot?.Adapters ?? [])
-            .ToDictionary(adapter => adapter.Id, adapter => adapter.SpeedBitsPerSecond, StringComparer.OrdinalIgnoreCase);
-        return AdapterCounterDeltaCalculator.Calculate(before, after)
-            .Select(delta => LinkUtilization.Calculate(
-                delta, elapsed, speeds.TryGetValue(delta.AdapterId, out var speed) && speed > 0 ? speed : 0))
-            .ToArray();
-    }
-
-    private void ShowLoadedLatency(LoadedLatencyResult result, IReadOnlyList<LinkUtilization> utilization)
-    {
-        ThroughputResultText.Text = result.Load.Summary;
-        LoadedLatencyResultText.Text = result.Summary;
-
-        BufferbloatGradeText.Text = result.LatencyIncreaseMs is { } increase
-            ? LoadedLatencyAnalyzer.Display(LoadedLatencyAnalyzer.Grade(increase))
-            : Loc.T("Not gradable");
-
-        var assessment = LoadedLatencyAnalyzer.Analyze(result, utilization);
-        var lines = new List<string> { assessment.Title, $"Confidence: {assessment.Confidence}. Owner: {assessment.Owner}." };
-        lines.AddRange(assessment.Supporting.Select(item => $"• {item}"));
-        if (assessment.Contradicting.Count > 0)
-        {
-            lines.Add("Against this reading:");
-            lines.AddRange(assessment.Contradicting.Select(item => $"• {item}"));
-        }
-
-        // A letter grade says how far the queue grew. It does not say whether the game survives it,
-        // and that answer depends on the tick rate the diagnostics tab is already set to.
-        if (DiagnosticGameComboBox.SelectedItem is GameProfile game)
-        {
-            var idle = PlayabilityAnalyzer.Judge(result.Idle, game);
-            var loaded = PlayabilityAnalyzer.Judge(result.Loaded, game);
-            lines.Add(idle.Grade == loaded.Grade
-                ? $"For {game.DisplayName}: {loaded.GradeDisplay.ToLowerInvariant()} both idle and under load."
-                : $"For {game.DisplayName}: {idle.GradeDisplay.ToLowerInvariant()} idle, "
-                    + $"{loaded.GradeDisplay.ToLowerInvariant()} under load — decided by {loaded.DecidedBy}. "
-                    + "A game that only breaks while something else is downloading is a queue, and the queue is the "
-                    + "router's to fix.");
-        }
-
-        BufferbloatAssessmentText.Text = string.Join(Environment.NewLine, lines);
-    }
-
-    private void SetThroughputBusy(bool isBusy)
-    {
-        SetBusy(isBusy);
-        RunThroughputButton.IsEnabled = !isBusy;
-        CancelThroughputButton.IsEnabled = isBusy;
-    }
-
     private void RemediationGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
         SendToPlanButton.IsEnabled = RemediationGrid.SelectedItem is RemediationAction { AppliesLocally: true };
 
@@ -1558,7 +1412,7 @@ public partial class MainWindow : Window
     private void BuildRecommendations_Click(object sender, RoutedEventArgs e)
     {
         var report = _lastReport;
-        var measured = _lastDownload is not null || _lastUpload is not null;
+        var measured = Throughput.LastDownload is not null || Throughput.LastUpload is not null;
         var wifiMeasured = WifiDiagnostics.LatestReport is { Radio: not null };
         if (report is null && !measured && !wifiMeasured)
         {
@@ -1582,7 +1436,7 @@ public partial class MainWindow : Window
             // The receive-window advice is computed from this path, so it is only offered when a
             // throughput run actually measured one.
             TcpPathMeasurement? path = null;
-            var loadedForPath = _lastDownload ?? _lastUpload;
+            var loadedForPath = Throughput.LastDownload ?? Throughput.LastUpload;
             if (loadedForPath is { } loaded && loaded.Load.BitsPerSecond > 0 && loaded.Idle.MedianMs is { } rtt)
             {
                 path = new TcpPathMeasurement(
@@ -1623,7 +1477,7 @@ public partial class MainWindow : Window
             var basis = report is null
                 ? wifiMeasured && !measured
                     ? "passive Wi-Fi evidence"
-                    : $"an imported {_importedBufferbloat?.SourceDisplay ?? "bufferbloat"} result"
+                    : $"an imported {Throughput.ImportedReport?.SourceDisplay ?? "bufferbloat"} result"
                 : $"{findings.Length} finding(s)";
             RecommendationSummaryText.Text =
                 Loc.F($"{actions.Count} action(s) from {basis}: {local} this machine can make, "
@@ -1687,11 +1541,11 @@ public partial class MainWindow : Window
 
     private void ShowRouterGuidance(WifiRadioInfo? wifi)
     {
-        var items = RouterGuidance.For(new RouterGuidanceInput(_lastDownload, _lastUpload, wifi));
+        var items = RouterGuidance.For(new RouterGuidanceInput(Throughput.LastDownload, Throughput.LastUpload, wifi));
         _routerGuidance = items;
         if (items.Count == 0)
         {
-            RouterGuidanceText.Text = _lastDownload is null && _lastUpload is null
+            RouterGuidanceText.Text = Throughput.LastDownload is null && Throughput.LastUpload is null
                 ? Loc.T("Run a bufferbloat measurement first: shaping advice is computed from the rate this connection actually reached, never from the advertised one.")
                 : Loc.T("Nothing measured here needs a router change.");
             return;
@@ -1727,7 +1581,7 @@ public partial class MainWindow : Window
     {
         _diagnosticCancellation?.Cancel();
         _monitorCancellation?.Cancel();
-        _throughputCancellation?.Cancel();
+        Throughput.CancelActiveWork();
         DnsResolvers.CancelActiveWork();
         Updates.CancelActiveWork();
         WifiDiagnostics.CancelActiveWork();
@@ -1900,84 +1754,6 @@ public partial class MainWindow : Window
     }
 
 
-    // ---- External bufferbloat results ------------------------------------------------------
-
-    /// <summary>
-    /// Reads an online bufferbloat export and restates it as this app's own measurement, so a
-    /// result measured from outside the machine drives the same recommendations as a local run.
-    /// </summary>
-    private void ImportBufferbloatReport_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFileDialog
-        {
-            Title = Loc.T("Import an online bufferbloat result"),
-            Filter = Loc.T("Bufferbloat results (*.csv;*.json)|*.csv;*.json|All files (*.*)|*.*"),
-            CheckFileExists = true
-        };
-
-        if (dialog.ShowDialog(this) != true) return;
-
-        try
-        {
-            var report = BufferbloatReportImporter.Load(dialog.FileName);
-            _importedBufferbloat = report;
-            _lastDownload = report.Download ?? _lastDownload;
-            _lastUpload = report.Upload ?? _lastUpload;
-            _lastLoadedLatency = report.Download ?? report.Upload ?? _lastLoadedLatency;
-
-            ShowImportedBufferbloat(report);
-            ImportedReportRecommendButton.IsEnabled = true;
-            StatusText.Text = Loc.F($"Imported a {report.SourceDisplay} result.");
-            WriteLog("bufferbloat.imported",
-                $"Source={report.Source}; Test={report.TestId}; Derived={report.DerivedGrade}; Reported={report.ReportedGrade}.");
-        }
-        catch (Exception exception) when (exception is IOException or InvalidDataException
-                                          or ArgumentException or JsonException or UnauthorizedAccessException)
-        {
-            ImportedBufferbloatText.Text = Loc.F($"Import refused: {exception.Message}");
-            ImportedReportRecommendButton.IsEnabled = false;
-            StatusText.Text = Loc.T("Bufferbloat import failed.");
-            WriteLog("bufferbloat.import_failed", exception.Message);
-        }
-    }
-
-    private void ShowImportedBufferbloat(ImportedBufferbloatReport report)
-    {
-        var lines = new List<string>
-        {
-            $"{report.SourceDisplay} · test {report.TestId} · captured {report.CapturedAt:yyyy-MM-dd HH:mm}"
-                + (report.Provider is null ? string.Empty : $" · {report.Provider}")
-        };
-
-        foreach (var direction in new[] { report.Download, report.Upload })
-        {
-            if (direction is null) continue;
-            lines.Add($"• {direction.Summary}");
-        }
-
-        // The two grades are shown together on purpose. They are computed differently — this app
-        // takes the median increase, the sites quote a mean — so agreement is worth seeing, and a
-        // disagreement is worth investigating rather than papering over.
-        var derived = report.DerivedGrade is { } grade ? LoadedLatencyAnalyzer.Display(grade) : "not graded";
-        lines.Add(report.ReportedGrade is { } reported
-            ? $"• Grade: {derived} derived here from the file's own samples; the test itself reported {reported}."
-            : $"• Grade: {derived}, derived here from the file's own samples.");
-
-        lines.AddRange(report.Notes.Select(note => $"• {note}"));
-        ImportedBufferbloatText.Text = string.Join(Environment.NewLine, lines);
-        BufferbloatGradeText.Text = derived;
-        BufferbloatSummaryText.Text =
-            Loc.F($"Imported from {report.SourceDisplay}. Latency increase under load is graded on the Waveform scale; "
-            + $"it describes queue growth in front of the slowest link, not link speed.");
-    }
-
-    /// <summary>Builds the recommendations from the import and moves to the tab that shows them.</summary>
-    private void RecommendFromImport_Click(object sender, RoutedEventArgs e)
-    {
-        BuildRecommendations_Click(sender, e);
-        SelectTab("Recommendations");
-    }
-
     /// <summary>
     /// The automatic path: every action this machine can make, queued in one click. It stops where
     /// the manual path stops — on the tuning plan — because the preview, the read-back check and
@@ -2039,12 +1815,12 @@ public partial class MainWindow : Window
         try
         {
             var basis = new List<string>();
-            if (_importedBufferbloat is { } imported)
+            if (Throughput.ImportedReport is { } imported)
             {
                 basis.Add($"Imported {imported.SourceDisplay}, test {imported.TestId}, captured {imported.CapturedAt:yyyy-MM-dd HH:mm}.");
             }
 
-            foreach (var direction in new[] { _lastDownload, _lastUpload })
+            foreach (var direction in new[] { Throughput.LastDownload, Throughput.LastUpload })
             {
                 if (direction is not null) basis.Add(direction.Summary);
             }
@@ -2414,7 +2190,7 @@ public partial class MainWindow : Window
 
         DiagnosticTargetText.Text = target;
         if (!string.IsNullOrWhiteSpace(_importedReport.RemotePort)) DiagnosticPortText.Text = _importedReport.RemotePort;
-        LoadedLatencyTargetText.Text = target;
+        Throughput.UseLatencyTarget(target);
         var tick = SelectImportedTickRate(_importedReport);
         StatusText.Text = Loc.F($"Diagnosis target set to {target} from the imported report.{tick} Nothing has been measured yet.");
     }

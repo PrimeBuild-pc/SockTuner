@@ -1,0 +1,97 @@
+<UserControl x:Class="SockTuner.Views.ThroughputView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+        <StackPanel>
+            <Border Style="{StaticResource Card}">
+                <WrapPanel>
+                    <StackPanel Width="250" Margin="0,0,12,12">
+                        <TextBlock Text="THROUGHPUT ENDPOINT" Style="{StaticResource FieldLabelText}"/>
+                        <TextBox x:Name="ThroughputEndpointText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                 Tag="Host you may load"
+                                 ToolTip="Host that accepts a sustained transfer, for example a speed-test host you control"
+                                 AutomationProperties.Name="Throughput endpoint"/>
+                    </StackPanel>
+                    <StackPanel Width="250" Margin="0,0,12,12">
+                        <TextBlock Text="LATENCY TARGET" Style="{StaticResource FieldLabelText}"/>
+                        <TextBox x:Name="LoadedLatencyTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
+                                 Tag="Host to ping"
+                                 ToolTip="Pinged idle and again under load to measure queue growth"
+                                 AutomationProperties.Name="Latency target"/>
+                    </StackPanel>
+                    <StackPanel Width="120" Margin="0,0,12,12">
+                        <TextBlock Text="DIRECTION" Style="{StaticResource FieldLabelText}"/>
+                        <ComboBox x:Name="ThroughputDirectionComboBox" Margin="0,6,0,0" AutomationProperties.Name="Transfer direction"/>
+                    </StackPanel>
+                    <StackPanel Width="110" Margin="0,0,12,12">
+                        <TextBlock Text="STREAMS" Style="{StaticResource FieldLabelText}"/>
+                        <TextBox x:Name="ThroughputStreamsText" Text="4" Margin="0,6,0,0" AutomationProperties.Name="Parallel streams"/>
+                    </StackPanel>
+                    <StackPanel Width="130" Margin="0,0,12,12">
+                        <TextBlock Text="SECONDS PER PHASE" Style="{StaticResource FieldLabelText}"/>
+                        <TextBox x:Name="ThroughputSecondsText" Text="10" Margin="0,6,0,0" AutomationProperties.Name="Seconds per phase"/>
+                    </StackPanel>
+                    <Button x:Name="RunThroughputButton" Content="Measure" ContentTemplate="{StaticResource IconContent}" Tag="&#xE768;" Click="RunThroughput_Click"
+                            VerticalAlignment="Bottom" Margin="0,0,8,12" Style="{StaticResource PrimaryButton}"/>
+                    <Button x:Name="CancelThroughputButton" Content="Cancel" ContentTemplate="{StaticResource IconContent}" Tag="&#xE711;" Click="CancelThroughput_Click"
+                            VerticalAlignment="Bottom" Margin="0,0,0,12" IsEnabled="False"/>
+                </WrapPanel>
+            </Border>
+
+            <ContentControl Style="{StaticResource InfoBar}" Margin="0,12,0,0"
+                            Content="This moves real data over your connection and will saturate it for the duration. Nothing is written to Windows or the adapter. Choose an endpoint you are allowed to load."/>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Import an online bufferbloat result" FontSize="18" FontWeight="SemiBold"/>
+                            <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,0"
+                                            ToolTip="An online test measures the queue from outside your machine, over a path SockTuner cannot reach itself. Import the raw export and it is graded by the same code as a local run — from the file's own per-sample latencies, not from the letter the site printed — and it then feeds the recommendations and the router shaping advice exactly as a local run would."/>
+                            <TextBlock Text="Accepts the Waveform CSV export and a JSON report carrying per-sample latencies."
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="Import result…" ContentTemplate="{StaticResource IconContent}" Tag="&#xE8B5;" Click="ImportBufferbloatReport_Click"
+                                VerticalAlignment="Top" Margin="0,0,8,0"/>
+                        <Button x:Name="ImportedReportRecommendButton" Grid.Column="2" Content="Build recommendations" ContentTemplate="{StaticResource IconContent}" Tag="&#xE82F;"
+                                Click="RecommendFromImport_Click" IsEnabled="False" VerticalAlignment="Top"
+                                Style="{StaticResource PrimaryButton}"/>
+                    </Grid>
+                    <TextBlock x:Name="ImportedBufferbloatText" Text="No external result imported."
+                               Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Bufferbloat grade" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="BufferbloatGradeText" Text="Not measured" FontSize="34" FontWeight="Bold" Margin="0,6,0,0"/>
+                    <TextBlock x:Name="BufferbloatSummaryText" Text="Latency increase under load is graded on the Waveform scale. It describes queue growth in front of the slowest link, not link speed."
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Measured throughput" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="ThroughputResultText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Idle versus loaded" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="LoadedLatencyResultText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="What this points at" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="BufferbloatAssessmentText" Text="No run yet." Margin="0,6,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
