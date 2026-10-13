@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="docs/assets/banner.svg" alt="SockTuner banner" width="100%" />
+</p>
+
+<p align="center">
   <a href="https://github.com/PrimeBuild-pc/SockTuner/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=git&amp;logoColor=white"></a>
   <a href="https://github.com/PrimeBuild-pc/SockTuner/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
   <a href="https://github.com/PrimeBuild-pc/SockTuner/issues"><img alt="Open issues" src="https://img.shields.io/github/issues/PrimeBuild-pc/SockTuner?style=plastic&amp;logo=github"></a>
