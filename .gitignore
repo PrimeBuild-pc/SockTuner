@@ -21,9 +21,8 @@ AGENTS.md
 *.log
 *.dmp
 
-# Private research corpus: keep local, publish only its index
-research/*
-!research/README.md
+# Private research corpus: local only, never published
+research/
 
 # OS files
 .DS_Store
