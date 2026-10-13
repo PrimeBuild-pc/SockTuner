@@ -67,6 +67,13 @@ public static class WriteConsent
         AcceptedWriteConsentVersion = CurrentVersion,
         WriteConsentAcceptedAt = DateTimeOffset.Now
     };
+
+    /// <summary>Back to inventory only; the next write asks again.</summary>
+    public static UserPreferences Revoke(UserPreferences preferences) => preferences with
+    {
+        AcceptedWriteConsentVersion = null,
+        WriteConsentAcceptedAt = null
+    };
 }
 
 public static class AppPreferences

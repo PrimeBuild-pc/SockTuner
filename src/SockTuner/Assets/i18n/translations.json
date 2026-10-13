@@ -69,15 +69,20 @@
   "ru": "Найден заслуживающий внимания DNS-сервер; применяется автоматически…",
   "zh-Hans": "找到了值得切换的解析器，正在自动应用…"
  },
- "ACT": {
-  "es": "ACTUAR",
-  "ru": "ДЕЙСТВИЯ",
+ "Act": {
+  "es": "Actuar",
+  "ru": "Действия",
   "zh-Hans": "操作"
  },
  "ACTIVE ADAPTERS": {
   "es": "ADAPTADORES ACTIVOS",
   "ru": "АКТИВНЫЕ АДАПТЕРЫ",
   "zh-Hans": "活动适配器"
+ },
+ "Allow SockTuner to change network settings": {
+  "es": "Permitir que SockTuner cambie la configuración de red",
+  "ru": "Разрешить SockTuner изменять сетевые параметры",
+  "zh-Hans": "允许 SockTuner 更改网络设置"
  },
  "ALPHA · LIVE CHANGES": {
   "es": "ALFA · CAMBIOS EN VIVO",
@@ -319,11 +324,6 @@
   "ru": "Сначала составьте рекомендации.",
   "zh-Hans": "请先生成建议。"
  },
- "CHANGES ARMED": {
-  "es": "CAMBIOS ARMADOS",
-  "ru": "ИЗМЕНЕНИЯ РАЗРЕШЕНЫ",
-  "zh-Hans": "更改已解锁"
- },
  "Cancel": {
   "es": "Cancelar",
   "ru": "Отмена",
@@ -378,6 +378,11 @@
   "es": "Los cambios están armados. Aplicar sigue requiriendo elevación y una confirmación escrita en el plan de ajuste.",
   "ru": "Изменения разрешены. Для применения по-прежнему нужны повышение прав и подтверждение вводом в плане настройки.",
   "zh-Hans": "更改已解锁。应用时仍需在调优计划中提升权限并键入确认。"
+ },
+ "Changes armed": {
+  "es": "Cambios armados",
+  "ru": "Изменения разрешены",
+  "zh-Hans": "更改已解锁"
  },
  "Changes only the router can make": {
   "es": "Cambios que solo puede hacer el router",
@@ -1024,19 +1029,19 @@
   "ru": "Узел, который можно нагружать",
   "zh-Hans": "你有权加压的主机"
  },
+ "How this works": {
+  "es": "Cómo funciona",
+  "ru": "Как это работает",
+  "zh-Hans": "工作原理"
+ },
  "How to verify": {
   "es": "Cómo verificarlo",
   "ru": "Как проверить",
   "zh-Hans": "如何验证"
  },
- "INVENTORY": {
-  "es": "INVENTARIO",
-  "ru": "ИНВЕНТАРИЗАЦИЯ",
-  "zh-Hans": "清单"
- },
- "INVENTORY ONLY": {
-  "es": "SOLO INVENTARIO",
-  "ru": "ТОЛЬКО ЧТЕНИЕ",
+ "Inventory only": {
+  "es": "Solo inventario",
+  "ru": "Только чтение",
   "zh-Hans": "仅清单"
  },
  "IP metrics": {
@@ -1214,6 +1219,21 @@
   "ru": "ЦЕЛЬ ДЛЯ ЗАДЕРЖКИ",
   "zh-Hans": "延迟目标"
  },
+ "Live network changes": {
+  "es": "Cambios de red en vivo",
+  "ru": "Изменения сети в реальном времени",
+  "zh-Hans": "实时网络更改"
+ },
+ "Live network changes are disabled. SockTuner only reads.": {
+  "es": "Los cambios de red en vivo están desactivados. SockTuner solo lee.",
+  "ru": "Изменения сети в реальном времени выключены. SockTuner только читает.",
+  "zh-Hans": "实时网络更改已禁用。SockTuner 只读取。"
+ },
+ "Live network changes are enabled.": {
+  "es": "Los cambios de red en vivo están activados.",
+  "ru": "Изменения сети в реальном времени включены.",
+  "zh-Hans": "实时网络更改已启用。"
+ },
  "LOAD": {
   "es": "CARGA",
   "ru": "НАГРУЗКА",
@@ -1293,11 +1313,6 @@
   "es": "MB por archivo",
   "ru": "МБ на файл",
   "zh-Hans": "MB / 每个文件"
- },
- "MEASURE": {
-  "es": "MEDIR",
-  "ru": "ИЗМЕРЕНИЕ",
-  "zh-Hans": "测量"
  },
  "Mark one application's traffic": {
   "es": "Marcar el tráfico de una aplicación",
@@ -1413,6 +1428,11 @@
   "es": "PARÁMETROS NDIS",
   "ru": "ПАРАМЕТРОВ NDIS",
   "zh-Hans": "NDIS 参数"
+ },
+ "Network details": {
+  "es": "Detalles de red",
+  "ru": "Сведения о сети",
+  "zh-Hans": "网络详细信息"
  },
  "NETWORK DEVICES": {
   "es": "DISPOSITIVOS DE RED",
@@ -1664,11 +1684,6 @@
   "ru": "Сейчас содержит",
   "zh-Hans": "当前值"
  },
- "OVERVIEW": {
-  "es": "RESUMEN",
-  "ru": "ОБЗОР",
-  "zh-Hans": "总览"
- },
  "Offload inventory partial: {0}": {
   "es": "Inventario de descargas parcial: {0}",
   "ru": "Инвентаризация разгрузок неполная: {0}",
@@ -1773,6 +1788,11 @@
   "es": "Resultado",
   "ru": "Итог",
   "zh-Hans": "结果"
+ },
+ "Overview": {
+  "es": "Información general",
+  "ru": "Обзор",
+  "zh-Hans": "概览"
  },
  "Owner": {
   "es": "Propietario",
@@ -1984,9 +2004,14 @@
   "ru": "Ставит в очередь удаление политики, названной по приложению выше. SockTuner управляет только созданными им политиками.",
   "zh-Hans": "将删除以上方应用命名的策略排入队列。SockTuner 只管理由它自己创建的策略。"
  },
- "RECORDS": {
-  "es": "REGISTROS",
-  "ru": "ЗАПИСИ",
+ "Raw measurements": {
+  "es": "Mediciones sin procesar",
+  "ru": "Исходные измерения",
+  "zh-Hans": "原始测量数据"
+ },
+ "Records": {
+  "es": "Registros",
+  "ru": "Записи",
   "zh-Hans": "记录"
  },
  "REFERENCE": {
@@ -2928,6 +2953,11 @@
   "es": "Qué hacer",
   "ru": "Что делать",
   "zh-Hans": "该怎么做"
+ },
+ "When off, SockTuner only reads. Turning it on shows the alpha risk notice first, and you can turn it off again at any time.": {
+  "es": "Desactivado, SockTuner solo lee. Al activarlo se muestra primero el aviso de riesgo de la versión alfa, y puedes volver a desactivarlo cuando quieras.",
+  "ru": "Когда выключено, SockTuner только читает. При включении сначала показывается предупреждение о рисках альфа-версии; выключить можно в любой момент.",
+  "zh-Hans": "关闭时，SockTuner 只读取。开启时会先显示 Alpha 版风险提示，之后可随时再次关闭。"
  },
  "Where the problem starts": {
   "es": "Dónde empieza el problema",

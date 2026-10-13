@@ -67,4 +67,72 @@ public sealed class AppUpdateServiceTests
         Assert.Throws<InvalidDataException>(() => AppUpdateService.ParseChecksum(
             $"{hash}  another.zip", "SockTuner-1.0.0-win-x64.zip"));
     }
+
+    [Fact]
+    public void Replace_SwapsTheExecutableAndLeavesNoBackup()
+    {
+        var directory = Directory.CreateTempSubdirectory("SockTuner-Update-").FullName;
+        try
+        {
+            var target = Path.Combine(directory, "SockTuner.exe");
+            var source = Path.Combine(directory, "update.exe");
+            File.WriteAllText(target, "old");
+            File.WriteAllText(source, "new");
+
+            UpdateInstaller.Replace(source, target);
+
+            Assert.Equal("new", File.ReadAllText(target));
+            Assert.False(File.Exists(target + ".old"));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    /// <summary>The step that matters: the new file cannot take the old one's place.</summary>
+    [Fact]
+    public void Replace_RestoresTheOriginalWhenTheSwapFailsHalfway()
+    {
+        var directory = Directory.CreateTempSubdirectory("SockTuner-Update-").FullName;
+        try
+        {
+            var target = Path.Combine(directory, "SockTuner.exe");
+            var source = Path.Combine(directory, "update.exe");
+            File.WriteAllText(target, "old");
+            File.WriteAllText(source, "new");
+
+            Assert.Throws<IOException>(() => UpdateInstaller.Replace(source, target, (from, to, overwrite) =>
+            {
+                if (from.EndsWith(".new", StringComparison.Ordinal)) throw new IOException("locked");
+                File.Move(from, to, overwrite);
+            }));
+
+            Assert.Equal("old", File.ReadAllText(target));
+        }
+        finally
+        {
+            Directory.Delete(directory, true);
+        }
+    }
+
+    [Fact]
+    public void SameSigner_MatchesOnePublisherAndRejectsUnsignedFiles()
+    {
+        // Two runtime files Microsoft signed with an embedded signature, on every Windows runner.
+        var runtime = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+        var coreclr = Path.Combine(runtime, "coreclr.dll");
+        var corelib = Path.Combine(runtime, "System.Private.CoreLib.dll");
+        var unsigned = Path.GetTempFileName();
+        try
+        {
+            Assert.True(AuthenticodeTrust.SameSigner(coreclr, corelib));
+            Assert.False(AuthenticodeTrust.SameSigner(coreclr, unsigned));
+            Assert.False(AuthenticodeTrust.SameSigner(unsigned, unsigned));
+        }
+        finally
+        {
+            File.Delete(unsigned);
+        }
+    }
 }

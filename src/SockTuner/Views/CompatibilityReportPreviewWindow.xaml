@@ -13,7 +13,7 @@
         <StackPanel Margin="0,0,0,14">
             <TextBlock Text="Review the complete JSON before saving" FontSize="20" FontWeight="SemiBold"/>
             <TextBlock Text="Only attach this file if you are comfortable publishing the contents in a GitHub issue."
-                       Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,0"/>
         </StackPanel>
         <TextBox x:Name="ReportTextBox" Grid.Row="1" IsReadOnly="True" AcceptsReturn="True"
                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"

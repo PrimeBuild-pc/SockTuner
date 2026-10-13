@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 
 namespace SockTuner.Services;
@@ -105,10 +106,11 @@ public sealed class AppUpdateService
             await source.CopyToAsync(destination, cancellationToken);
         }
 
-        if (!AuthenticodeTrust.IsTrusted(currentExecutable) || !AuthenticodeTrust.IsTrusted(executable))
+        if (!AuthenticodeTrust.IsTrusted(currentExecutable) || !AuthenticodeTrust.IsTrusted(executable)
+            || !AuthenticodeTrust.SameSigner(currentExecutable, executable))
         {
             File.Delete(executable);
-            throw new InvalidDataException("Automatic installation requires both the installed app and the update to have trusted Authenticode signatures.");
+            throw new InvalidDataException("Automatic installation requires both the installed app and the update to have trusted Authenticode signatures from the same publisher.");
         }
 
         return new PreparedUpdate(release, executable);
@@ -278,6 +280,31 @@ internal static class AuthenticodeTrust
         }
     }
 
+    /// <summary>
+    /// A trusted signature only proves that some certificate authority vouched for the signer. The
+    /// checksum ships in the same release as the archive, so whoever controls a release controls it
+    /// too; what actually ties an update to this app is that it is signed by the same publisher.
+    /// The subject is compared rather than the thumbprint, so a renewed certificate still updates.
+    /// </summary>
+    internal static bool SameSigner(string first, string second)
+    {
+        try
+        {
+            // SYSLIB0057 points at X509CertificateLoader, which loads certificate files but cannot
+            // read the Authenticode signer out of a signed executable; this API is the one that can.
+#pragma warning disable SYSLIB0057
+            return string.Equals(
+                X509Certificate.CreateFromSignedFile(first).Subject,
+                X509Certificate.CreateFromSignedFile(second).Subject,
+                StringComparison.Ordinal);
+#pragma warning restore SYSLIB0057
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+    }
+
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
     private struct WinTrustFileInfo
     {
@@ -338,6 +365,39 @@ internal static class UpdateInstaller
 {
     internal const string Argument = "--apply-update";
 
+    /// <summary>
+    /// Puts <paramref name="source"/> in place of <paramref name="target"/>. If the swap fails
+    /// halfway the original is moved back, so an interrupted update never leaves no app at all.
+    /// <paramref name="move"/> is <see cref="File.Move(string, string, bool)"/>; tests replace it to
+    /// make the second step fail.
+    /// </summary>
+    internal static void Replace(string source, string target, Action<string, string, bool>? move = null)
+    {
+        move ??= File.Move;
+        var staging = target + ".new";
+        var backup = target + ".old";
+        File.Copy(source, staging, true);
+        move(target, backup, true);
+        try
+        {
+            move(staging, target, true);
+        }
+        catch
+        {
+            move(backup, target, true);
+            throw;
+        }
+
+        try
+        {
+            File.Delete(backup);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // The update is already committed; a stale backup is safer than reporting a false failure.
+        }
+    }
+
     internal static (bool Success, string? Error) Apply(int parentProcessId, string targetPath)
     {
         try
@@ -347,7 +407,8 @@ internal static class UpdateInstaller
             if (!string.Equals(Path.GetFileName(target), "SockTuner.exe", StringComparison.OrdinalIgnoreCase)
                 || !File.Exists(target)
                 || !AuthenticodeTrust.IsTrusted(source)
-                || !AuthenticodeTrust.IsTrusted(target))
+                || !AuthenticodeTrust.IsTrusted(target)
+                || !AuthenticodeTrust.SameSigner(source, target))
             {
                 throw new InvalidDataException("The update target or Authenticode signature is invalid.");
             }
@@ -362,28 +423,7 @@ internal static class UpdateInstaller
                 // The parent already exited.
             }
 
-            var staging = target + ".new";
-            var backup = target + ".old";
-            File.Copy(source, staging, true);
-            File.Move(target, backup, true);
-            try
-            {
-                File.Move(staging, target, true);
-            }
-            catch
-            {
-                File.Move(backup, target, true);
-                throw;
-            }
-
-            try
-            {
-                File.Delete(backup);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                // The update is already committed; a stale backup is safer than reporting a false failure.
-            }
+            Replace(source, target);
             Process.Start(new ProcessStartInfo(target) { UseShellExecute = true, WorkingDirectory = Path.GetDirectoryName(target)! });
             return (true, null);
         }

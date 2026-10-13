@@ -66,6 +66,30 @@ public sealed class AppPreferencesTests
         }
     }
 
+    /// <summary>
+    /// The Preferences switch: withdrawn consent persists across restarts, and leaves the rest of
+    /// the preferences alone.
+    /// </summary>
+    [Fact]
+    public void WriteConsent_RevokedSurvivesARoundTripAndKeepsOtherPreferences()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"SockTuner-{Guid.NewGuid():N}", "preferences.json");
+        try
+        {
+            AppPreferences.Save(path, WriteConsent.Accept(new UserPreferences(Language: "es")));
+            AppPreferences.Save(path, WriteConsent.Revoke(AppPreferences.Load(path)));
+
+            var reloaded = AppPreferences.Load(path);
+            Assert.False(WriteConsent.IsAccepted(reloaded));
+            Assert.Null(reloaded.WriteConsentAcceptedAt);
+            Assert.Equal("es", reloaded.Language);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(path)!, true);
+        }
+    }
+
     [Fact]
     public void WriteConsent_FromAnEarlierVersionIsNotAccepted()
     {

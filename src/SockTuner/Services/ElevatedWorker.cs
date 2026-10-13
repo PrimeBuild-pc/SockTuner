@@ -53,11 +53,15 @@ internal static class ElevatedWorker
         CancellationToken cancellationToken,
         ISettingStore? store = null,
         TransactionAuditStore? auditStore = null,
-        SettingSpecificationResolver? resolve = null)
+        SettingSpecificationResolver? resolve = null,
+        string? auditDirectory = null)
     {
         ElevatedWorkerRequest? request = null;
         try
         {
+            // Inside the try, so a bad folder argument is answered as a rejection rather than
+            // leaving the caller waiting for a response that never comes.
+            auditStore ??= auditDirectory is null ? new TransactionAuditStore() : TransactionAuditStore.ForWorker(auditDirectory);
             // Capabilities are read here, inside the elevated process, immediately before the
             // write: the caller's view of what the driver allows is never trusted.
             resolve ??= SettingSpecifications.Live();
@@ -69,7 +73,7 @@ internal static class ElevatedWorker
             var result = await ExecuteAsync(
                 request,
                 effectiveStore,
-                auditStore ?? new TransactionAuditStore(),
+                auditStore,
                 cancellationToken,
                 resolve);
             var status = result.Success

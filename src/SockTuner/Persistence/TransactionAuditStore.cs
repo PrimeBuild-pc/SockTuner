@@ -37,7 +37,7 @@ public sealed record TransactionAuditEntry(
 public sealed class TransactionAuditStore
 {
     // 2: setting values became text so NDIS REG_SZ keywords can be audited exactly.
-    // Schema 1 entries are rejected by Validate and removed on the next Load.
+    // Schema 1 entries are rejected by Validate and skipped on Load.
     private const int SchemaVersion = 2;
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -48,12 +48,33 @@ public sealed class TransactionAuditStore
     };
     private readonly string _directory;
 
-    public TransactionAuditStore() : this(Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-        "PrimeBuild", "SockTuner", "TransactionAudit"))
-    { }
+    private static readonly string FolderTail = Path.Combine("PrimeBuild", "SockTuner", "TransactionAudit");
+
+    /// <summary>This user's audit folder — the one the undo and history views read.</summary>
+    internal static string DefaultDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), FolderTail);
+
+    public TransactionAuditStore() : this(DefaultDirectory) { }
 
     internal TransactionAuditStore(string directory) => _directory = directory;
+
+    /// <summary>
+    /// The audit folder handed to the elevated worker on its command line. Elevating with another
+    /// administrator's credentials runs the worker as that account, whose own profile the launching
+    /// user never reads, so the change could not be undone. Only a full path to a SockTuner audit
+    /// folder is accepted, so the argument cannot aim the worker's writes anywhere else.
+    /// </summary>
+    internal static TransactionAuditStore ForWorker(string directory)
+    {
+        var fullPath = Path.GetFullPath(directory);
+        if (!string.Equals(fullPath, directory, StringComparison.OrdinalIgnoreCase)
+            || !fullPath.EndsWith(Path.DirectorySeparatorChar + FolderTail, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("The audit folder is not a SockTuner transaction audit folder.", nameof(directory));
+        }
+
+        return new TransactionAuditStore(fullPath);
+    }
 
     public TransactionAuditEntry SaveApply(ApplyResult result, int maximumEntries = 100) => Save(
         result.Success ? TransactionAuditOutcome.ApplySucceeded : TransactionAuditOutcome.ApplyFailed,
@@ -165,7 +186,9 @@ public sealed class TransactionAuditStore
                                           or JsonException or InvalidDataException
                                           or ArgumentException or InvalidOperationException or KeyNotFoundException)
         {
-            try { File.Delete(path); } catch (Exception deleteException) when (deleteException is IOException or UnauthorizedAccessException) { }
+            // Skipped, never deleted: an entry this version cannot read may come from a newer one
+            // (switching from the preview channel back to stable), and it is the only record of
+            // what to undo. Rejecting it is enough to keep it out of every rollback decision.
             return null;
         }
     }

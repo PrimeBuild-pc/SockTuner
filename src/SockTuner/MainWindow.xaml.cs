@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.Win32;
@@ -22,8 +21,6 @@ namespace SockTuner;
 
 public partial class MainWindow : Window
 {
-    private const int UseImmersiveDarkMode = 20;
-    private const int UseImmersiveDarkModeBefore20H1 = 19;
     private const int MonitorMaximumSamples = 1000;
     private const string CompatibilityIssueUrl =
         "https://github.com/PrimeBuild-pc/SockTuner/issues/new?template=compatibility-report.yml";
@@ -47,14 +44,7 @@ public partial class MainWindow : Window
     private CancellationTokenSource? _monitorCancellation;
     private readonly ThroughputProbe _throughput = new();
     private readonly RouteQualityProbe _routeQuality = new();
-    private readonly DnsBenchmarkProbe _dnsBenchmark = new();
-    private CancellationTokenSource? _dnsBenchmarkCancellation;
-    private readonly ElevatedWorkerClient _dnsWorker = new();
-    private DnsBenchmarkReport? _lastDnsReport;
     private GameFlowReport? _importedReport;
-    private readonly ElevatedWorkerClient _irqWorker = new();
-    private InterruptAffinityInventoryResult? _interrupts;
-    private readonly ObservableCollection<CoreChoice> _coreChoices = [];
     private readonly BottleneckLocator _bottleneck = new();
     private CancellationTokenSource? _throughputCancellation;
     private LoadedLatencyResult? _lastLoadedLatency;
@@ -97,18 +87,6 @@ public partial class MainWindow : Window
         ThroughputDirectionComboBox.SelectedIndex = 0;
         UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
         UseCaseComboBox.SelectedIndex = 0;
-        IrqPolicyComboBox.ItemsSource = new[]
-        {
-            InterruptPolicy.SpecifiedProcessors,
-            InterruptPolicy.AllCloseProcessors,
-            InterruptPolicy.OneCloseProcessor,
-            InterruptPolicy.AllProcessorsInMachine,
-            InterruptPolicy.SpreadMessagesAcrossAllProcessors
-        }.Select(policy => new PolicyChoice(policy)).ToArray();
-        IrqPolicyComboBox.SelectedIndex = 0;
-        IrqPriorityComboBox.ItemsSource = Enum.GetValues<InterruptPriority>();
-        IrqPriorityComboBox.SelectedItem = InterruptPriority.Undefined;
-        IrqCoreList.ItemsSource = _coreChoices;
         InterfaceAdviceGrid.ItemsSource = _interfaceAdvice;
         InterfaceProfileComboBox.ItemsSource = InterfaceProfiles;
         InterfaceProfileComboBox.SelectedIndex = 0;
@@ -132,18 +110,24 @@ public partial class MainWindow : Window
             ShowDashboardLatency(previousReport.GameTarget, live: false);
         else
             ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", string.Empty, []), live: false);
-        DrawChart(DashboardWifiCanvas, [], (Brush)FindResource("PrimaryBrush"));
+        DrawChart(DashboardWifiCanvas, [], (Brush)FindResource("AccentFillColorDefaultBrush"));
         WifiDiagnostics.ObservationUpdated += (_, samples) => ShowDashboardWifi(samples);
-        TuningPlan.Applied += async (_, _) =>
+        DnsResolvers.StatusChanged += (_, text) => StatusText.Text = text;
+        DnsResolvers.BusyChanged += (_, busy) => SetBusy(busy);
+        DnsResolvers.Applied += async (_, _) => await RefreshInventoryAsync();
+        // Consent is granted or withdrawn by whichever surface asked for it; the cached preferences
+        // follow, so a later save of window geometry cannot quietly write the old consent back.
+        WriteConsentDialog.Changed += (_, _) =>
         {
-            // Consent is accepted inside the plan view, so the badge is re-read after it acts.
             _preferences = AppPreferences.Load();
             ShowWriteState();
+        };
+        TuningPlan.Applied += async (_, _) =>
+        {
             CaptureVerificationBaseline();
             await RefreshInventoryAsync();
             ShowRecoveryState();
         };
-        SourceInitialized += (_, _) => ApplyDarkTitleBar();
         RestoreWindowGeometry();
         Closing += (_, _) =>
         {
@@ -153,7 +137,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             await RefreshInventoryAsync();
-            LoadInterruptAffinity();
+            InterruptAffinity.Load();
             if (_preferences.LastUpdateCheckAt is not { } checkedAt
                 || DateTimeOffset.UtcNow - checkedAt >= TimeSpan.FromDays(1))
             {
@@ -173,7 +157,7 @@ public partial class MainWindow : Window
     private void ShowWriteState()
     {
         var accepted = WriteConsent.IsAccepted(_preferences);
-        WriteStateText.Text = accepted ? Loc.T("CHANGES ARMED") : Loc.T("INVENTORY ONLY");
+        WriteStateText.Text = accepted ? Loc.T("Changes armed") : Loc.T("Inventory only");
         WriteStateText.ToolTip = accepted
             ? Loc.T("Change consent accepted. Applying still needs elevation, a preview, and a typed confirmation, and every change is snapshotted and reversible.")
             : Loc.T("Nothing can be written until you accept the change consent in the tuning plan. Everything else is read-only.");
@@ -182,6 +166,31 @@ public partial class MainWindow : Window
         WorkflowWriteStateText.Text = accepted
             ? Loc.T("Changes are armed. Applying still needs elevation and a typed confirmation in the tuning plan.")
             : Loc.T("Nothing is written until you accept the change consent in the tuning plan.");
+
+        // Windows 11 status pill: neutral with a lock while read-only, caution with a shield once armed.
+        WriteStateIcon.Text = accepted ? "\uEA18" : "\uE72E";
+        WriteStateBadge.Background = (Brush)FindResource(accepted ? "SystemFillColorCautionBackgroundBrush" : "SubtleFillColorSecondaryBrush");
+        WriteStateBadge.BorderBrush = (Brush)FindResource(accepted ? "SystemFillColorCautionBrush" : "CardStrokeColorDefaultBrush");
+        var foreground = (Brush)FindResource(accepted ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush");
+        WriteStateIcon.Foreground = foreground;
+        WriteStateText.Foreground = foreground;
+        LiveChangesSwitch.IsChecked = accepted;
+    }
+
+    /// <summary>
+    /// The Preferences switch. On asks the same alpha risk notice as the first apply; off withdraws
+    /// consent, after which every write path — plan, resolvers, interrupts — asks again.
+    /// </summary>
+    private void LiveChangesSwitch_Click(object sender, RoutedEventArgs e)
+    {
+        var problem = default(string);
+        var saved = LiveChangesSwitch.IsChecked == true
+            ? WriteConsentDialog.Ensure(out problem)
+            : WriteConsentDialog.Revoke(out problem);
+        if (!saved) ShowWriteState();
+        PreferenceStatusText.Text = problem ?? (WriteConsent.IsAccepted(_preferences)
+            ? Loc.T("Live network changes are enabled.")
+            : Loc.T("Live network changes are disabled. SockTuner only reads."));
     }
 
     /// <summary>
@@ -223,9 +232,11 @@ public partial class MainWindow : Window
             var bounds = RestoreBounds;
             if (bounds.IsEmpty || double.IsNaN(bounds.Width)) return;
 
-            var selectedSection = InventoryTabs.SelectedItem is System.Windows.Controls.TabItem tab
-                ? tab.Tag as string ?? tab.Header?.ToString()
-                : null;
+            // On "Network details" remember the sub-page, so the next start reopens the same table.
+            var current = InventoryTabs.SelectedItem is System.Windows.Controls.TabItem { Content: System.Windows.Controls.TabControl inner }
+                ? inner.SelectedItem
+                : InventoryTabs.SelectedItem;
+            var selectedSection = current is System.Windows.Controls.TabItem tab ? SectionName(tab) : null;
             _preferences = _preferences with
             {
                 Window = new WindowGeometry(
@@ -305,6 +316,30 @@ public partial class MainWindow : Window
         [.. InventoryTabs.Items.OfType<System.Windows.Controls.TabItem>().Where(item => item.IsEnabled)];
 
     /// <summary>
+    /// Every destination in navigation order, the "Network details" sub-pages included right after
+    /// their parent. Section names are what health findings and saved preferences route by.
+    /// </summary>
+    private IEnumerable<System.Windows.Controls.TabItem> AllSections() =>
+        SelectableTabs().SelectMany(item => item.Content is System.Windows.Controls.TabControl inner
+            ? [item, .. inner.Items.OfType<System.Windows.Controls.TabItem>()]
+            : new[] { item });
+
+    // UiTranslator parks the English header in Tag; the analyzers name sections in English.
+    private static string? SectionName(System.Windows.Controls.TabItem item) =>
+        item.Tag as string ?? item.Header?.ToString();
+
+    private void ShowSection(System.Windows.Controls.TabItem tab)
+    {
+        if (tab.Parent is System.Windows.Controls.TabControl inner && !ReferenceEquals(inner, InventoryTabs))
+        {
+            inner.SelectedItem = tab;
+            InventoryTabs.SelectedItem = inner.Parent;
+            return;
+        }
+        InventoryTabs.SelectedItem = tab;
+    }
+
+    /// <summary>
     /// Jump to a section by typing part of its name. The global search box doubles as the input:
     /// typing there and pressing Ctrl+K again moves to the first section whose name matches, which
     /// keeps one text field rather than introducing a modal palette over a modal-free app.
@@ -319,7 +354,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        var match = SelectableTabs().FirstOrDefault(item =>
+        var match = AllSections().FirstOrDefault(item =>
             item.Header?.ToString()?.Contains(typed, StringComparison.OrdinalIgnoreCase) == true);
         if (match is null)
         {
@@ -327,7 +362,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        InventoryTabs.SelectedItem = match;
+        ShowSection(match);
         StatusText.Text = Loc.F($"Jumped to {match.Header}.");
     }
 
@@ -384,14 +419,7 @@ public partial class MainWindow : Window
         _adapterRows = snapshot.Adapters;
         TuningPlan.SetAdapters(snapshot.Adapters);
         ShowInterfaceAdvice();
-        var dnsCandidates = snapshot.Adapters
-            .Where(item => Guid.TryParse(item.Id, out _) && item.Kind == AdapterKind.Physical)
-            .ToArray();
-        var previouslySelected = (DnsAdapterComboBox.SelectedItem as AdapterInfo)?.Id;
-        DnsAdapterComboBox.ItemsSource = dnsCandidates;
-        DnsAdapterComboBox.SelectedItem = dnsCandidates.FirstOrDefault(item => item.Id == previouslySelected)
-            ?? dnsCandidates.FirstOrDefault(item => item.Status == System.Net.NetworkInformation.OperationalStatus.Up)
-            ?? dnsCandidates.FirstOrDefault();
+        DnsResolvers.SetAdapters(snapshot.Adapters);
         _ndisRows = snapshot.Adapters
             .SelectMany(adapter => adapter.NdisProperties.Select(property => new NdisPropertyRow(
                 adapter.Name,
@@ -952,7 +980,8 @@ public partial class MainWindow : Window
 
     private void InventoryTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
-        if (ReferenceEquals(e.OriginalSource, InventoryTabs))
+        // Either level of navigation: switching a Network details sub-page changes the table too.
+        if (e.OriginalSource is System.Windows.Controls.TabControl)
         {
             _selectedInventoryItem = null;
             _selectedInventoryGrid = null;
@@ -1211,7 +1240,7 @@ public partial class MainWindow : Window
     private void ShowDashboardLatency(ProbeStatistics statistics, bool live)
     {
         var values = statistics.Samples.Select(sample => sample.RoundTripTimeMs).ToArray();
-        DrawChart(DashboardLatencyCanvas, values, (Brush)FindResource("PrimaryBrush"));
+        DrawChart(DashboardLatencyCanvas, values, (Brush)FindResource("AccentFillColorDefaultBrush"));
         AddLossMarkers(DashboardLatencyCanvas, values);
 
         DashboardLatencyLegendText.Text = statistics.Received == 0
@@ -1235,8 +1264,8 @@ public partial class MainWindow : Window
             var rate = Math.Max(sample.ReceiveRateKbps, sample.TransmitRateKbps);
             return rate > 0 ? (double?)(rate / 1000d) : null;
         }).ToArray();
-        DrawChart(DashboardWifiCanvas, signal, (Brush)FindResource("PrimaryBrush"));
-        DrawSeries(DashboardWifiCanvas, rates, (Brush)FindResource("WarningBrush"));
+        DrawChart(DashboardWifiCanvas, signal, (Brush)FindResource("AccentFillColorDefaultBrush"));
+        DrawSeries(DashboardWifiCanvas, rates, (Brush)FindResource("SystemFillColorCautionBrush"));
 
         var validSignal = signal.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
         var validRates = rates.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
@@ -1257,7 +1286,7 @@ public partial class MainWindow : Window
     private void DrawChart(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values, Brush brush)
     {
         canvas.Children.Clear();
-        var gridBrush = (Brush)FindResource("BorderBrush");
+        var gridBrush = (Brush)FindResource("CardStrokeColorDefaultBrush");
         foreach (var y in new[] { 30d, 60d, 90d })
         {
             canvas.Children.Add(new Line
@@ -1300,7 +1329,7 @@ public partial class MainWindow : Window
     private void AddLossMarkers(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values)
     {
         if (values.Count == 0) return;
-        var danger = (Brush)FindResource("DangerBrush");
+        var danger = (Brush)FindResource("SystemFillColorCriticalBrush");
         for (var index = 0; index < values.Count; index++)
         {
             if (values[index].HasValue) continue;
@@ -1316,21 +1345,6 @@ public partial class MainWindow : Window
         var error = AppLog.Write(eventName, message);
         LogStatusText.Text = error is null ? string.Empty : Loc.F($"Logging unavailable: {error}");
     }
-
-    private void ApplyDarkTitleBar()
-    {
-        if (SystemParameters.HighContrast) return;
-
-        var enabled = 1;
-        var handle = new WindowInteropHelper(this).Handle;
-        if (DwmSetWindowAttribute(handle, UseImmersiveDarkMode, ref enabled, sizeof(int)) != 0)
-        {
-            DwmSetWindowAttribute(handle, UseImmersiveDarkModeBefore20H1, ref enabled, sizeof(int));
-        }
-    }
-
-    [DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(nint window, int attribute, ref int value, int valueSize);
 
     /// <summary>
     /// Locates the first degrading segment and describes the shape of the path. Both are diagnosis
@@ -1730,207 +1744,14 @@ public partial class MainWindow : Window
         WriteLog("recommendations.sent_to_plan", $"Action={action.Id}; Accepted={accepted}/{action.Changes.Count}.");
     }
 
-    private void CancelDnsBenchmark_Click(object sender, RoutedEventArgs e)
-    {
-        _dnsBenchmarkCancellation?.Cancel();
-        StatusText.Text = Loc.T("Stopping the resolver benchmark\u2026");
-    }
-
     private void CancelActiveWork()
     {
         _diagnosticCancellation?.Cancel();
         _monitorCancellation?.Cancel();
         _throughputCancellation?.Cancel();
-        _dnsBenchmarkCancellation?.Cancel();
+        DnsResolvers.CancelActiveWork();
         _updateCancellation?.Cancel();
         WifiDiagnostics.CancelActiveWork();
-    }
-
-    private async void RunDnsBenchmark_Click(object sender, RoutedEventArgs e)
-    {
-        if (!int.TryParse(DnsRoundsText.Text.Trim(), out var rounds) || rounds is < 1 or > 10)
-        {
-            StatusText.Text = Loc.T("Queries per name must be between 1 and 10.");
-            return;
-        }
-
-        var candidates = BuildResolverCandidates();
-        if (candidates.Count == 0)
-        {
-            StatusText.Text = Loc.T("No resolver to measure.");
-            return;
-        }
-
-        _dnsBenchmarkCancellation?.Dispose();
-        _dnsBenchmarkCancellation = new CancellationTokenSource();
-        SetBusy(true);
-        RunDnsBenchmarkButton.IsEnabled = false;
-        CancelDnsBenchmarkButton.IsEnabled = true;
-        DnsVerdictText.Text = Loc.T("Measuring\u2026");
-        DnsResolverGrid.ItemsSource = null;
-        StatusText.Text = Loc.F($"Benchmarking {candidates.Count} resolver(s)\u2026");
-        WriteLog("dns.benchmark_started", $"Resolvers={candidates.Count}; Rounds={rounds}.");
-
-        try
-        {
-            var report = await _dnsBenchmark.RunAsync(
-                candidates,
-                DnsBenchmarkProbe.DefaultHostnames,
-                rounds,
-                DnsBenchmarkProbe.DefaultTimeout,
-                _dnsBenchmarkCancellation.Token);
-
-            DnsResolverGrid.ItemsSource = report.Results
-                .OrderBy(result => result.Usable ? 0 : 1)
-                .ThenBy(result => result.MedianMs ?? double.MaxValue)
-                .ToArray();
-            DnsVerdictText.Text = report.Verdict;
-            _lastDnsReport = report;
-            ApplyBestDnsButton.IsEnabled = WorthApplying(report);
-            StatusText.Text = Loc.T("Resolver benchmark complete.");
-            WriteLog("dns.benchmark_completed", report.Verdict);
-
-            if (DnsAutoApplyCheck.IsChecked == true && WorthApplying(report))
-            {
-                DnsApplyStatusText.Text = Loc.T("A worthwhile resolver was found; applying automatically\u2026");
-                await ApplyDnsAsync(report.Fastest!.Resolver.Address);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            DnsVerdictText.Text = Loc.T("Cancelled before every resolver was measured.");
-            StatusText.Text = Loc.T("Resolver benchmark cancelled.");
-            WriteLog("dns.benchmark_cancelled", "Cancelled by the operator.");
-        }
-        catch (Exception exception)
-        {
-            DnsVerdictText.Text = Loc.F($"Benchmark failed: {exception.Message}");
-            StatusText.Text = Loc.T("Resolver benchmark failed.");
-            WriteLog("dns.benchmark_failed", exception.Message);
-        }
-        finally
-        {
-            SetBusy(false);
-            RunDnsBenchmarkButton.IsEnabled = true;
-            CancelDnsBenchmarkButton.IsEnabled = false;
-        }
-    }
-
-    /// <summary>
-    /// The well-known list, the resolvers this machine is actually configured to use, and anything
-    /// typed in. Without the ones in use there is nothing to compare against, so a "faster" result
-    /// would have no meaning.
-    /// </summary>
-    private IReadOnlyList<DnsResolverCandidate> BuildResolverCandidates()
-    {
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var candidates = new List<DnsResolverCandidate>();
-
-        foreach (var address in (_snapshot?.Adapters ?? [])
-            .Where(adapter => adapter.Status == System.Net.NetworkInformation.OperationalStatus.Up)
-            .SelectMany(adapter => adapter.DnsServers))
-        {
-            if (IPAddress.TryParse(address, out var parsed)
-                && parsed.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
-                && seen.Add(address))
-            {
-                candidates.Add(new DnsResolverCandidate("Currently configured", address, InUse: true));
-            }
-        }
-
-        foreach (var extra in DnsExtraResolversText.Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            if (seen.Add(extra)) candidates.Add(new DnsResolverCandidate("Custom", extra));
-        }
-
-        foreach (var known in DnsBenchmarkProbe.WellKnown)
-        {
-            if (seen.Add(known.Address)) candidates.Add(known);
-        }
-
-        return candidates;
-    }
-
-    /// <summary>
-    /// Whether a measured winner is worth acting on. The same noise floor the verdict uses: a gain
-    /// under 5 ms is inside run-to-run variation, and acting on it automatically would be churn.
-    /// </summary>
-    private static bool WorthApplying(DnsBenchmarkReport report) =>
-        report.Fastest is not null
-        && !ReferenceEquals(report.Fastest, report.Current)
-        && report.ImprovementMs is >= 5;
-
-    private async void ApplyBestDns_Click(object sender, RoutedEventArgs e)
-    {
-        if (_lastDnsReport?.Fastest is not { } fastest)
-        {
-            DnsApplyStatusText.Text = Loc.T("Run a benchmark first.");
-            return;
-        }
-
-        await ApplyDnsAsync(fastest.Resolver.Address);
-    }
-
-    private async void RevertDns_Click(object sender, RoutedEventArgs e) => await ApplyDnsAsync(null);
-
-    /// <summary>
-    /// Applies a resolver list, or restores DHCP when <paramref name="primary"/> is null. Goes
-    /// through the same elevated worker and the same snapshot, verify and rollback path as every
-    /// other change; nothing here writes directly.
-    /// </summary>
-    private async Task ApplyDnsAsync(string? primary)
-    {
-        if (DnsAdapterComboBox.SelectedItem is not AdapterInfo adapter || !Guid.TryParse(adapter.Id, out _))
-        {
-            DnsApplyStatusText.Text = Loc.T("Select an adapter to change.");
-            return;
-        }
-
-        var specification = new DnsServerSpecification();
-        var store = new DnsServerStore();
-        var address = specification.ResolveAddress(adapter.Id);
-
-        try
-        {
-            var before = await store.ReadAsync(address, CancellationToken.None);
-            var after = primary is null
-                ? StoredSettingValue.Missing
-                : new StoredSettingValue(true, DnsServerSpecification.Canonical([primary]));
-
-            if (before == after)
-            {
-                DnsApplyStatusText.Text = primary is null
-                    ? Loc.F($"{adapter.Name} already takes its resolvers from DHCP.")
-                    : Loc.F($"{adapter.Name} is already using {primary}.");
-                return;
-            }
-
-            var request = new ElevatedWorkerRequest(
-                ElevatedWorker.SchemaVersion,
-                Guid.NewGuid(),
-                WorkerOperationKind.Apply,
-                [new WorkerSettingOperation(
-                    address.SettingId,
-                    address.TargetId,
-                    new WorkerStoredValue(before.Exists, before.Value),
-                    new WorkerStoredValue(after.Exists, after.Value),
-                    ChangeSource.Manual)]);
-
-            DnsApplyStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
-            var response = await _dnsWorker.ExecuteAsync(request, CancellationToken.None);
-            DnsApplyStatusText.Text = response.Status;
-            WriteLog("dns.applied", $"Adapter={adapter.Name}; To={after.Value}; Success={response.Success}; {response.Status}");
-            if (response.Success) await RefreshInventoryAsync();
-        }
-        catch (ElevatedWorkerDeclinedException exception)
-        {
-            DnsApplyStatusText.Text = exception.Message;
-        }
-        catch (Exception exception)
-        {
-            DnsApplyStatusText.Text = Loc.F($"Resolver change failed: {exception.Message}");
-            WriteLog("dns.apply_failed", exception.Message);
-        }
     }
 
     /// <summary>
@@ -2347,10 +2168,10 @@ public partial class MainWindow : Window
         VerificationGrid.ItemsSource = verification.Metrics;
         VerificationHeadlineText.Foreground = verification.Outcome switch
         {
-            ApplyOutcome.Improved => (System.Windows.Media.Brush)FindResource("GoodBrush"),
-            ApplyOutcome.Worse => (System.Windows.Media.Brush)FindResource("DangerBrush"),
-            ApplyOutcome.Mixed => (System.Windows.Media.Brush)FindResource("WarningBrush"),
-            _ => (System.Windows.Media.Brush)FindResource("TextBrush")
+            ApplyOutcome.Improved => (System.Windows.Media.Brush)FindResource("SystemFillColorSuccessBrush"),
+            ApplyOutcome.Worse => (System.Windows.Media.Brush)FindResource("SystemFillColorCriticalBrush"),
+            ApplyOutcome.Mixed => (System.Windows.Media.Brush)FindResource("SystemFillColorCautionBrush"),
+            _ => (System.Windows.Media.Brush)FindResource("TextFillColorPrimaryBrush")
         };
 
         if (verification.SuggestsRollback)
@@ -2649,31 +2470,23 @@ public partial class MainWindow : Window
 
     private void SelectTab(string header)
     {
-        var tab = InventoryTabs.Items
-            .OfType<System.Windows.Controls.TabItem>()
-            .FirstOrDefault(item => string.Equals(
-                item.Tag as string ?? item.Header?.ToString(), header, StringComparison.Ordinal));
-        if (tab is not null) InventoryTabs.SelectedItem = tab;
+        var tab = AllSections().FirstOrDefault(item => string.Equals(SectionName(item), header, StringComparison.Ordinal));
+        if (tab is not null) ShowSection(tab);
     }
 
     private void OpenHealthSection_Click(object sender, RoutedEventArgs e)
     {
         if (HealthGrid.SelectedItem is not HealthFinding finding) return;
 
-        var tab = InventoryTabs.Items
-            .OfType<System.Windows.Controls.TabItem>()
-            .FirstOrDefault(item => string.Equals(
-                // UiTranslator parks the English header in Tag; the analyzers name sections in English.
-                (item.Tag as string ?? item.Header?.ToString())?.Replace("_", string.Empty),
-                finding.Section,
-                StringComparison.OrdinalIgnoreCase));
+        var tab = AllSections().FirstOrDefault(item => string.Equals(
+            SectionName(item)?.Replace("_", string.Empty), finding.Section, StringComparison.OrdinalIgnoreCase));
         if (tab is null)
         {
             StatusText.Text = Loc.F($"No section named {finding.Section}.");
             return;
         }
 
-        InventoryTabs.SelectedItem = tab;
+        ShowSection(tab);
         StatusText.Text = finding.Action;
     }
 
@@ -2794,232 +2607,9 @@ public partial class MainWindow : Window
         return $" Judging against {profile.DisplayName} at {profile.TickRateHz:0.#} Hz, from the report.";
     }
 
-    // ---- Interrupt affinity ---------------------------------------------------------------
-
-    private void IrqRescan_Click(object sender, RoutedEventArgs e) => LoadInterruptAffinity();
-
-    private void IrqFilter_Changed(object sender, RoutedEventArgs e) => ShowInterruptDevices();
-
-    private void LoadInterruptAffinity()
-    {
-        _interrupts = InterruptAffinityInventory.Read();
-        if (_interrupts.Error is { } error)
-        {
-            IrqSummaryText.Text = Loc.F($"Device scan failed: {error}");
-            return;
-        }
-
-        _coreChoices.Clear();
-        for (var core = 0; core < _interrupts.LogicalProcessors; core++)
-        {
-            _coreChoices.Add(new CoreChoice(core));
-        }
-
-        ShowInterruptDevices();
-    }
-
-    private void ShowInterruptDevices()
-    {
-        if (_interrupts is not { } inventory) return;
-
-        var devices = inventory.Devices.AsEnumerable();
-        if (IrqNetworkOnlyCheck.IsChecked == true) devices = devices.Where(device => device.IsNetwork);
-        if (IrqOverriddenOnlyCheck.IsChecked == true) devices = devices.Where(device => device.HasOverride);
-
-        var rows = devices.ToArray();
-        IrqDeviceGrid.ItemsSource = rows;
-        var overridden = inventory.Devices.Count(device => device.HasOverride);
-        IrqSummaryText.Text =
-            Loc.F($"{rows.Length} device(s) shown of {inventory.Devices.Count} present. "
-            + $"{overridden} currently carry an override; the rest are placed by Windows. "
-            + $"This machine reports {inventory.LogicalProcessors} logical processors.");
-    }
-
-    private void IrqDeviceGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        var selected = IrqDeviceGrid.SelectedItem as InterruptAffinityDevice;
-        IrqApplyButton.IsEnabled = selected is not null;
-        IrqResetButton.IsEnabled = selected is { HasOverride: true };
-        if (selected is null)
-        {
-            IrqSelectedDeviceText.Text = Loc.T("Select a device above.");
-            return;
-        }
-
-        IrqSelectedDeviceText.Text =
-            Loc.F($"{selected.FriendlyName}  —  {selected.StateDisplay}. Instance: {selected.InstanceId}");
-
-        // Start from what the device already has, so applying without touching anything is a no-op
-        // rather than a silent change to whatever the controls happened to show.
-        var current = selected.Cores.ToHashSet();
-        foreach (var choice in _coreChoices) choice.Selected = current.Contains(choice.Core);
-
-        var wanted = selected.Policy == InterruptPolicy.MachineDefault
-            ? InterruptPolicy.SpecifiedProcessors
-            : selected.Policy;
-        IrqPolicyComboBox.SelectedItem = IrqPolicyComboBox.ItemsSource
-            .OfType<PolicyChoice>()
-            .FirstOrDefault(choice => choice.Policy == wanted);
-        IrqPriorityComboBox.SelectedItem = selected.Priority;
-        UpdateIrqWarning();
-    }
-
-    private void IrqPolicy_Changed(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        var specified = IrqPolicyComboBox.SelectedItem is PolicyChoice { Policy: InterruptPolicy.SpecifiedProcessors };
-        IrqCoreList.IsEnabled = specified;
-        UpdateIrqWarning();
-    }
-
-    /// <summary>
-    /// Says the two things that actually go wrong: pinning to CPU 0, which already carries most of
-    /// the system's deferred work, and stacking several devices onto one core.
-    /// </summary>
-    private void UpdateIrqWarning()
-    {
-        var warnings = new List<string>();
-        var chosen = _coreChoices.Where(choice => choice.Selected).Select(choice => choice.Core).ToArray();
-
-        if (IrqPolicyComboBox.SelectedItem is PolicyChoice { Policy: InterruptPolicy.SpecifiedProcessors })
-        {
-            if (chosen.Length == 0)
-            {
-                warnings.Add("Select at least one processor, or the device would have no core to run on.");
-            }
-            else if (chosen.Contains(0))
-            {
-                warnings.Add("CPU 0 already services most of the system's deferred work by default; it is rarely the right place to add more.");
-            }
-
-            if (chosen.Length == 1 && _interrupts is { Devices.Count: > 0 })
-            {
-                var sharing = _interrupts.Devices.Count(device =>
-                    device.Policy == InterruptPolicy.SpecifiedProcessors && device.Cores.Contains(chosen[0]));
-                if (sharing > 0)
-                {
-                    warnings.Add($"{sharing} other device(s) are already pinned to CPU {chosen[0]}.");
-                }
-            }
-        }
-
-        IrqWarningText.Text = string.Join(Environment.NewLine, warnings);
-        IrqWarningText.Visibility = warnings.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
-    }
-
-    private async void IrqApply_Click(object sender, RoutedEventArgs e)
-    {
-        if (IrqDeviceGrid.SelectedItem is not InterruptAffinityDevice device) return;
-        if (IrqPolicyComboBox.SelectedItem is not PolicyChoice { Policy: var policy }
-            || IrqPriorityComboBox.SelectedItem is not InterruptPriority priority)
-        {
-            IrqStatusText.Text = Loc.T("Select a policy and priority.");
-            return;
-        }
-
-        var mask = policy == InterruptPolicy.SpecifiedProcessors
-            ? InterruptAffinityDevice.ToMask(_coreChoices.Where(choice => choice.Selected).Select(choice => choice.Core))
-            : 0UL;
-
-        await ApplyInterruptAffinityAsync(
-            device, new StoredSettingValue(true, InterruptAffinitySpecification.Canonical(policy, priority, mask)));
-    }
-
-    private async void IrqReset_Click(object sender, RoutedEventArgs e)
-    {
-        if (IrqDeviceGrid.SelectedItem is not InterruptAffinityDevice device) return;
-        await ApplyInterruptAffinityAsync(device, StoredSettingValue.Missing);
-    }
-
-    private async Task ApplyInterruptAffinityAsync(InterruptAffinityDevice device, StoredSettingValue desired)
-    {
-        if (_interrupts is not { } inventory) return;
-
-        try
-        {
-            var specification = new InterruptAffinitySpecification(
-                Math.Max(inventory.LogicalProcessors, 1),
-                inventory.Devices.Select(item => item.InstanceId).ToHashSet(StringComparer.OrdinalIgnoreCase));
-            if (desired.Exists) specification.Validate(desired.Value);
-
-            var address = specification.ResolveAddress(device.InstanceId);
-            var store = new InterruptAffinityStore(specification);
-            var before = await store.ReadAsync(address, CancellationToken.None);
-            if (before == desired)
-            {
-                IrqStatusText.Text = Loc.F($"{device.FriendlyName} already has that placement.");
-                return;
-            }
-
-            var request = new ElevatedWorkerRequest(
-                ElevatedWorker.SchemaVersion,
-                Guid.NewGuid(),
-                WorkerOperationKind.Apply,
-                [new WorkerSettingOperation(
-                    address.SettingId,
-                    address.TargetId,
-                    new WorkerStoredValue(before.Exists, before.Value),
-                    new WorkerStoredValue(desired.Exists, desired.Value),
-                    ChangeSource.Manual)]);
-
-            IrqStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
-            var response = await _irqWorker.ExecuteAsync(request, CancellationToken.None);
-            IrqStatusText.Text = response.Success
-                ? Loc.F($"{response.Status} The new placement takes effect after a restart.")
-                : response.Status;
-            WriteLog("irq.applied",
-                $"Device={device.FriendlyName}; To={(desired.Exists ? desired.Value : "default")}; Success={response.Success}");
-            if (response.Success) LoadInterruptAffinity();
-        }
-        catch (ElevatedWorkerDeclinedException exception)
-        {
-            IrqStatusText.Text = exception.Message;
-        }
-        catch (Exception exception)
-        {
-            IrqStatusText.Text = Loc.F($"Interrupt affinity change failed: {exception.Message}");
-            WriteLog("irq.apply_failed", exception.Message);
-        }
-    }
-
-    /// <summary>A policy with the wording shown to the user rather than its enum name.</summary>
     private sealed record UpdateChannelChoice(UpdateChannel Channel, string DisplayName)
     {
         public override string ToString() => DisplayName;
-    }
-
-    private sealed record PolicyChoice(InterruptPolicy Policy)
-    {
-        public string Display => Policy switch
-        {
-            InterruptPolicy.SpecifiedProcessors => "Only the processors I select",
-            InterruptPolicy.AllCloseProcessors => "All processors near the device",
-            InterruptPolicy.OneCloseProcessor => "One processor near the device",
-            InterruptPolicy.AllProcessorsInMachine => "Any processor",
-            InterruptPolicy.SpreadMessagesAcrossAllProcessors => "Spread messages across all processors",
-            _ => Policy.ToString()
-        };
-    }
-
-    /// <summary>One selectable processor. Bound to the pill toggles.</summary>
-    private sealed class CoreChoice(int core) : System.ComponentModel.INotifyPropertyChanged
-    {
-        private bool _selected;
-
-        public int Core { get; } = core;
-        public string Label => $"CPU {Core}";
-
-        public bool Selected
-        {
-            get => _selected;
-            set
-            {
-                if (_selected == value) return;
-                _selected = value;
-                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(nameof(Selected)));
-            }
-        }
-
-        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
     }
 
     private sealed record NdisPropertyRow(
