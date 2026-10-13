@@ -57,6 +57,19 @@ public partial class App : Application
         // has to be settled first. The console modes above stay English — they answer a terminal.
         Loc.Use(AppPreferences.Load().Language);
 
+        // Last line of defence for the async void handlers: an exception one of them missed would
+        // otherwise close the window without a trace. Log it, say so, keep running.
+        DispatcherUnhandledException += (_, args) =>
+        {
+            AppLog.Write("app.unhandled", args.Exception.ToString());
+            MessageBox.Show(
+                Loc.F($"Something went wrong: {args.Exception.Message} The details were written to the log."),
+                "SockTuner",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+            args.Handled = true;
+        };
+
         MainWindow = new MainWindow();
         MainWindow.Show();
     }

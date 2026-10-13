@@ -368,16 +368,8 @@ public partial class TuningPlanView : UserControl
 
         if (!EnsureWriteConsent()) return;
 
-        var request = new ElevatedWorkerRequest(
-            ElevatedWorker.SchemaVersion,
-            Guid.NewGuid(),
-            WorkerOperationKind.Apply,
-            plan.Changes.Select(change => new WorkerSettingOperation(
-                change.Address.SettingId,
-                change.Address.TargetId,
-                new WorkerStoredValue(change.Before.Exists, change.Before.Value),
-                new WorkerStoredValue(change.After.Exists, change.After.Value),
-                change.Source)).ToArray());
+        var request = ElevatedChange.Request(WorkerOperationKind.Apply, plan.Changes.Select(change =>
+            ElevatedChange.Operation(change.Address.SettingId, change.Address.TargetId, change.Before, change.After, change.Source)));
 
         await RunWorkerAsync(request, "Apply");
     }
@@ -431,52 +423,34 @@ public partial class TuningPlanView : UserControl
 
         // Rollback inverts the recorded change: the value it wrote becomes what we expect to
         // find, and the value it captured beforehand becomes what we restore.
-        var request = new ElevatedWorkerRequest(
-            ElevatedWorker.SchemaVersion,
-            Guid.NewGuid(),
-            WorkerOperationKind.Rollback,
-            entry.Changes.Select(change => new WorkerSettingOperation(
+        var request = ElevatedChange.Request(WorkerOperationKind.Rollback, entry.Changes.Select(change =>
+            ElevatedChange.Operation(
                 change.SettingId,
                 change.TargetId,
-                new WorkerStoredValue(change.After.Exists, change.After.Value),
-                new WorkerStoredValue(change.Before.Exists, change.Before.Value),
-                ChangeSource.Recovery)).ToArray());
+                new StoredSettingValue(change.After.Exists, change.After.Value),
+                new StoredSettingValue(change.Before.Exists, change.Before.Value),
+                ChangeSource.Recovery)));
 
-        await RunWorkerAsync(request, "Rollback");
-        return true;
+        return await RunWorkerAsync(request, "Rollback");
     }
 
-    private async Task RunWorkerAsync(ElevatedWorkerRequest request, string operation)
+    private async Task<bool> RunWorkerAsync(ElevatedWorkerRequest request, string operation)
     {
         SetStatus(Loc.F($"{operation} requested. Approve the Windows elevation prompt to continue…"));
         ApplyButton.IsEnabled = false;
-        try
-        {
-            var response = await _worker.ExecuteAsync(request, CancellationToken.None);
-            SetStatus($"{operation}: {response.Status}");
-            AppLog.Write($"tuning.{operation.ToLowerInvariant()}",
-                $"Success={response.Success}; Changes={request.Changes.Count}; Status={response.Status}");
-        }
-        catch (ElevatedWorkerDeclinedException exception)
-        {
-            SetStatus(exception.Message);
-        }
-        catch (Exception exception) when (exception is InvalidOperationException or TimeoutException
-                                          or System.IO.IOException or System.Text.Json.JsonException)
-        {
-            SetStatus(Loc.F($"{operation} failed: {exception.Message}"));
-            AppLog.Write($"tuning.{operation.ToLowerInvariant()}_failed", exception.Message);
-        }
-        finally
-        {
-            _preparedPlan = null;
-            PlanPreviewGrid.ItemsSource = null;
-            ConfirmationText.Text = string.Empty;
-            ConfirmationText.IsEnabled = false;
-            RefreshAuditHistory();
-            LoadCapabilities();
-            Applied?.Invoke(this, EventArgs.Empty);
-        }
+        var response = await ElevatedChange.RunAsync(
+            _worker.ExecuteAsync, request, $"tuning.{operation.ToLowerInvariant()}", SetStatus,
+            message => Loc.F($"{operation} failed: {message}"));
+        if (response is not null) SetStatus($"{operation}: {response.Status}");
+
+        _preparedPlan = null;
+        PlanPreviewGrid.ItemsSource = null;
+        ConfirmationText.Text = string.Empty;
+        ConfirmationText.IsEnabled = false;
+        RefreshAuditHistory();
+        LoadCapabilities();
+        Applied?.Invoke(this, EventArgs.Empty);
+        return response?.Success == true;
     }
 
     private bool EnsureWriteConsent()

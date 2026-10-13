@@ -192,35 +192,28 @@ public partial class InterruptAffinityView : UserControl
                 return;
             }
 
-            var request = new ElevatedWorkerRequest(
-                ElevatedWorker.SchemaVersion,
-                Guid.NewGuid(),
-                WorkerOperationKind.Apply,
-                [new WorkerSettingOperation(
-                    address.SettingId,
-                    address.TargetId,
-                    new WorkerStoredValue(before.Exists, before.Value),
-                    new WorkerStoredValue(desired.Exists, desired.Value),
-                    ChangeSource.Manual)]);
+            var request = ElevatedChange.Request(WorkerOperationKind.Apply,
+                [ElevatedChange.Operation(address.SettingId, address.TargetId, before, desired, ChangeSource.Manual)]);
 
             IrqStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
-            var response = await _irqWorker.ExecuteAsync(request, CancellationToken.None);
+            AppLog.Write("irq.apply_requested",
+                $"Device={device.FriendlyName}; To={(desired.Exists ? desired.Value : "default")}");
+            var response = await ElevatedChange.RunAsync(
+                _irqWorker.ExecuteAsync, request, "irq.apply", status => IrqStatusText.Text = status, Failed);
+            if (response is null) return;
             IrqStatusText.Text = response.Success
                 ? Loc.F($"{response.Status} The new placement takes effect after a restart.")
                 : response.Status;
-            AppLog.Write("irq.applied",
-                $"Device={device.FriendlyName}; To={(desired.Exists ? desired.Value : "default")}; Success={response.Success}");
             if (response.Success) Load();
         }
-        catch (ElevatedWorkerDeclinedException exception)
-        {
-            IrqStatusText.Text = exception.Message;
-        }
+        // Validation and the registry read can fail too; the worker call itself never throws.
         catch (Exception exception)
         {
-            IrqStatusText.Text = Loc.F($"Interrupt affinity change failed: {exception.Message}");
+            IrqStatusText.Text = Failed(exception.Message);
             AppLog.Write("irq.apply_failed", exception.Message);
         }
+
+        static string Failed(string message) => Loc.F($"Interrupt affinity change failed: {message}");
     }
 
     /// <summary>A policy with the wording shown to the user rather than its enum name.</summary>
