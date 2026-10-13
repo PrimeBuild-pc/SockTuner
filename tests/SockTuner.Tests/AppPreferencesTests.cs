@@ -14,6 +14,27 @@ public sealed class AppPreferencesTests
     }
 
     [Fact]
+    public void Update_KeepsFieldsAnotherSurfaceSavedMeanwhile()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"SockTuner-{Guid.NewGuid():N}", "preferences.json");
+        try
+        {
+            AppPreferences.Save(path, new());
+            AppPreferences.Update(path, preferences => preferences with { UpdateChannel = "Preview" });
+
+            AppPreferences.Update(path, preferences => preferences with { Language = "es" });
+
+            var loaded = AppPreferences.Load(path);
+            Assert.Equal("Preview", loaded.UpdateChannel);
+            Assert.Equal("es", loaded.Language);
+        }
+        finally
+        {
+            Directory.Delete(Path.GetDirectoryName(path)!, true);
+        }
+    }
+
+    [Fact]
     public void SaveAndLoad_RoundTripsValidatedPreference()
     {
         var path = Path.Combine(Path.GetTempPath(), $"SockTuner-{Guid.NewGuid():N}", "preferences.json");

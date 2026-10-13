@@ -33,11 +33,7 @@ public partial class MainWindow : Window
     private readonly NetworkMonitorService _monitor = new();
     private readonly RouteGatewayResolver _routeGatewayResolver = new();
     private readonly DiagnosticHistoryStore _historyStore = new();
-    private readonly AppUpdateService _updates = new();
     private readonly ObservableCollection<DiagnosticHistoryEntry> _history = [];
-    private CancellationTokenSource? _updateCancellation;
-    private AppRelease? _availableUpdate;
-    private bool _initializingUpdateChannel = true;
     private NetworkSnapshot? _snapshot;
     private GamingDiagnosticReport? _lastReport;
     private CancellationTokenSource? _diagnosticCancellation;
@@ -96,16 +92,6 @@ public partial class MainWindow : Window
         MonitorSamplesGrid.ItemsSource = _monitorSamples;
         foreach (var entry in _historyStore.Load()) _history.Add(entry);
         HistoryGrid.ItemsSource = _history;
-        UpdateChannelComboBox.ItemsSource = Enum.GetValues<UpdateChannel>()
-            .Select(channel => new UpdateChannelChoice(channel, Loc.T(channel.ToString())))
-            .ToArray();
-        var savedChannel = Enum.TryParse<UpdateChannel>(_preferences.UpdateChannel, true, out var channel)
-            ? channel
-            : UpdateChannel.Stable;
-        UpdateChannelComboBox.SelectedItem = ((UpdateChannelChoice[])UpdateChannelComboBox.ItemsSource)
-            .First(item => item.Channel == savedChannel);
-        _initializingUpdateChannel = false;
-        UpdateVersionText.Text = Loc.F($"Installed version: {AppUpdateService.CurrentVersion}");
         if (_history.FirstOrDefault()?.Report is { } previousReport)
             ShowDashboardLatency(previousReport.GameTarget, live: false);
         else
@@ -138,11 +124,7 @@ public partial class MainWindow : Window
         {
             await RefreshInventoryAsync();
             InterruptAffinity.Load();
-            if (_preferences.LastUpdateCheckAt is not { } checkedAt
-                || DateTimeOffset.UtcNow - checkedAt >= TimeSpan.FromDays(1))
-            {
-                await CheckForUpdatesAsync(quiet: true);
-            }
+            await Updates.CheckIfDueAsync();
         };
         ShowWriteState();
         ShowRecoveryState();
@@ -237,15 +219,14 @@ public partial class MainWindow : Window
                 ? inner.SelectedItem
                 : InventoryTabs.SelectedItem;
             var selectedSection = current is System.Windows.Controls.TabItem tab ? SectionName(tab) : null;
-            _preferences = _preferences with
+            _preferences = AppPreferences.Update(preferences => preferences with
             {
                 Window = new WindowGeometry(
                     bounds.Left, bounds.Top, bounds.Width, bounds.Height,
                     WindowState == WindowState.Maximized),
                 SelectedSection = selectedSection,
                 WifiInterfaceId = WifiDiagnostics.SelectedInterfaceId ?? WifiDiagnostics.PreferredInterfaceId
-            };
-            AppPreferences.Save(_preferences);
+            });
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
@@ -939,8 +920,7 @@ public partial class MainWindow : Window
 
         try
         {
-            _preferences = _preferences with { LogFileMegabytes = megabytes };
-            AppPreferences.Save(_preferences);
+            _preferences = AppPreferences.Update(preferences => preferences with { LogFileMegabytes = megabytes });
             var error = AppLog.ConfigureRetention(megabytes);
             PreferenceStatusText.Text = error is null
                 ? Loc.F($"Retention saved: two files of up to {megabytes} MB each.")
@@ -964,8 +944,7 @@ public partial class MainWindow : Window
 
         try
         {
-            _preferences = _preferences with { Language = language.Tag };
-            AppPreferences.Save(_preferences);
+            _preferences = AppPreferences.Update(preferences => preferences with { Language = language.Tag });
             PreferenceStatusText.Text = language.Tag == Loc.CurrentTag
                 ? Loc.F($"Language saved: {language.NativeName}.")
                 : Loc.F($"Language saved: {language.NativeName}. Restart SockTuner to apply it.");
@@ -1750,7 +1729,7 @@ public partial class MainWindow : Window
         _monitorCancellation?.Cancel();
         _throughputCancellation?.Cancel();
         DnsResolvers.CancelActiveWork();
-        _updateCancellation?.Cancel();
+        Updates.CancelActiveWork();
         WifiDiagnostics.CancelActiveWork();
     }
 
@@ -2296,143 +2275,6 @@ public partial class MainWindow : Window
         ShowRecoveryState();
     }
 
-    private async void CheckUpdates_Click(object sender, RoutedEventArgs e) =>
-        await CheckForUpdatesAsync(quiet: false);
-
-    private void UpdateChannel_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (_initializingUpdateChannel || UpdateChannelComboBox.SelectedItem is not UpdateChannelChoice choice) return;
-        _availableUpdate = null;
-        InstallUpdateButton.IsEnabled = false;
-        _preferences = _preferences with { UpdateChannel = choice.Channel.ToString(), LastUpdateCheckAt = null };
-        try
-        {
-            AppPreferences.Save(_preferences);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            WriteLog("updates.preference_failed", exception.Message);
-        }
-        SetUpdateStatus(Loc.F($"{choice.DisplayName} channel selected. Check when you are ready."));
-    }
-
-    private async Task CheckForUpdatesAsync(bool quiet)
-    {
-        if (UpdateChannelComboBox.SelectedItem is not UpdateChannelChoice choice) return;
-        _updateCancellation?.Cancel();
-        _updateCancellation?.Dispose();
-        var cancellation = new CancellationTokenSource();
-        _updateCancellation = cancellation;
-        CheckUpdatesButton.IsEnabled = false;
-        InstallUpdateButton.IsEnabled = false;
-        UpdateStatusText.ToolTip = null;
-        if (!quiet) SetUpdateStatus(Loc.T("Checking GitHub Releases…"));
-
-        try
-        {
-            _availableUpdate = await _updates.CheckAsync(choice.Channel, cancellation.Token);
-            if (_availableUpdate is null)
-            {
-                SetUpdateStatus(Loc.F($"Version {AppUpdateService.CurrentVersion} is up to date on the {choice.DisplayName} channel."));
-            }
-            else
-            {
-                SetUpdateStatus(AppUpdateService.AutomaticInstallationAvailable
-                    ? Loc.F($"Version {_availableUpdate.Version} is available: {_availableUpdate.Name}")
-                    : Loc.F($"Version {_availableUpdate.Version} is available, but automatic installation requires a signed SockTuner build."));
-                UpdateStatusText.ToolTip = _availableUpdate.Notes;
-                InstallUpdateButton.IsEnabled = AppUpdateService.AutomaticInstallationAvailable;
-            }
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-        {
-            if (!quiet) SetUpdateStatus(Loc.T("Update check canceled."));
-        }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException
-                                           or InvalidDataException)
-        {
-            SetUpdateStatus(Loc.F($"Updates could not be checked: {exception.Message}"));
-            WriteLog("updates.check_failed", exception.Message);
-        }
-        finally
-        {
-            _preferences = _preferences with { LastUpdateCheckAt = DateTimeOffset.UtcNow };
-            try
-            {
-                AppPreferences.Save(_preferences);
-            }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-            {
-                WriteLog("updates.preference_failed", exception.Message);
-            }
-            CheckUpdatesButton.IsEnabled = true;
-            if (ReferenceEquals(_updateCancellation, cancellation)) _updateCancellation = null;
-            cancellation.Dispose();
-        }
-    }
-
-    private async void InstallUpdate_Click(object sender, RoutedEventArgs e)
-    {
-        if (_availableUpdate is not { } release || Environment.ProcessPath is not { } currentExecutable) return;
-        var notes = string.IsNullOrWhiteSpace(release.Notes)
-            ? string.Empty
-            : Environment.NewLine + Environment.NewLine + release.Notes[..Math.Min(release.Notes.Length, 1200)];
-        if (MessageBox.Show(
-                Loc.F($"Download and install SockTuner {release.Version}? The app will restart after verifying the archive checksum and Authenticode signature.{notes}"),
-                Loc.T("Install SockTuner update"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        _updateCancellation?.Cancel();
-        _updateCancellation?.Dispose();
-        var cancellation = new CancellationTokenSource();
-        _updateCancellation = cancellation;
-        CheckUpdatesButton.IsEnabled = false;
-        InstallUpdateButton.IsEnabled = false;
-        SetUpdateStatus(Loc.F($"Downloading and verifying SockTuner {release.Version}…"));
-        try
-        {
-            var prepared = await _updates.PrepareAsync(release, currentExecutable, cancellation.Token);
-            var start = new ProcessStartInfo(prepared.ExecutablePath) { UseShellExecute = true };
-            if (AppUpdateService.InstallationNeedsElevation(currentExecutable)) start.Verb = "runas";
-            start.ArgumentList.Add(UpdateInstaller.Argument);
-            start.ArgumentList.Add(Environment.ProcessId.ToString());
-            start.ArgumentList.Add(currentExecutable);
-            Process.Start(start);
-            Application.Current.Shutdown();
-        }
-        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
-        {
-            SetUpdateStatus(Loc.T("Update installation canceled."));
-            CheckUpdatesButton.IsEnabled = true;
-            InstallUpdateButton.IsEnabled = _availableUpdate is not null;
-        }
-        catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or IOException or UnauthorizedAccessException
-                                           or InvalidDataException or InvalidOperationException or System.ComponentModel.Win32Exception)
-        {
-            SetUpdateStatus(Loc.F($"The update could not be installed: {exception.Message}"));
-            WriteLog("updates.install_failed", exception.Message);
-            CheckUpdatesButton.IsEnabled = true;
-            InstallUpdateButton.IsEnabled = true;
-        }
-        finally
-        {
-            if (ReferenceEquals(_updateCancellation, cancellation)) _updateCancellation = null;
-            cancellation.Dispose();
-        }
-    }
-
-    private void SetUpdateStatus(string value)
-    {
-        UpdateStatusText.Text = value;
-        var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(UpdateStatusText)
-            ?? new System.Windows.Automation.Peers.FrameworkElementAutomationPeer(UpdateStatusText);
-        peer.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
-    }
-
     private void DashboardCheckDrift_Click(object sender, RoutedEventArgs e)
     {
         TuningPlan.CheckForDrift();
@@ -2605,11 +2447,6 @@ public partial class MainWindow : Window
 
         DiagnosticGameComboBox.SelectedItem = _gameProfiles.First(item => item == profile);
         return $" Judging against {profile.DisplayName} at {profile.TickRateHz:0.#} Hz, from the report.";
-    }
-
-    private sealed record UpdateChannelChoice(UpdateChannel Channel, string DisplayName)
-    {
-        public override string ToString() => DisplayName;
     }
 
     private sealed record NdisPropertyRow(
