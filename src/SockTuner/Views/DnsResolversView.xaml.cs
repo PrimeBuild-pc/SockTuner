@@ -223,31 +223,24 @@ public partial class DnsResolversView : UserControl
                 return;
             }
 
-            var request = new ElevatedWorkerRequest(
-                ElevatedWorker.SchemaVersion,
-                Guid.NewGuid(),
-                WorkerOperationKind.Apply,
-                [new WorkerSettingOperation(
-                    address.SettingId,
-                    address.TargetId,
-                    new WorkerStoredValue(before.Exists, before.Value),
-                    new WorkerStoredValue(after.Exists, after.Value),
-                    ChangeSource.Manual)]);
+            var request = ElevatedChange.Request(WorkerOperationKind.Apply,
+                [ElevatedChange.Operation(address.SettingId, address.TargetId, before, after, ChangeSource.Manual)]);
 
             DnsApplyStatusText.Text = Loc.T("Approve the Windows elevation prompt to continue\u2026");
-            var response = await _dnsWorker.ExecuteAsync(request, CancellationToken.None);
+            AppLog.Write("dns.apply_requested", $"Adapter={adapter.Name}; To={after.Value}");
+            var response = await ElevatedChange.RunAsync(
+                _dnsWorker.ExecuteAsync, request, "dns.apply", status => DnsApplyStatusText.Text = status, Failed);
+            if (response is null) return;
             DnsApplyStatusText.Text = response.Status;
-            AppLog.Write("dns.applied", $"Adapter={adapter.Name}; To={after.Value}; Success={response.Success}; {response.Status}");
             if (response.Success) Applied?.Invoke(this, EventArgs.Empty);
         }
-        catch (ElevatedWorkerDeclinedException exception)
-        {
-            DnsApplyStatusText.Text = exception.Message;
-        }
+        // Reading the current resolvers can fail too; the worker call itself never throws.
         catch (Exception exception)
         {
-            DnsApplyStatusText.Text = Loc.F($"Resolver change failed: {exception.Message}");
+            DnsApplyStatusText.Text = Failed(exception.Message);
             AppLog.Write("dns.apply_failed", exception.Message);
         }
+
+        static string Failed(string message) => Loc.F($"Resolver change failed: {message}");
     }
 }
