@@ -86,6 +86,19 @@ public static class AppPreferences
 
     public static void Save(UserPreferences preferences) => Save(PathName, preferences);
 
+    /// <summary>
+    /// Re-reads the file, applies one change and saves it. Each surface owns a few fields; saving a
+    /// copy it read at startup would write every other surface's fields back to their old values.
+    /// </summary>
+    public static UserPreferences Update(Func<UserPreferences, UserPreferences> change) => Update(PathName, change);
+
+    internal static UserPreferences Update(string path, Func<UserPreferences, UserPreferences> change)
+    {
+        var updated = change(Load(path));
+        Save(path, updated);
+        return updated;
+    }
+
     internal static UserPreferences Load(string path)
     {
         try
