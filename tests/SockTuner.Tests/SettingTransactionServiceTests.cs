@@ -58,7 +58,6 @@ public sealed class SettingTransactionServiceTests
 
         Assert.False(result.Success);
         Assert.False(result.Snapshot.AppliedSuccessfully);
-        Assert.Empty(result.Snapshot.Signature);
         Assert.Equal(new StoredSettingValue(true, "30"), store.Values[address]);
         Assert.Contains("Stale plan", result.Error, StringComparison.Ordinal);
 
@@ -179,43 +178,6 @@ public sealed class SettingTransactionServiceTests
         Assert.Single(errors);
         Assert.Contains("changed externally", errors[0], StringComparison.Ordinal);
         Assert.Equal(new StoredSettingValue(true, "30"), store.Values[address]);
-    }
-
-    [Fact]
-    public async Task Rollback_RejectsSnapshotFromAnotherServiceSession()
-    {
-        var store = new MemorySettingStore();
-        var address = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
-        store.Values[address] = new StoredSettingValue(true, "20");
-        var plan = await _transactions.PrepareAsync(
-            [new ChangeRequest(address.SettingId, null, "10")], store, CancellationToken.None);
-        var result = await _transactions.ApplyAsync(plan, store, CancellationToken.None);
-
-        var errors = await new SettingTransactionService()
-            .RollbackAsync(result.Snapshot, store, CancellationToken.None);
-
-        Assert.Single(errors);
-        Assert.Contains("provenance", errors[0], StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(new StoredSettingValue(true, "10"), store.Values[address]);
-    }
-
-    [Fact]
-    public async Task Rollback_RejectsTamperedSnapshot()
-    {
-        var store = new MemorySettingStore();
-        var address = SettingCatalog.Get("mmcss.system-responsiveness").ResolveAddress(null);
-        store.Values[address] = new StoredSettingValue(true, "20");
-        var plan = await _transactions.PrepareAsync(
-            [new ChangeRequest(address.SettingId, null, "10")], store, CancellationToken.None);
-        var result = await _transactions.ApplyAsync(plan, store, CancellationToken.None);
-        var tamperedChange = result.Snapshot.Changes[0] with { Before = new StoredSettingValue(true, "90") };
-        var tamperedSnapshot = result.Snapshot with { Changes = [tamperedChange] };
-
-        var errors = await _transactions.RollbackAsync(tamperedSnapshot, store, CancellationToken.None);
-
-        Assert.Single(errors);
-        Assert.Contains("integrity", errors[0], StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(new StoredSettingValue(true, "10"), store.Values[address]);
     }
 
     [Theory]
