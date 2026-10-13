@@ -17,87 +17,149 @@
   <img alt=".NET 10 LTS" src="https://img.shields.io/badge/.NET-10%20LTS-512BD4?style=plastic&amp;logo=dotnet&amp;logoColor=white">
 </p>
 
+<p align="center">
+  <b>See what your Windows network stack is really doing — then change it safely, or not at all.</b><br>
+  Inventory, gaming diagnostics and reversible NIC tuning in one native app.
+</p>
+
+<p align="center">
+  <a href="#gallery">Gallery</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#how-a-change-is-applied">Safety</a> ·
+  <a href="#getting-started">Getting started</a> ·
+  <a href="#help-improve-hardware-compatibility">Compatibility reports</a> ·
+  <a href="#building-from-source">Build</a>
+</p>
+
 > [!WARNING]
-> **SockTuner is a community diagnostic alpha, not production software.** Read-only inventory and diagnostics are the primary public surface. Tuning is experimental and can change live network settings. Applying a NIC property restarts that adapter and briefly drops its link — never do this through the connection being changed. Every write requires consent and elevation, is snapshotted, verified by read-back, audited, and reversible.
+> **SockTuner is a community alpha, not production software.** Read-only inventory and diagnostics are
+> the main surface. Tuning is experimental and changes live network settings: applying a NIC property
+> restarts that adapter and briefly drops its link, so never apply a change through the connection
+> being changed. Every write needs consent and elevation, and is snapshotted, verified, audited and
+> reversible.
 
-SockTuner is intended for tweakers, technicians, competitive gamers, system integrators, and power users who need one place to inspect and control the Windows networking stack, network adapters, and NIC driver settings.
+## Gallery
 
-It is not a generic “make my ping lower” button. SockTuner will show the current value, proposed value, scope, expected trade-off, restart requirement, and rollback data for every change.
+<table>
+  <tr>
+    <td width="50%"><a href="docs/assets/screenshots/dashboard.png"><img src="docs/assets/screenshots/dashboard.png" alt="Dashboard with adapter counts and the health check"></a></td>
+    <td width="50%"><a href="docs/assets/screenshots/gaming-diagnostics.png"><img src="docs/assets/screenshots/gaming-diagnostics.png" alt="Gaming diagnostics with endpoint, profile and tick rate"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Dashboard</b> — inventory at a glance and a health check that opens the section that fixes each finding</td>
+    <td align="center"><b>Gaming diagnostics</b> — judge an endpoint against your game's tick rate, then re-run to see if a change helped</td>
+  </tr>
+  <tr>
+    <td><a href="docs/assets/screenshots/tuning-plan.png"><img src="docs/assets/screenshots/tuning-plan.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
+    <td><a href="docs/assets/screenshots/dns-resolvers.png"><img src="docs/assets/screenshots/dns-resolvers.png" alt="DNS resolver benchmark"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Tuning plan</b> — only what the driver advertises, with current, default, accepted values and risk</td>
+    <td align="center"><b>DNS resolvers</b> — benchmark any resolver over UDP 53, then apply or restore DHCP</td>
+  </tr>
+  <tr>
+    <td><a href="docs/assets/screenshots/interrupt-affinity.png"><img src="docs/assets/screenshots/interrupt-affinity.png" alt="Interrupt affinity per device"></a></td>
+    <td><a href="docs/assets/screenshots/preferences.png"><img src="docs/assets/screenshots/preferences.png" alt="Preferences with the live changes switch"></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Interrupt affinity</b> — which CPUs service each device's interrupts, and MSI state</td>
+    <td align="center"><b>Preferences</b> — live changes stay off until you turn them on</td>
+  </tr>
+</table>
 
-## Help improve hardware compatibility
+<sub>Screenshots from a real machine; private addresses are blanked out.</sub>
 
-SockTuner exposes only settings that the installed NIC driver actually advertises. We need reports from real hardware — especially **Intel I219/I225/I226**, **Realtek RTL8111/RTL8125**, Killer/Qualcomm, Broadcom, and Marvell adapters.
+## Who it is for
 
-1. Download and extract the latest Windows x64 build from [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases).
-2. Refresh the inventory, then open **Preferences → Help improve SockTuner**.
-3. Choose **Create compatibility report**, review the plain-text JSON, and let SockTuner open the dedicated GitHub issue form.
-4. Attach the JSON file to the issue.
+Tweakers, technicians, competitive players, system integrators and power users who want one place to
+inspect and control the Windows networking stack, network adapters and NIC driver settings.
 
-After the first signed install, **Dashboard → Updates** can check stable or preview GitHub Releases,
-verify the published SHA-256 checksum and Authenticode signature, replace the single executable, and
-restart SockTuner. Unsigned development builds can check for releases but cannot install them automatically.
+It is not a "make my ping lower" button. Network settings depend on the workload, driver, OS and
+topology: disabling RSS, ECN, auto-tuning, offloads or interrupt moderation is not universally
+better, Nagle changes only affect TCP while most games use UDP, and no client-side setting replaces
+router-side SQM for bufferbloat. SockTuner shows the evidence and the trade-off, and leaves the call
+to you.
 
-The report contains the adapter model, driver version, OS version, and driver-advertised keywords and constraints. It excludes all current setting values, persistent adapter/PNP identifiers, MAC and IP addresses, routes, DNS servers, INF and user paths, machine name, and exact timestamps. Creating it is read-only and changes nothing on the PC.
+## Features
 
-## Product goals
-
-- Inspect the system before recommending or changing anything.
-- Cover Windows TCP/IP, Winsock, IP interfaces, NIC offloads, RSS, interrupts, power management, MTU, DNS, QoS, and driver-advertised advanced properties.
-- Prefer documented Windows APIs and driver capabilities over scripts, hard-coded adapter names, or localized property labels.
-- Preview every change as a diff and verify it after application.
-- Snapshot exact original values and provide reliable per-session rollback.
-- Measure latency, jitter, packet loss, path MTU, DNS response, route quality, and before/after results.
-- Diagnose gaming connectivity layer by layer: PC/NIC, LAN or Wi-Fi, router/modem, access link, ISP, routing/peering, server region, and remote endpoint.
-- Run without third-party command-line tools for normal operation.
-- Remain useful to experts: no hidden presets and no unexplained “recommended” values.
-
-## Planned feature areas
-
-| Area | Scope |
+| Area | What you get |
 | --- | --- |
-| System inventory | OS build, CPU topology, active routes, interfaces, driver identity/version, link state, addresses, DNS, bindings, and supported NIC properties |
-| NIC tuning | Interrupt moderation, RSS, RSC, LSO, checksum offloads, USO/URO, queue and buffer settings, flow control, jumbo frames, EEE, wake, and power-saving controls |
-| Windows networking | TCP templates and global settings, per-interface settings, MTU, metrics, DNS, QoS policies, TCP ACK/Nagle controls, and Winsock catalog inspection |
-| Gaming diagnostics | Layered PC-to-game-server testing, latency/loss/jitter percentiles, route and region analysis, DNS and connection timing, path MTU, loaded latency, likely-cause ranking, and targeted fixes |
-| Change management | Dry run, compatibility gates, risk labels, snapshots, read-back verification, audit history, export, and exact rollback |
-| Profiles | Transparent, editable profiles built only from independently supported and tested settings |
-
-See the [documentation index](docs/README.md) for the architecture and repository metadata.
-
-## Proposed technology
-
-- **Language:** C#
-- **Runtime:** .NET 10 LTS
-- **Desktop UI:** WPF
-- **Initial target:** Windows 10 22H2 and supported Windows 11 releases, x64
-- **Distribution:** signed, self-contained Windows build
-
-WPF is the deliberate choice for a Windows-only administrative tool: it is mature, works across Windows 10 and 11, integrates cleanly with native Windows management surfaces, and avoids a browser runtime or an unnecessary UI platform dependency.
-
-Read the full [Architecture](docs/ARCHITECTURE.md) and [GitHub repository metadata](docs/GITHUB.md).
-
-## Engineering position
-
-Network settings are workload-, driver-, OS-, and topology-dependent. Disabling RSS, ECN, auto-tuning, offloads, or interrupt moderation is not universally beneficial. Nagle-related changes affect TCP, while many games primarily use UDP. Client-side throttling is not a universal replacement for router-side SQM/AQM and cannot eliminate every form of bufferbloat.
-
-## Current stage
-
-- Native read-only inventory covers adapters, routes, interfaces, DNS, profiles, bindings, NIC counters, TCP templates, QoS, offloads, interrupts, Winsock, driver identity, and driver-advertised properties.
-- The complete network check measures each path boundary, latency/loss/jitter, DNS and TCP timing, path MTU, route quality, counter deltas, and game-specific playability; loaded-latency and throughput traffic remain separate opt-in tests.
-- Versioned reports, bounded local history, redacted exports, before/after comparison, trends, monitoring, and imported capture reports are available.
-- Experimental writes use one allowlisted tuning plan with dry run, consent, elevation, stale-state refusal, read-back verification, audit, visible recovery, and exact rollback.
-- Real-hardware coverage is crowdsourced through the in-app compatibility report. The generated [capability archive index](alpha-tester-output/INDEX.md) lists current Intel, Realtek, and MediaTek coverage.
+| **Inventory** | Adapters, routes, interfaces, DNS, network profiles, bindings, NIC counters, TCP templates and globals, QoS policies, offloads, interrupts, Winsock catalog, driver identity and every driver-advertised NDIS property — read natively, no third-party tools |
+| **Gaming diagnostics** | One check walks the path layer by layer (PC/NIC, LAN or Wi-Fi, router, access link, ISP, route, server) with latency, loss and jitter percentiles, DNS and TCP timing, path MTU, route quality and a playability verdict against the game's tick rate |
+| **Wi-Fi diagnostics** | Passive WLAN data from the Windows cache — signal, rate, band, nearby channel pressure — without triggering a scan |
+| **Throughput & bufferbloat** | Opt-in loaded-latency and throughput tests graded on the Waveform scale; external Waveform results can be imported and graded by the same code |
+| **DNS resolvers** | Benchmark configured and extra resolvers, apply the fastest one or restore DHCP |
+| **Recommendations** | Ranked, evidence-based suggestions sent to the tuning plan, plus router guidance where the fix is not on the PC |
+| **Tuning** | Driver-advertised NIC properties, interface state and power, QoS policies and interrupt affinity, all through one allowlisted, reversible write path |
+| **Records** | Versioned reports, local history, before/after comparison, trends, drift checks, continuous monitoring with a watchdog, and redacted exports |
+| **Languages** | English, Español, Русский, 简体中文 |
 
 ## How a change is applied
 
-1. Pick an adapter and a focus preset; only driver-advertised properties are listed, each with its current value, the driver default, the accepted values, a risk level and the trade-off it costs.
-2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would restore, and the restart requirement.
-3. **Apply** asks for the one-time alpha consent, then elevates. High-risk or experimental changes need `APPLY` typed to confirm.
-4. The elevated worker re-reads the driver, refuses anything it no longer advertises or that drifted since the preview, writes, reads the value back to verify, records an audit entry, then restarts the adapter and confirms it returns to its previous link state.
-5. Any audit entry can be rolled back to exactly the values it captured.
+1. **Pick** an adapter and a focus preset. Only driver-advertised properties are listed, each with its
+   current value, driver default, accepted values, risk level and trade-off.
+2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would
+   restore, and the restart requirement.
+3. **Apply** asks for the one-time alpha consent, then elevates. High-risk or experimental changes need
+   `APPLY` typed to confirm, and so does any change made over a remote session.
+4. The **elevated worker** re-reads the driver, refuses anything it no longer advertises or that drifted
+   since the preview, writes, reads the value back, records an audit entry, then restarts the adapter
+   and checks it returns to its previous link state.
+5. **Undo** any audit entry to exactly the values it captured.
 
-## Important notice
+SockTuner never invents a value or a range, and any keyword it has not characterised on real hardware
+is treated as high risk.
 
-Changing network, registry, adapter, or driver settings can interrupt connectivity or reduce stability and throughput. Applying a NIC property restarts that adapter, which briefly drops the link — do not apply over a remote session on the adapter being changed. Test on a machine you can recover without remote access. SockTuner never invents a value or a range: it exposes only what the installed driver advertises, and treats any keyword it has not characterised as high risk.
+## Getting started
 
-SockTuner is released under the [MIT License](LICENSE). Compatibility reports and bug reports are welcome through the dedicated GitHub issue forms.
+**Requirements:** Windows 10 22H2 or a supported Windows 11 release, x64. The release is a single
+self-contained executable: nothing to install, no .NET runtime needed.
+
+1. Download the latest `SockTuner-<version>-win-x64.zip` from
+   [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases) and extract it.
+2. Alpha builds are not code-signed yet, so SmartScreen will warn on first launch. Check the archive
+   against the `.sha256` file published next to it before running it.
+3. Start `SockTuner.exe` as a normal user. It only reads until you accept the live-changes notice
+   (shown at the first write, or from **Preferences → Live network changes**); each write then asks
+   for elevation on its own.
+
+**Updates:** **Dashboard → Updates** checks the stable or preview channel on GitHub Releases. Automatic
+installation verifies the SHA-256 checksum and requires both the installed app and the update to be
+signed by the same publisher, so it becomes available once releases are signed.
+
+## Help improve hardware compatibility
+
+SockTuner exposes only settings the installed NIC driver actually advertises, so it needs reports from
+real hardware — especially **Intel I219/I225/I226**, **Realtek RTL8111/RTL8125**, **Killer/Qualcomm**,
+**Broadcom** and **Marvell** adapters, and any machine on **Windows 10**.
+
+1. Refresh the inventory, then open **Preferences → Help improve SockTuner**.
+2. Choose **Create compatibility report**, review the plain-text JSON, and let SockTuner open the
+   GitHub issue form.
+3. Attach the JSON file to the issue.
+
+The report contains the adapter model, driver version, OS version, and driver-advertised keywords and
+constraints. It excludes current setting values, persistent adapter and PnP identifiers, MAC and IP
+addresses, routes, DNS servers, INF and user paths, machine name and exact timestamps. Creating it is
+read-only. The [capability archive](alpha-tester-output/INDEX.md) lists the hardware covered so far.
+
+## Building from source
+
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) on Windows.
+
+```powershell
+git clone https://github.com/PrimeBuild-pc/SockTuner.git
+cd SockTuner
+dotnet build SockTuner.sln
+dotnet test SockTuner.sln
+dotnet run --project src/SockTuner
+```
+
+Built with C#, WPF and the Fluent theme: a mature, native toolkit for a Windows-only administrative
+tool, with no browser runtime. Read the [architecture](docs/ARCHITECTURE.md) for how inventory,
+diagnostics and the write path fit together.
+
+## License
+
+[MIT](LICENSE). Compatibility reports and bug reports are welcome through the GitHub issue forms; see
+[SECURITY.md](SECURITY.md) for reporting vulnerabilities.
