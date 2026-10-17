@@ -30,7 +30,7 @@ def vendor_of(desc, component_id):
     if match and match.group(1).upper() in VENDOR_BY_PCI:
         return VENDOR_BY_PCI[match.group(1).upper()]
     for name in ("Intel", "Realtek", "MediaTek", "Qualcomm", "Broadcom", "Marvell", "Killer",
-                 "TAP-Windows", "Hyper-V", "Microsoft"):
+                 "ASIX", "TAP-Windows", "Hyper-V", "Microsoft"):
         if name.lower() in desc.lower():
             return name
     return "Unknown"
@@ -203,7 +203,7 @@ def render_index(entries):
         caps = len(entry["capabilities"])
         lines.append(
             f"| {entry['vendor']} | {entry['model']} | {entry['driver'].get('version', '—')} | "
-            f"{len(entry['ndisProperties'])} | {caps if caps else '— (pre-schema-12)'} | "
+            f"{len(entry['ndisProperties'])} | {caps if caps else '— (not reported)'} | "
             f"{entry['capturedFrom'].get('osVersion', '—')} |")
 
     lines += [

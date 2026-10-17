@@ -1,0 +1,1118 @@
+{
+  "archiveKey": "Realtek-8852BE-WiFi-6-6001.15.157.0",
+  "vendor": "Realtek",
+  "model": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Realtek Semiconductor Corp.",
+    "version": "6001.15.157.0",
+    "date": "2-4-2025",
+    "componentId": "PCI\\VEN_10EC&DEV_B852",
+    "ndisVersion": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 1,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "SockTuner-compatibility-536de2968ea7.json"
+  },
+  "adapter": {
+    "id": "00000000-0000-0000-0000-000000000006",
+    "name": "Adapter 6",
+    "description": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+    "interfaceType": "Wireless80211",
+    "driver": {
+      "provider": "Realtek Semiconductor Corp.",
+      "version": "6001.15.157.0",
+      "date": "2-4-2025",
+      "componentId": "PCI\\VEN_10EC&DEV_B852",
+      "ndisVersion": "—",
+      "characteristics": 132
+    },
+    "capabilities": [
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "WifiProtocol_2g",
+        "displayName": "2.4G Wireless Mode",
+        "currentValue": "[redacted]",
+        "defaultValue": "45",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "IEEE 802.11b",
+            "display": "IEEE 802.11b (1)"
+          },
+          {
+            "registryValue": "5",
+            "displayValue": "IEEE 802.11b/g",
+            "display": "IEEE 802.11b/g (5)"
+          },
+          {
+            "registryValue": "13",
+            "displayValue": "IEEE 802.11b/g/n",
+            "display": "IEEE 802.11b/g/n (13)"
+          },
+          {
+            "registryValue": "45",
+            "displayValue": "IEEE 802.11b/g/n/ax",
+            "display": "IEEE 802.11b/g/n/ax (45)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+        "rejected": false,
+        "settingId": "nic.WifiProtocol_2g",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "IEEE 802.11b/g/n/ax",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "Disabled (0), IEEE 802.11b (1), IEEE 802.11b/g (5), IEEE 802.11b/g/n (13), IEEE 802.11b/g/n/ax (45)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "WifiProtocol_5g",
+        "displayName": "5G Wireless Mode",
+        "currentValue": "[redacted]",
+        "defaultValue": "58",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "IEEE 802.11a",
+            "display": "IEEE 802.11a (2)"
+          },
+          {
+            "registryValue": "10",
+            "displayValue": "IEEE 802.11a/n",
+            "display": "IEEE 802.11a/n (10)"
+          },
+          {
+            "registryValue": "26",
+            "displayValue": "IEEE 802.11a/n/ac",
+            "display": "IEEE 802.11a/n/ac (26)"
+          },
+          {
+            "registryValue": "58",
+            "displayValue": "IEEE 802.11a/n/ac/ax",
+            "display": "IEEE 802.11a/n/ac/ax (58)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+        "rejected": false,
+        "settingId": "nic.WifiProtocol_5g",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "IEEE 802.11a/n/ac/ax",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "Disabled (0), IEEE 802.11a (2), IEEE 802.11a/n (10), IEEE 802.11a/n/ac (26), IEEE 802.11a/n/ac/ax (58)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "Dot11dEnable",
+        "displayName": "802.11d",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Enabled",
+            "display": "Enabled (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+        "rejected": false,
+        "settingId": "nic.Dot11dEnable",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Disabled",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Disabled (0), Enabled (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "AH_BcnIntv",
+        "displayName": "Beacon Interval",
+        "currentValue": "[redacted]",
+        "defaultValue": "100",
+        "choices": [],
+        "minimum": 20,
+        "maximum": 1000,
+        "step": 1,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+        "rejected": false,
+        "settingId": "nic.AH_BcnIntv",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": false,
+        "isNumericRange": true,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "100",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "20–1000",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "SupportMACRandom",
+        "displayName": "MAC Randomization",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Enabled",
+            "display": "Enabled (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio, Identity",
+        "risk": "Medium",
+        "tradeOff": "MAC randomisation improves privacy but breaks MAC-based network access control.",
+        "rejected": false,
+        "settingId": "nic.SupportMACRandom",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Enabled",
+        "areasDisplay": "WiFiRadio, Identity",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Disabled (0), Enabled (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "MCCSup",
+        "displayName": "Multi-Channel Concurrent",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Enabled",
+            "display": "Enabled (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+        "rejected": false,
+        "settingId": "nic.MCCSup",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Enabled",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Disabled (0), Enabled (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "PreambleMode",
+        "displayName": "Preamble Mode",
+        "currentValue": "[redacted]",
+        "defaultValue": "2",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Long only",
+            "display": "Long only (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "Short & long",
+            "display": "Short & long (2)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+        "rejected": false,
+        "settingId": "nic.PreambleMode",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Short & long",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Long only (1), Short & long (2)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "PreferBand",
+        "displayName": "Preferred Band",
+        "currentValue": "[redacted]",
+        "defaultValue": "2",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. No Preference",
+            "display": "1. No Preference (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 2.4G first",
+            "display": "2. 2.4G first (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. 5G first",
+            "display": "3. 5G first (2)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+        "rejected": false,
+        "settingId": "nic.PreferBand",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "3. 5G first",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "1. No Preference (0), 2. 2.4G first (1), 3. 5G first (2)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "RegRoamLevel",
+        "displayName": "Roaming Aggressiveness",
+        "currentValue": "[redacted]",
+        "defaultValue": "3",
+        "choices": [
+          {
+            "registryValue": "5",
+            "displayValue": "6. Highest",
+            "display": "6. Highest (5)"
+          },
+          {
+            "registryValue": "4",
+            "displayValue": "5. Medium-High",
+            "display": "5. Medium-High (4)"
+          },
+          {
+            "registryValue": "3",
+            "displayValue": "4. Medium",
+            "display": "4. Medium (3)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. Medium-Low",
+            "display": "3. Medium-Low (2)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. Lowest",
+            "display": "2. Lowest (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "1. Disable",
+            "display": "1. Disable (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+        "rejected": false,
+        "settingId": "nic.RegRoamLevel",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "4. Medium",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "6. Highest (5), 5. Medium-High (4), 4. Medium (3), 3. Medium-Low (2), 2. Lowest (1), 1. Disable (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "*WakeOnMagicPacket",
+        "displayName": "Wake on Magic Packet",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Enabled",
+            "display": "Enabled (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+        "rejected": false,
+        "settingId": "nic.*WakeOnMagicPacket",
+        "isStandardKeyword": true,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Enabled",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disabled (0), Enabled (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000006",
+        "adapterName": "Adapter 6",
+        "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+        "keyword": "*WakeOnPattern",
+        "displayName": "Wake on Pattern Match",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disabled",
+            "display": "Disabled (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Enabled",
+            "display": "Enabled (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+        "rejected": false,
+        "settingId": "nic.*WakeOnPattern",
+        "isStandardKeyword": true,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Enabled",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disabled (0), Enabled (1)",
+        "isModifiedFromDefault": true
+      }
+    ]
+  },
+  "ndisProperties": [
+    {
+      "keyword": "WifiProtocol_2g",
+      "displayName": "2.4G Wireless Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "45",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: IEEE 802.11b, 13: IEEE 802.11b/g/n, 45: IEEE 802.11b/g/n/ax, 5: IEEE 802.11b/g"
+    },
+    {
+      "keyword": "WifiProtocol_5g",
+      "displayName": "5G Wireless Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "58",
+      "type": "enum",
+      "validValues": "0: Disabled, 10: IEEE 802.11a/n, 2: IEEE 802.11a, 26: IEEE 802.11a/n/ac, 58: IEEE 802.11a/n/ac/ax"
+    },
+    {
+      "keyword": "Dot11dEnable",
+      "displayName": "802.11d",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "AH_BcnIntv",
+      "displayName": "Beacon Interval",
+      "currentValue": "[redacted]",
+      "defaultValue": "100",
+      "type": "int",
+      "validValues": "20–1000 (step 1)"
+    },
+    {
+      "keyword": "SupportMACRandom",
+      "displayName": "MAC Randomization",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "MCCSup",
+      "displayName": "Multi-Channel Concurrent",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "PreambleMode",
+      "displayName": "Preamble Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "1: Long only, 2: Short & long"
+    },
+    {
+      "keyword": "PreferBand",
+      "displayName": "Preferred Band",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: 1. No Preference, 1: 2. 2.4G first, 2: 3. 5G first"
+    },
+    {
+      "keyword": "RegRoamLevel",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: 1. Disable, 1: 2. Lowest, 2: 3. Medium-Low, 3: 4. Medium, 4: 5. Medium-High, 5: 6. Highest"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "WifiProtocol_2g",
+      "displayName": "2.4G Wireless Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "45",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "IEEE 802.11b",
+          "display": "IEEE 802.11b (1)"
+        },
+        {
+          "registryValue": "5",
+          "displayValue": "IEEE 802.11b/g",
+          "display": "IEEE 802.11b/g (5)"
+        },
+        {
+          "registryValue": "13",
+          "displayValue": "IEEE 802.11b/g/n",
+          "display": "IEEE 802.11b/g/n (13)"
+        },
+        {
+          "registryValue": "45",
+          "displayValue": "IEEE 802.11b/g/n/ax",
+          "display": "IEEE 802.11b/g/n/ax (45)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.WifiProtocol_2g",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "IEEE 802.11b/g/n/ax",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabled (0), IEEE 802.11b (1), IEEE 802.11b/g (5), IEEE 802.11b/g/n (13), IEEE 802.11b/g/n/ax (45)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "WifiProtocol_5g",
+      "displayName": "5G Wireless Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "58",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "IEEE 802.11a",
+          "display": "IEEE 802.11a (2)"
+        },
+        {
+          "registryValue": "10",
+          "displayValue": "IEEE 802.11a/n",
+          "display": "IEEE 802.11a/n (10)"
+        },
+        {
+          "registryValue": "26",
+          "displayValue": "IEEE 802.11a/n/ac",
+          "display": "IEEE 802.11a/n/ac (26)"
+        },
+        {
+          "registryValue": "58",
+          "displayValue": "IEEE 802.11a/n/ac/ax",
+          "display": "IEEE 802.11a/n/ac/ax (58)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.WifiProtocol_5g",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "IEEE 802.11a/n/ac/ax",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "Disabled (0), IEEE 802.11a (2), IEEE 802.11a/n (10), IEEE 802.11a/n/ac (26), IEEE 802.11a/n/ac/ax (58)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "Dot11dEnable",
+      "displayName": "802.11d",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.Dot11dEnable",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Disabled",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "AH_BcnIntv",
+      "displayName": "Beacon Interval",
+      "currentValue": "[redacted]",
+      "defaultValue": "100",
+      "choices": [],
+      "minimum": 20,
+      "maximum": 1000,
+      "step": 1,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.AH_BcnIntv",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": false,
+      "isNumericRange": true,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "100",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "20–1000",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "SupportMACRandom",
+      "displayName": "MAC Randomization",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio, Identity",
+      "risk": "Medium",
+      "tradeOff": "MAC randomisation improves privacy but breaks MAC-based network access control.",
+      "rejected": false,
+      "settingId": "nic.SupportMACRandom",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "WiFiRadio, Identity",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "MCCSup",
+      "displayName": "Multi-Channel Concurrent",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.MCCSup",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "PreambleMode",
+      "displayName": "Preamble Mode",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Long only",
+          "display": "Long only (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "Short & long",
+          "display": "Short & long (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.PreambleMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Short & long",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Long only (1), Short & long (2)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "PreferBand",
+      "displayName": "Preferred Band",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. No Preference",
+          "display": "1. No Preference (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 2.4G first",
+          "display": "2. 2.4G first (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. 5G first",
+          "display": "3. 5G first (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+      "rejected": false,
+      "settingId": "nic.PreferBand",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "3. 5G first",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "1. No Preference (0), 2. 2.4G first (1), 3. 5G first (2)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "RegRoamLevel",
+      "displayName": "Roaming Aggressiveness",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "5",
+          "displayValue": "6. Highest",
+          "display": "6. Highest (5)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "5. Medium-High",
+          "display": "5. Medium-High (4)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. Medium",
+          "display": "4. Medium (3)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Medium-Low",
+          "display": "3. Medium-Low (2)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Lowest",
+          "display": "2. Lowest (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "1. Disable",
+          "display": "1. Disable (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+      "rejected": false,
+      "settingId": "nic.RegRoamLevel",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "4. Medium",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "6. Highest (5), 5. Medium-High (4), 4. Medium (3), 3. Medium-Low (2), 2. Lowest (1), 1. Disable (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnMagicPacket",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000006",
+      "adapterName": "Adapter 6",
+      "interfaceDescription": "Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC",
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on Pattern Match",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disabled",
+          "display": "Disabled (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Enabled",
+          "display": "Enabled (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.*WakeOnPattern",
+      "isStandardKeyword": true,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Enabled",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disabled (0), Enabled (1)",
+      "isModifiedFromDefault": true
+    }
+  ]
+}
