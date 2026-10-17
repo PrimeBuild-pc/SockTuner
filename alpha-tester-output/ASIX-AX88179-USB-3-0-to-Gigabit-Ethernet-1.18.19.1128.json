@@ -1,0 +1,238 @@
+{
+  "archiveKey": "ASIX-AX88179-USB-3-0-to-Gigabit-Ethernet-1.18.19.1128",
+  "vendor": "ASIX",
+  "model": "ASIX AX88179 USB 3.0 to Gigabit Ethernet Adapter",
+  "isVirtual": false,
+  "driver": {
+    "provider": "Microsoft",
+    "version": "1.18.19.1128",
+    "date": "8-5-2012",
+    "componentId": "USB\\VID_0B95&PID_1790",
+    "ndisVersion": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 1,
+    "operatingSystem": "Microsoft Windows 10.0.26200",
+    "osVersion": "10.0.26200.0",
+    "sourceReport": "SockTuner-compatibility-536de2968ea7.json"
+  },
+  "adapter": {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "name": "Adapter 2",
+    "description": "ASIX AX88179 USB 3.0 to Gigabit Ethernet Adapter",
+    "interfaceType": "Ethernet",
+    "driver": {
+      "provider": "Microsoft",
+      "version": "1.18.19.1128",
+      "date": "8-5-2012",
+      "componentId": "USB\\VID_0B95&PID_1790",
+      "ndisVersion": "—",
+      "characteristics": 132
+    },
+    "capabilities": []
+  },
+  "ndisProperties": [
+    {
+      "keyword": "*PMARPOffload",
+      "displayName": "ARP Offload",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "AutoDetach",
+      "displayName": "AutoDetach",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled, 2: Use EEPROM Setting"
+    },
+    {
+      "keyword": "*EEE",
+      "displayName": "Energy-Efficient Ethernet",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*FlowControl",
+      "displayName": "Flow Control",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "GreenEthernet",
+      "displayName": "Green Ethernet",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "IMR",
+      "displayName": "Interrupt Moderation Rate",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Low, 2: Middle, 3: High"
+    },
+    {
+      "keyword": "*IPChecksumOffloadIPv4",
+      "displayName": "IPv4 Checksum Offload",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "JumboPacket",
+      "displayName": "JumboPacket",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: 2KB, 2: 4KB"
+    },
+    {
+      "keyword": "*LsoV1IPv4",
+      "displayName": "Large Send Offload Version 1",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "MaskTimer",
+      "displayName": "Mask WakeUp Event Timer",
+      "currentValue": "[redacted]",
+      "defaultValue": "2",
+      "type": "enum",
+      "validValues": "0: 0 second, 1: 4 seconds, 2: 8 seconds, 3: 12 seconds, 4: 16 seconds, 5: 20 seconds, 6: 24 seconds, 7: 28 seconds"
+    },
+    {
+      "keyword": "NetworkAddress",
+      "displayName": "NetworkAddress",
+      "currentValue": "[redacted]",
+      "defaultValue": "000000000000",
+      "type": "edit",
+      "validValues": "—"
+    },
+    {
+      "keyword": "*PMNSOffload",
+      "displayName": "NS Offload",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*PriorityVLANTag",
+      "displayName": "Packet Priority & VLAN",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Packet Priority & VLAN Disable, 1: Packet Priority Enable, 2: VLAN Enable, 3: Packet Priority & VLAN Enable"
+    },
+    {
+      "keyword": "*SelectiveSuspend",
+      "displayName": "SelectiveSuspend",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*SpeedDuplex",
+      "displayName": "Speed & Duplex",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto Negotiation, 1: 10 Mbps Half Duplex, 2: 10 Mbps Full Duplex, 3: 100 Mbps Half Duplex, 4: 100 Mbps Full Duplex, 6: 1.0 Gbps Full Duplex"
+    },
+    {
+      "keyword": "*SSIdleTimeout",
+      "displayName": "SSIdleTimeout",
+      "currentValue": "[redacted]",
+      "defaultValue": "60",
+      "type": "int",
+      "validValues": "1–60 (step 1)"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv4",
+      "displayName": "TCP Checksum Offload (IPv4)",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "*TCPChecksumOffloadIPv6",
+      "displayName": "TCP Checksum Offload (IPv6)",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv4",
+      "displayName": "UDP Checksum Offload (IPv4)",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "*UDPChecksumOffloadIPv6",
+      "displayName": "UDP Checksum Offload (IPv6)",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Tx Enabled, 2: Rx Enabled, 3: Rx & Tx Enabled"
+    },
+    {
+      "keyword": "VLAN_ID",
+      "displayName": "VLAN ID",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "int",
+      "validValues": "0–4095 (step 1)"
+    },
+    {
+      "keyword": "WakeOnLinkChange",
+      "displayName": "Wake on link change",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*WakeOnMagicPacket",
+      "displayName": "Wake on Magic Packet",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "*WakeOnPattern",
+      "displayName": "Wake on pattern match",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    },
+    {
+      "keyword": "WolLinkSpeed",
+      "displayName": "WOL Link Power Saving",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disabled, 1: Enabled"
+    }
+  ],
+  "capabilities": []
+}

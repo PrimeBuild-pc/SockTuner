@@ -62,6 +62,29 @@ public sealed class AdapterInfoTests
         Assert.Equal(2, snapshot.ActiveAdapterCount);
     }
 
+    [Fact]
+    public void PhysicalLikeAdapterCount_UsesDeviceIdentityInsteadOfInterfaceType()
+    {
+        var physical = new DriverInfo("Realtek", "1", "—", "—", "PCI\\VEN_10EC", "—", "—", 0x4);
+        var virtualAdapter = physical with { ComponentId = "ROOT\\VMS_MP" };
+        var adapters = new[]
+        {
+            CreateAdapter(NetworkInterfaceType.Ethernet, OperationalStatus.Up, true, true, physical),
+            CreateAdapter(NetworkInterfaceType.Wireless80211, OperationalStatus.Down, true, true, physical),
+            CreateAdapter(NetworkInterfaceType.Ethernet, OperationalStatus.NotPresent, true, true, physical),
+            CreateAdapter(NetworkInterfaceType.Ethernet, OperationalStatus.Up, true, true, virtualAdapter),
+            CreateAdapter(NetworkInterfaceType.Ethernet, OperationalStatus.Up, false, false, null),
+            CreateAdapter(NetworkInterfaceType.Ethernet, OperationalStatus.Up, true, true, null),
+            CreateAdapter(NetworkInterfaceType.Loopback, OperationalStatus.Up, true, true, null),
+            CreateAdapter(NetworkInterfaceType.Tunnel, OperationalStatus.Up, true, true, null)
+        };
+        var snapshot = new NetworkSnapshot(
+            new SystemOverview("Windows", "1", "machine", 1, false, DateTimeOffset.MinValue),
+            adapters, [], null);
+
+        Assert.Equal(3, snapshot.PhysicalLikeAdapterCount);
+    }
+
     [Theory]
     [InlineData(null, "Complete")]
     [InlineData("Driver rejected query", "Partial: Driver rejected query")]

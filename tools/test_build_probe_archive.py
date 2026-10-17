@@ -14,6 +14,10 @@ SPEC.loader.exec_module(archive)
 
 
 class CompatibilityReportIngestionTests(unittest.TestCase):
+    def test_asix_usb_adapter_has_a_known_vendor(self):
+        self.assertEqual("ASIX", archive.vendor_of(
+            "ASIX AX88179 USB 3.0 to Gigabit Ethernet Adapter", "USB\\VID_0B95&PID_1790"))
+
     def test_same_default_filename_from_two_sources_gets_distinct_stable_archive_names(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

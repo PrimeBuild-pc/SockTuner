@@ -573,6 +573,5 @@ public sealed record NetworkSnapshot(
         && adapter.Kind is not AdapterKind.Filter
             and not AdapterKind.Loopback
             and not AdapterKind.Tunnel);
-    public int PhysicalLikeAdapterCount => Adapters.Count(adapter => adapter.InterfaceType is
-        NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.Wireless80211);
+    public int PhysicalLikeAdapterCount => Adapters.Count(adapter => adapter.Kind == AdapterKind.Physical);
 }
