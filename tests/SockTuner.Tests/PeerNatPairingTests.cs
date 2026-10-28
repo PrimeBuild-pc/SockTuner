@@ -21,8 +21,14 @@ public class PeerNatPairingTests
     }
 
     [Theory]
-    [InlineData("10.0.0.5")] [InlineData("127.0.0.1")] [InlineData("192.168.1.20")] [InlineData("172.16.4.4")]
-    [InlineData("169.254.1.1")] [InlineData("100.64.0.9")] [InlineData("0.0.0.0")] [InlineData("224.0.0.1")]
+    [InlineData("10.0.0.5")]
+    [InlineData("127.0.0.1")]
+    [InlineData("192.168.1.20")]
+    [InlineData("172.16.4.4")]
+    [InlineData("169.254.1.1")]
+    [InlineData("100.64.0.9")]
+    [InlineData("0.0.0.0")]
+    [InlineData("224.0.0.1")]
     public void NonPublicTargetsAreRejected(string ip)
     {
         Assert.Null(PairingCode.Parse(Sample(ip).Format(), Now, out var error));
