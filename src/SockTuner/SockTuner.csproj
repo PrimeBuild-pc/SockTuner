@@ -6,12 +6,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Dev-build default; release.yml overrides it from the tag. -->
+    <Version>0.9.0</Version>
     <ApplicationIcon>Assets\SockTuner.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Management.Infrastructure" Version="3.0.0" />
     <Resource Include="Assets\SockTuner.ico" />
     <EmbeddedResource Include="Assets\i18n\translations.json" />
+    <EmbeddedResource Include="Assets\verified-adapters.json" />
     <PackageReference Include="System.Management" Version="10.0.12" />
   </ItemGroup>
 

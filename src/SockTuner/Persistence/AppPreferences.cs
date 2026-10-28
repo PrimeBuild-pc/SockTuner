@@ -14,7 +14,11 @@ public sealed record UserPreferences(
     string? SelectedSection = null,
     string? WifiInterfaceId = null,
     string UpdateChannel = "Stable",
-    DateTimeOffset? LastUpdateCheckAt = null);
+    DateTimeOffset? LastUpdateCheckAt = null,
+    bool AdvancedMode = false,
+    /// <summary>"System", "Light" or "Dark".</summary>
+    string Theme = "System",
+    bool RememberSection = false);
 
 /// <summary>
 /// Where the window was and how big, so a grid the user widened stays widened. Restored only when

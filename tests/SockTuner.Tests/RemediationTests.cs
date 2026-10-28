@@ -42,7 +42,7 @@ public sealed class RemediationTests
 
         var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("calls-and-remote-work"), AdapterId, capabilities);
 
-        Assert.Empty(action.Changes);
+        Assert.DoesNotContain(action.Changes, change => change.SettingId.StartsWith("nic.", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -50,7 +50,8 @@ public sealed class RemediationTests
     {
         var capabilities = new[] { Capability("*EEE", "0", "0", "1"), Capability("*FlowControl", "0", "0", "3") };
 
-        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("calls-and-remote-work"), AdapterId, capabilities);
+        var action = UseCaseProfiles.PlanFor(
+            UseCaseProfiles.Get("calls-and-remote-work"), AdapterId, capabilities, devicePowerIsOff: _ => true);
 
         Assert.Empty(action.Changes);
         Assert.Contains("already matches the profile", action.ExpectedEffect, StringComparison.Ordinal);
@@ -84,7 +85,8 @@ public sealed class RemediationTests
         // The engine is the only write path, so a profile that proposes something it will refuse is
         // worse than a profile that proposes nothing.
         var capabilities = new[] { Capability("*EEE", "1", "0", "1"), Capability("*InterruptModeration", "1", "0", "1") };
-        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities);
+        var action = UseCaseProfiles.PlanFor(
+            UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities, devicePowerIsOff: _ => true);
         var transactions = new SettingTransactionService(SettingSpecifications.From(capabilities));
         var store = new MemoryStore();
         foreach (var capability in capabilities)
@@ -229,6 +231,93 @@ public sealed class RemediationTests
     private static ProbeStatistics Stats(double milliseconds) => ProbeStatistics.Calculate(
         "Game endpoint", "198.51.100.10",
         Enumerable.Range(0, 5).Select(index => new ProbeSample(DateTimeOffset.Now.AddSeconds(index), milliseconds)).ToArray());
+
+    private static AdapterSettingCapability Labelled(string keyword, string current, params (string Value, string Label)[] choices)
+    {
+        var profile = NicKeywordCatalog.For(keyword);
+        return new AdapterSettingCapability(
+            AdapterId, "Ethernet", "Test adapter", keyword, keyword, current, null,
+            choices.Select(choice => new CapabilityChoice(choice.Value, choice.Label)).ToArray(),
+            null, null, null, AdapterSettingCapability.RegistrySz, false,
+            profile.Areas, profile.Risk, profile.TradeOff);
+    }
+
+    [Theory]
+    [InlineData("Disabled")]
+    [InlineData("Disabilitato")]
+    [InlineData("Disattivata")]
+    [InlineData("Off")]
+    public void VendorKeywordIsDrivenToOffOnlyWhenTheDriverCallsThatValueOff(string label)
+    {
+        var capabilities = new[] { Labelled("EnableGreenEthernet", "1", ("0", label), ("1", "Enabled")) };
+
+        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities);
+
+        var change = Assert.Single(action.Changes, item => item.SettingId == "nic.EnableGreenEthernet");
+        Assert.Equal("0", change.ProposedValue);
+    }
+
+    [Fact]
+    public void VendorKeywordWithInvertedOrUnknownWordingIsSkippedNotInverted()
+    {
+        // A driver whose "0" means "Maximum" must never be driven to 0 on the strength of a name.
+        var capabilities = new[] { Labelled("PowerSavingMode", "1", ("0", "Maximum"), ("1", "Normal")) };
+
+        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities);
+
+        Assert.DoesNotContain(action.Changes, item => item.SettingId == "nic.PowerSavingMode");
+        Assert.Contains("PowerSavingMode: driver labels 0 as \"Maximum\"", action.TradeOff, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void WirelessKeywordsAreOnlyProposedOnAWirelessAdapter()
+    {
+        var capabilities = new[]
+        {
+            Labelled("LowPowerEnable", "1", ("0", "Disattivata"), ("1", "Auto")),
+            Labelled("EnableGreenEthernet", "1", ("0", "Disabled"), ("1", "Enabled"))
+        };
+        var gaming = UseCaseProfiles.Get("competitive-gaming");
+
+        var wired = UseCaseProfiles.PlanFor(gaming, AdapterId, capabilities);
+        var radio = UseCaseProfiles.PlanFor(gaming, AdapterId, capabilities, wireless: true);
+
+        Assert.Equal(["nic.EnableGreenEthernet"], wired.Changes.Where(c => c.SettingId.StartsWith("nic.", StringComparison.Ordinal)).Select(c => c.SettingId));
+        Assert.Equal(["nic.LowPowerEnable"], radio.Changes.Where(c => c.SettingId.StartsWith("nic.", StringComparison.Ordinal)).Select(c => c.SettingId));
+    }
+
+    [Fact]
+    public void GamingProfileReachesWindowsAsWellAsTheAdapter()
+    {
+        var capabilities = new[] { Capability("*InterruptModeration", "1", "0", "1") };
+        IReadOnlyList<GlobalSettingCapability> globals =
+        [
+            new(CimGlobalPropertyCatalog.OffloadGlobalClass, null, "ReceiveSegmentCoalescing", "Receive segment coalescing",
+                "Global offload", "1", [new CapabilityChoice("0", "Disabled"), new CapabilityChoice("1", "Enabled")],
+                null, null, EvidenceLevel.Documented, ChangeRisk.Medium, "None", "Test trade-off.")
+        ];
+
+        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities, globals);
+
+        Assert.Equal(
+            ["nic.*InterruptModeration", "cim.MSFT_NetOffloadGlobalSetting.ReceiveSegmentCoalescing",
+             "adapter.power-saving", "mmcss.network-throttling-index", "mmcss.system-responsiveness"],
+            action.Changes.Select(change => change.SettingId));
+        Assert.Equal("24", action.Changes.Single(change => change.SettingId == "adapter.power-saving").ProposedValue);
+    }
+
+    [Fact]
+    public void NoProfileTouchesATcpTemplateOrTheInertTweaks()
+    {
+        // Real or nothing: auto-tuning, timestamps, ECN, the reservable-bandwidth limit and the Vista-era
+        // registry values do not lower game latency on current Windows, so no profile may ship them.
+        Assert.All(UseCaseProfiles.All, profile =>
+        {
+            Assert.All(profile.GlobalTargets, target => Assert.Equal(CimGlobalPropertyCatalog.OffloadGlobalClass, target.ClassName));
+            Assert.DoesNotContain(profile.System, change => change.SettingId.StartsWith("qos.", StringComparison.Ordinal)
+                || change.SettingId.StartsWith("tcp.", StringComparison.Ordinal));
+        });
+    }
 
     private static AdapterSettingCapability Capability(string keyword, string current, params string[] values)
     {

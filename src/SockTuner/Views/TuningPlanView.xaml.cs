@@ -7,6 +7,7 @@ using SockTuner.Models;
 using SockTuner.Persistence;
 using SockTuner.Services;
 using SockTuner.Services.Diagnosis;
+using SockTuner.Services.Remediation;
 
 namespace SockTuner.Views;
 
@@ -87,8 +88,30 @@ public partial class TuningPlanView : UserControl
         InitializeComponent();
         PresetComboBox.ItemsSource = TuningPreset.All;
         PresetComboBox.SelectedIndex = 0;
+        UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
+        UseCaseComboBox.SelectedIndex = 0;
         CapabilityGrid.ItemsSource = _rows;
         RefreshAuditHistory();
+    }
+
+    /// <summary>Keeps the switch in step with consent granted or withdrawn anywhere else.</summary>
+    public void ShowLiveChanges(bool accepted) => LiveChangesSwitch.IsChecked = accepted;
+
+    /// <summary>
+    /// On asks the same alpha risk notice as the first apply; off withdraws consent, after which every
+    /// write path (plan, resolvers, interrupts) asks again.
+    /// </summary>
+    private void LiveChangesSwitch_Click(object sender, RoutedEventArgs e)
+    {
+        var problem = default(string);
+        var saved = LiveChangesSwitch.IsChecked == true
+            ? WriteConsentDialog.Ensure(out problem)
+            : WriteConsentDialog.Revoke(out problem);
+        var accepted = WriteConsent.IsAccepted(AppPreferences.Load());
+        if (!saved) ShowLiveChanges(accepted);
+        SetStatus(problem ?? (accepted
+            ? Loc.T("Live network changes are enabled.")
+            : Loc.T("Live network changes are disabled. SockTuner only reads.")));
     }
 
     /// <summary>Raised when a change was applied or rolled back, so the shell can re-inventory.</summary>
@@ -160,6 +183,48 @@ public partial class TuningPlanView : UserControl
         presentAdapters: AdapterStateSpecification.PresentAdapters(),
         adapterKeys: AdapterPowerSavingSpecification.ReadAdapterKeys());
 
+    private void UseCase_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // The first sentence says what the preset is for; the full trade-off is in the plan's own columns.
+        if (UseCaseComboBox.SelectedItem is UseCaseProfile profile)
+            UseCaseDescriptionText.Text = Loc.T(profile.Weights[..(profile.Weights.IndexOf(". ", StringComparison.Ordinal) + 1)]);
+    }
+
+    /// <summary>
+    /// Fills the plan below from a preset for the selected adapter, then runs the dry run. Nothing is written:
+    /// the same preview, typed confirmation and consent still stand between this and Apply.
+    /// </summary>
+    private async void LoadUseCase_Click(object sender, RoutedEventArgs e)
+    {
+        if (UseCaseComboBox.SelectedItem is not UseCaseProfile profile
+            || AdapterComboBox.SelectedItem is not AdapterInfo adapter || !Guid.TryParse(adapter.Id, out var adapterId))
+        {
+            SetStatus(Loc.T("Select an adapter first."));
+            return;
+        }
+
+        LoadUseCaseButton.IsEnabled = false;
+        try
+        {
+            // WMI and registry reads: off the window's thread.
+            var (globals, powerOff) = await Task.Run(() => (
+                WindowsGlobalSettingInventory.Read().Capabilities, AdapterPowerSavingSpecification.IsPowerManagementOff(adapterId)));
+            var action = UseCaseProfiles.PlanFor(profile, adapterId, _capabilities, globals,
+                adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211, _ => powerOff);
+            if (!action.AppliesLocally)
+            {
+                SetStatus(Loc.T("Nothing to change: this adapter already matches the preset."));
+                return;
+            }
+
+            var accepted = Propose(action.Changes);
+            SetStatus(Loc.F($"{accepted} change(s) from {profile.DisplayName} are in the plan. Review the preview, then press Apply.")
+                + (SelectedAdapterIsUnverified ? " " + Loc.T("Generic preset: this adapter is not verified.") : string.Empty));
+            await PreviewAsync();
+        }
+        finally { LoadUseCaseButton.IsEnabled = true; }
+    }
+
     /// <summary>
     /// Fills in proposed values for changes suggested elsewhere in the app. It only sets values on
     /// rows the driver already advertises for the selected adapter and that pass their own
@@ -170,12 +235,20 @@ public partial class TuningPlanView : UserControl
     public int Propose(IReadOnlyList<ChangeRequest> changes)
     {
         var accepted = 0;
+        var elsewhere = new List<ChangeRequest>();
         foreach (var change in changes)
         {
             if (change.ProposedValue is not { } value) continue;
             var row = _rows.FirstOrDefault(item =>
                 string.Equals(item.Capability.SettingId, change.SettingId, StringComparison.OrdinalIgnoreCase));
-            if (row is null) continue;
+            if (row is null)
+            {
+                // Not a row of the selected adapter: a Windows setting (multimedia scheduler, a global
+                // offload switch, device power management) or another adapter's property. These take
+                // the device path, which validates them against the live specification just the same.
+                elsewhere.Add(change);
+                continue;
+            }
 
             var text = value.ToString();
             try
@@ -196,7 +269,7 @@ public partial class TuningPlanView : UserControl
             InvalidatePlan($"{accepted} proposed value(s) filled in. Preview the plan before applying.");
         }
 
-        return accepted;
+        return accepted + (elsewhere.Count == 0 ? 0 : ProposeDeviceChanges(elsewhere));
     }
 
     /// <summary>
@@ -234,7 +307,34 @@ public partial class TuningPlanView : UserControl
 
     private void ReloadCapabilities_Click(object sender, RoutedEventArgs e) => LoadCapabilities();
 
-    private void Adapter_SelectionChanged(object sender, SelectionChangedEventArgs e) => LoadCapabilities();
+    private void Adapter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        ShowVerification();
+        LoadCapabilities();
+    }
+
+    /// <summary>Raised when the user asks to send a hardware report for the selected adapter.</summary>
+    public event EventHandler? ReportAdapterRequested;
+
+    private void ReportAdapter_Click(object sender, RoutedEventArgs e) => ReportAdapterRequested?.Invoke(this, EventArgs.Empty);
+
+    private bool SelectedAdapterIsUnverified =>
+        AdapterComboBox.SelectedItem is AdapterInfo adapter && AdapterVerificationCatalog.For(adapter) == AdapterVerification.Unverified;
+
+    /// <summary>A verified adapter says so quietly; an unknown one says so clearly and says what the preset then is.</summary>
+    private void ShowVerification()
+    {
+        var verification = AdapterComboBox.SelectedItem is AdapterInfo adapter ? AdapterVerificationCatalog.For(adapter) : AdapterVerification.NotApplicable;
+        VerificationBadge.Visibility = VerificationHintText.Visibility = verification == AdapterVerification.NotApplicable ? Visibility.Collapsed : Visibility.Visible;
+        ReportAdapterButton.Visibility = verification == AdapterVerification.Unverified ? Visibility.Visible : Visibility.Collapsed;
+        var verified = verification == AdapterVerification.Verified;
+        VerificationBadgeText.Text = Loc.T(verified ? "Verified adapter" : "Adapter not verified");
+        var brush = (System.Windows.Media.Brush)FindResource(verified ? "SystemFillColorSuccessBrush" : "SystemFillColorCautionBrush");
+        VerificationBadgeText.Foreground = VerificationBadge.BorderBrush = brush;
+        VerificationHintText.Text = Loc.T(verified
+            ? "This adapter model is in SockTuner's hardware list."
+            : "SockTuner has no hardware report for this adapter yet, so presets are generic: they change only what its driver advertises. Sending a report helps verify it.");
+    }
 
     private void Preset_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -306,7 +406,10 @@ public partial class TuningPlanView : UserControl
             : $"Proposals discarded, including {devices} queued device change(s).");
     }
 
-    private async void Preview_Click(object sender, RoutedEventArgs e)
+    private async void Preview_Click(object sender, RoutedEventArgs e) => await PreviewAsync();
+
+    /// <summary>The same dry run as the Preview button; applying is still the separate, confirmed step.</summary>
+    public async Task PreviewAsync()
     {
         var requests = _rows.Where(row => row.HasChange)
             .Select(row => new ChangeRequest(row.Capability.SettingId, row.Capability.AdapterId.ToString(), row.ProposedValue))

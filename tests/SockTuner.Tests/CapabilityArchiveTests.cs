@@ -103,6 +103,43 @@ public sealed class CapabilityArchiveTests
 
     private static string NormalizeId(string? value) => value?.Trim('{', '}').ToUpperInvariant() ?? string.Empty;
 
+    /// <summary>
+    /// A profile drives a vendor keyword only on the driver's own wording for the target value. Every driver the
+    /// community has reported must agree with the curated list, so a disagreement is caught here rather than on
+    /// someone's adapter.
+    /// </summary>
+    [Fact]
+    public void CuratedVendorTargetsAgreeWithEveryArchivedDriver()
+    {
+        var targets = SockTuner.Services.Remediation.UseCaseProfiles.All.SelectMany(profile => profile.Nic)
+            .Where(target => target.DisplayMustMatch is not null).DistinctBy(target => target.Keyword).ToArray();
+        var checkedPairs = 0;
+        foreach (var path in Directory.GetFiles(ArchivePath(), "*.json"))
+        {
+            using var document = JsonDocument.Parse(File.ReadAllText(path));
+            var root = document.RootElement;
+            if (root.GetProperty("isVirtual").GetBoolean()) continue;
+            foreach (var target in targets)
+            {
+                var labels = root.GetProperty("capabilities").EnumerateArray()
+                    .Where(item => string.Equals(item.GetProperty("keyword").GetString(), target.Keyword, StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(item => item.GetProperty("choices").EnumerateArray())
+                    .Where(choice => choice.GetProperty("registryValue").GetString() == target.Value)
+                    .Select(choice => choice.GetProperty("displayValue").GetString() ?? string.Empty)
+                    .ToArray();
+                foreach (var label in labels)
+                {
+                    checkedPairs++;
+                    Assert.True(System.Text.RegularExpressions.Regex.IsMatch(label.Trim(), target.DisplayMustMatch!,
+                        System.Text.RegularExpressions.RegexOptions.IgnoreCase),
+                        $"{Path.GetFileName(path)}: {target.Keyword}={target.Value} is labelled \"{label}\"");
+                }
+            }
+        }
+
+        Assert.True(checkedPairs > 10, "The archive should exercise the curated list.");
+    }
+
     private static string ArchivePath() => Path.Combine(RepositoryRoot(), "alpha-tester-output");
 
     private static string RepositoryRoot()

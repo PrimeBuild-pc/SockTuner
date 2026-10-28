@@ -1,0 +1,19 @@
+<UserControl x:Class="SockTuner.Views.BusySpinner"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Width="40" Height="40" Focusable="False" IsHitTestVisible="False"
+             AutomationProperties.Name="Working" IsVisibleChanged="Spinner_VisibleChanged">
+    <!-- A ring with a bright arc turning round it: large and high-contrast on purpose, so it
+         reads as "the app is working" from across a desk, not as a decoration. -->
+    <Viewbox>
+        <Grid Width="48" Height="48">
+            <Ellipse Margin="3" Stroke="{DynamicResource ControlStrokeColorDefaultBrush}" StrokeThickness="5"/>
+            <Ellipse Margin="3" Stroke="{DynamicResource AccentFillColorDefaultBrush}" StrokeThickness="5"
+                     StrokeDashArray="7 20" StrokeDashCap="Round" RenderTransformOrigin="0.5,0.5">
+                <Ellipse.RenderTransform>
+                    <RotateTransform x:Name="Spin"/>
+                </Ellipse.RenderTransform>
+            </Ellipse>
+        </Grid>
+    </Viewbox>
+</UserControl>

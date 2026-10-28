@@ -44,8 +44,11 @@ public class LocalizationTests
          Path.Combine("Views", "CompatibilityReportPreviewWindow.xaml"),
          Path.Combine("Views", "WifiDiagnosticsView.xaml"),
          Path.Combine("Views", "DnsResolversView.xaml"),
+         Path.Combine("Views", "NatDiagnosticsView.xaml"),
          Path.Combine("Views", "InterruptAffinityView.xaml"),
          Path.Combine("Views", "UpdatesCard.xaml"),
+         Path.Combine("Views", "WriteConsentWindow.xaml"),
+         Path.Combine("Views", "ReportSavedWindow.xaml"),
          Path.Combine("Views", "ThroughputView.xaml"),
          Path.Combine("Views", "InterfacesView.xaml"),
          Path.Combine("Views", "HistoryView.xaml"),
@@ -67,6 +70,15 @@ public class LocalizationTests
             .ToArray();
 
         Assert.Empty(missing);
+    }
+
+    [Fact]
+    public void NatGuidanceAndPresetScopeHaveTranslations()
+    {
+        var table = Table();
+        var strings = SockTuner.Models.GamePortPresets.All.Select(preset => preset.Scope)
+            .Concat(SockTuner.Models.NatSafetyGuidance.All.SelectMany(row => new[] { row.Action, row.When, row.Risk }));
+        Assert.All(strings, text => Assert.True(table.ContainsKey(text), text));
     }
 
     [Fact]

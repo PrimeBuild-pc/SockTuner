@@ -1,0 +1,112 @@
+<UserControl x:Class="SockTuner.Views.NatDiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+        <StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Game ports &amp; NAT evidence" FontSize="22" FontWeight="SemiBold"/>
+                    <TextBlock Text="If games, party invites and voice chat work, a restrictive result alone is not a reason to change your network."
+                               TextWrapping="Wrap" Margin="0,8,0,12"/>
+                    <Grid x:Name="InputsPanel">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="Game / platform reference"/>
+                            <ComboBox x:Name="GameCombo" Margin="0,6,0,0" SelectionChanged="Game_Changed"
+                                      AutomationProperties.Name="Game / platform reference"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Local UDP port (0 = temporary)"/>
+                            <TextBox x:Name="PortText" Text="0" Margin="0,6,0,0" TextChanged="Port_Changed"
+                                     AutomationProperties.Name="Local UDP port (0 = temporary)"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock x:Name="PresetText" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button x:Name="RunButton" Content="Test selected UDP port" Click="Run_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                        <Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="SourceButton" Content="Publisher port reference" Click="Source_Click" IsEnabled="False" Margin="0,0,0,8"/>
+                    </WrapPanel>
+                    <Expander Header="What this test does" AutomationProperties.Name="What the STUN test does">
+                        <StackPanel Margin="0,4,0,0">
+                    <TextBlock Text="Close the game or server before testing its port. An occupied or reserved port is reported as unavailable; it is never silently replaced."
+                               TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    <TextBlock Text="Opt-in IPv4 UDP traffic goes to stun.nextcloud.com:443 and stun.cloudflare.com:3478, not to game servers. Their operators can see your public IP and port. No router, firewall or UPnP settings are changed."
+                               TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Test with a friend (optional)" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Needs a friend running SockTuner. It shows what a game's own NAT check sees."
+                               TextWrapping="Wrap" Margin="0,8,0,12"/>
+                    <WrapPanel>
+                        <RadioButton x:Name="HostRadio" Content="I start the test" IsChecked="True" GroupName="PeerRole" Margin="0,0,16,0"
+                                     Checked="PeerRole_Changed"/>
+                        <RadioButton x:Name="GuestRadio" Content="My friend started it" GroupName="PeerRole" Checked="PeerRole_Changed"/>
+                    </WrapPanel>
+                    <TextBlock Text="Your code (it contains your public IP and port: share it only with your friend)" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <TextBox x:Name="MyCodeText" IsReadOnly="True" Margin="0,6,0,0" AutomationProperties.Name="Your pairing code"/>
+                    <TextBlock Text="Your friend's code (host: paste the reply here; guest: paste the host's code here before creating yours)"
+                               TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <TextBox x:Name="PeerCodeText" Margin="0,6,0,0" AutomationProperties.Name="Your friend's pairing code"/>
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button x:Name="PeerPrepareButton" Content="Create my code" Click="PeerPrepare_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                        <Button x:Name="PeerCopyButton" Content="Copy my code" Click="PeerCopy_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="PeerRunButton" Content="Start the friend test" Click="PeerRun_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="PeerCancelButton" Content="Cancel friend test" Click="PeerCancel_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="PeerStatusText" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                    <Expander Header="Privacy and limits" Margin="0,8,0,0" AutomationProperties.Name="Friend test privacy and limits">
+                        <StackPanel Margin="0,4,0,0">
+                            <TextBlock Text="The test above talks to public STUN servers, so it can only see how your router treats replies. A friend's packets are ones you never asked for, which is what a game's own NAT check does. Each of you gets a verdict for your own router."
+                                       TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBlock Text="Your friend sees your public IP and the test port, and you see theirs. Codes are never saved or added to reports. Only small fixed packets are sent, only to the address in the code, for about 75 seconds after the agreed start. Windows Firewall may ask about SockTuner; it can also block the packets, in which case the result says so instead of guessing."
+                               TextWrapping="Wrap" Margin="0,8,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock x:Name="ResultText" Text="No UDP test yet." TextWrapping="Wrap" FontSize="18" FontWeight="SemiBold"
+                               AutomationProperties.LiveSetting="Polite"/>
+                    <DataGrid x:Name="EvidenceGrid" AutoGenerateColumns="False" Style="{StaticResource ResultGrid}" Margin="0,12,0,0"
+                              RowHeight="NaN" MinRowHeight="40" AutomationProperties.Name="NAT observations and limits">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Observation" Binding="{Binding Observation}" Width="*" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="Result" Binding="{Binding Result}" Width="1.4*" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="What this means" Binding="{Binding Meaning}" Width="2.5*" ElementStyle="{StaticResource WrapCellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <Expander Header="What this result does not tell you" Margin="0,12,0,0" AutomationProperties.Name="Limits of this result">
+                        <StackPanel Margin="0,4,0,0">
+                    <TextBlock Text="This is SockTuner's socket, not the game's executable. Windows application rules, VPN routing, other devices and game protocols may differ. Port lists do not prove which local ports the game uses. Only the selected UDP port is tested; TCP and IPv6 are not measured."
+                               TextWrapping="Wrap" Margin="0,12,0,0"/>
+                    <TextBlock Text="An alternate-port reply is not proof of Full Cone NAT: other source IPs are not tested. Timeouts are not proof of a closed port. This test does not measure ping or certify an Open / Moderate / Strict game NAT label."
+                               TextWrapping="Wrap" Margin="0,8,0,0"/>
+                        </StackPanel>
+                    </Expander>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="What to consider — only if a game has a real problem" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="Ordered by intervention preference, not a universal security score. Scope and configuration determine risk."
+                               TextWrapping="Wrap" Margin="0,8,0,12"/>
+                    <DataGrid x:Name="GuidanceGrid" AutoGenerateColumns="False" Style="{StaticResource ResultGrid}" RowHeight="NaN" MinRowHeight="48"
+                              AutomationProperties.Name="Network remedies and security trade-offs">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="#" Binding="{Binding Priority}" Width="35"/>
+                            <DataGridTextColumn Header="Option" Binding="{Binding Action}" Width="1.2*" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="When it helps" Binding="{Binding When}" Width="2*" ElementStyle="{StaticResource WrapCellText}"/>
+                            <DataGridTextColumn Header="Security / limitations" Binding="{Binding Risk}" Width="2.5*" ElementStyle="{StaticResource WrapCellText}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

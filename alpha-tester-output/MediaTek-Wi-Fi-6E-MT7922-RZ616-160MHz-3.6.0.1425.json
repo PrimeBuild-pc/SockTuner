@@ -1,0 +1,1690 @@
+{
+  "archiveKey": "MediaTek-Wi-Fi-6E-MT7922-RZ616-160MHz-3.6.0.1425",
+  "vendor": "MediaTek",
+  "model": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+  "isVirtual": false,
+  "driver": {
+    "provider": "MediaTek, Inc.",
+    "version": "3.6.0.1425",
+    "date": "6-8-2026",
+    "componentId": "PCI\\VEN_14C3&DEV_0616",
+    "ndisVersion": "—",
+    "characteristics": 132
+  },
+  "capturedFrom": {
+    "schemaVersion": 1,
+    "operatingSystem": "Microsoft Windows 10.0.26300",
+    "osVersion": "10.0.26300.0",
+    "sourceReport": "SockTuner-compatibility-3a062e70db8f40c98ebb8aa478fd5f79-0271da4d8301.json"
+  },
+  "adapter": {
+    "id": "00000000-0000-0000-0000-000000000002",
+    "name": "Adapter 2",
+    "description": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+    "interfaceType": "Wireless80211",
+    "driver": {
+      "provider": "MediaTek, Inc.",
+      "version": "3.6.0.1425",
+      "date": "6-8-2026",
+      "componentId": "PCI\\VEN_14C3&DEV_0616",
+      "ndisVersion": "—",
+      "characteristics": 132
+    },
+    "capabilities": [
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "BWSelection24G",
+        "displayName": "2.4GHz channel bandwidth",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Auto",
+            "display": "1. Auto (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 20MHz only",
+            "display": "2. 20MHz only (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Throughput, WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+        "rejected": false,
+        "settingId": "nic.BWSelection24G",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. Auto",
+        "areasDisplay": "Throughput, WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "BWSelection5G",
+        "displayName": "5GHz channel bandwidth",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Auto",
+            "display": "1. Auto (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 20MHz only",
+            "display": "2. 20MHz only (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Throughput, WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+        "rejected": false,
+        "settingId": "nic.BWSelection5G",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. Auto",
+        "areasDisplay": "Throughput, WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "BWSelection6G",
+        "displayName": "6GHz channel bandwidth",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Auto",
+            "display": "1. Auto (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 20MHz only",
+            "display": "2. 20MHz only (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Throughput, WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+        "rejected": false,
+        "settingId": "nic.BWSelection6G",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. Auto",
+        "areasDisplay": "Throughput, WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "CurrPhyMode",
+        "displayName": "802.11ax/ac/n/abg",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. 802.11ax",
+            "display": "1. 802.11ax (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 802.11ac",
+            "display": "2. 802.11ac (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. 802.11n",
+            "display": "3. 802.11n (2)"
+          },
+          {
+            "registryValue": "3",
+            "displayValue": "4. 802.11a/b/g",
+            "display": "4. 802.11a/b/g (3)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+        "rejected": false,
+        "settingId": "nic.CurrPhyMode",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. 802.11ax",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "1. 802.11ax (0), 2. 802.11ac (1), 3. 802.11n (2), 4. 802.11a/b/g (3)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "AMSDURx",
+        "displayName": "AMSDU Rx",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Attivata",
+            "display": "Attivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Throughput, WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Frame aggregation raises throughput and adds a little latency and retransmission cost.",
+        "rejected": false,
+        "settingId": "nic.AMSDURx",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Throughput, WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Attivata (1), Disattivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "AMSDUTx",
+        "displayName": "AMSDU Tx",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Attivata",
+            "display": "Attivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Throughput, WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Frame aggregation raises throughput and adds a little latency and retransmission cost.",
+        "rejected": false,
+        "settingId": "nic.AMSDUTx",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Throughput, WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Attivata (1), Disattivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "DisableARPOffload",
+        "displayName": "ARP Offload for WOWLAN",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Attivata",
+            "display": "Attivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+        "rejected": false,
+        "settingId": "nic.DisableARPOffload",
+        "isStandardKeyword": false,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disattivata (1), Attivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "BandSelection",
+        "displayName": "Band Selection",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. All Band",
+            "display": "1. All Band (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. 2.4G Only",
+            "display": "2. 2.4G Only (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. 5G Only",
+            "display": "3. 5G Only (2)"
+          },
+          {
+            "registryValue": "3",
+            "displayValue": "4. 6G Only",
+            "display": "4. 6G Only (3)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+        "rejected": false,
+        "settingId": "nic.BandSelection",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. All Band",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "1. All Band (0), 2. 2.4G Only (1), 3. 5G Only (2), 4. 6G Only (3)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "PreferredBand",
+        "displayName": "Banda preferita",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Nessuna preferenza",
+            "display": "1. Nessuna preferenza (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. Preferenza a banda a 2,4 GHz",
+            "display": "2. Preferenza a banda a 2,4 GHz (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. Banda a 5 GHz",
+            "display": "3. Banda a 5 GHz (2)"
+          },
+          {
+            "registryValue": "3",
+            "displayValue": "4. Banda a 6 GHz",
+            "display": "4. Banda a 6 GHz (3)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+        "rejected": false,
+        "settingId": "nic.PreferredBand",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. Nessuna preferenza",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "1. Nessuna preferenza (0), 2. Preferenza a banda a 2,4 GHz (1), 3. Banda a 5 GHz (2), 4. Banda a 6 GHz (3)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "DisableWakeOnPattern",
+        "displayName": "Corrispondenza motivo per riattivazione",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Attivata",
+            "display": "Attivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+        "rejected": false,
+        "settingId": "nic.DisableWakeOnPattern",
+        "isStandardKeyword": false,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disattivata (1), Attivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "RoamIndicateTh",
+        "displayName": "Efficacia roaming",
+        "currentValue": "[redacted]",
+        "defaultValue": "3",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Disattivata",
+            "display": "1. Disattivata (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. Minimo",
+            "display": "2. Minimo (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. Medio-basso",
+            "display": "3. Medio-basso (2)"
+          },
+          {
+            "registryValue": "3",
+            "displayValue": "4. Medio",
+            "display": "4. Medio (3)"
+          },
+          {
+            "registryValue": "4",
+            "displayValue": "5. Medio-alto",
+            "display": "5. Medio-alto (4)"
+          },
+          {
+            "registryValue": "5",
+            "displayValue": "6. Massimo",
+            "display": "6. Massimo (5)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+        "rejected": false,
+        "settingId": "nic.RoamIndicateTh",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "4. Medio",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "1. Disattivata (0), 2. Minimo (1), 3. Medio-basso (2), 4. Medio (3), 5. Medio-alto (4), 6. Massimo (5)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "DisableGTKRekey",
+        "displayName": "GTK Rekey for WOWLAN",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Attivata",
+            "display": "Attivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+        "rejected": false,
+        "settingId": "nic.DisableGTKRekey",
+        "isStandardKeyword": false,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disattivata (1), Attivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "DisableWakeOnMagic",
+        "displayName": "Magic Packet per riattivazione",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Attivata",
+            "display": "Attivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, Wake",
+        "risk": "Low",
+        "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+        "rejected": false,
+        "settingId": "nic.DisableWakeOnMagic",
+        "isStandardKeyword": false,
+        "evidence": "DriverAdvertised",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Attivata",
+        "areasDisplay": "Power, Wake",
+        "riskBadge": "+ Low",
+        "constraintDisplay": "Disattivata (1), Attivata (0)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "WfdGOOperatingChannel",
+        "displayName": "Miracast prefer band",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Auto",
+            "display": "Auto (0)"
+          },
+          {
+            "registryValue": "11",
+            "displayValue": "2.4G",
+            "display": "2.4G (11)"
+          },
+          {
+            "registryValue": "36",
+            "displayValue": "5G",
+            "display": "5G (36)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+        "rejected": false,
+        "settingId": "nic.WfdGOOperatingChannel",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Auto",
+        "areasDisplay": "WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Auto (0), 2.4G (11), 5G (36)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "LowPowerEnable",
+        "displayName": "Power Saving",
+        "currentValue": "[redacted]",
+        "defaultValue": "1",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "Auto",
+            "display": "Auto (1)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Latency, Power",
+        "risk": "Medium",
+        "tradeOff": "Power saving reduces idle draw but can add latency on the first packet after an idle period.",
+        "rejected": false,
+        "settingId": "nic.LowPowerEnable",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Auto",
+        "areasDisplay": "Latency, Power",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Disattivata (0), Auto (1)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "TxPowerLevel",
+        "displayName": "Transmit Power Level",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "0",
+            "displayValue": "1. Massimo",
+            "display": "1. Massimo (0)"
+          },
+          {
+            "registryValue": "1",
+            "displayValue": "2. Medio",
+            "display": "2. Medio (1)"
+          },
+          {
+            "registryValue": "2",
+            "displayValue": "3. Minimo",
+            "display": "3. Minimo (2)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, WiFiRadio",
+        "risk": "High",
+        "tradeOff": "Transmit power is regulatory-constrained; raising it may be unlawful and increases interference and heat.",
+        "rejected": false,
+        "settingId": "nic.TxPowerLevel",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "1. Massimo",
+        "areasDisplay": "Power, WiFiRadio",
+        "riskBadge": "! High",
+        "constraintDisplay": "1. Massimo (0), 2. Medio (1), 3. Minimo (2)",
+        "isModifiedFromDefault": true
+      },
+      {
+        "adapterId": "00000000-0000-0000-0000-000000000002",
+        "adapterName": "Adapter 2",
+        "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+        "keyword": "UAPSDSupport",
+        "displayName": "U-APSD Support",
+        "currentValue": "[redacted]",
+        "defaultValue": "0",
+        "choices": [
+          {
+            "registryValue": "1",
+            "displayValue": "Attivata",
+            "display": "Attivata (1)"
+          },
+          {
+            "registryValue": "0",
+            "displayValue": "Disattivata",
+            "display": "Disattivata (0)"
+          }
+        ],
+        "minimum": null,
+        "maximum": null,
+        "step": null,
+        "registryDataType": 1,
+        "canRemove": false,
+        "areas": "Power, WiFiRadio",
+        "risk": "Medium",
+        "tradeOff": "Radio power-save modes trade a little latency for battery life.",
+        "rejected": false,
+        "settingId": "nic.UAPSDSupport",
+        "isStandardKeyword": false,
+        "evidence": "Experimental",
+        "isEnumerated": true,
+        "isNumericRange": false,
+        "currentDisplay": "[redacted]",
+        "defaultDisplay": "Disattivata",
+        "areasDisplay": "Power, WiFiRadio",
+        "riskBadge": "~ Medium",
+        "constraintDisplay": "Attivata (1), Disattivata (0)",
+        "isModifiedFromDefault": true
+      }
+    ]
+  },
+  "ndisProperties": [
+    {
+      "keyword": "BWSelection24G",
+      "displayName": "2.4GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "BWSelection5G",
+      "displayName": "5GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "BWSelection6G",
+      "displayName": "6GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Auto, 1: 2. 20MHz only"
+    },
+    {
+      "keyword": "CurrPhyMode",
+      "displayName": "802.11ax/ac/n/abg",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. 802.11ax, 1: 2. 802.11ac, 2: 3. 802.11n, 3: 4. 802.11a/b/g"
+    },
+    {
+      "keyword": "AMSDURx",
+      "displayName": "AMSDU Rx",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "AMSDUTx",
+      "displayName": "AMSDU Tx",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    },
+    {
+      "keyword": "DisableARPOffload",
+      "displayName": "ARP Offload for WOWLAN",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Attivata, 1: Disattivata"
+    },
+    {
+      "keyword": "BandSelection",
+      "displayName": "Band Selection",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. All Band, 1: 2. 2.4G Only, 2: 3. 5G Only, 3: 4. 6G Only"
+    },
+    {
+      "keyword": "PreferredBand",
+      "displayName": "Banda preferita",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Nessuna preferenza, 1: 2. Preferenza a banda a 2,4 GHz, 2: 3. Banda a 5 GHz, 3: 4. Banda a 6 GHz"
+    },
+    {
+      "keyword": "DisableWakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Attivata, 1: Disattivata"
+    },
+    {
+      "keyword": "RoamIndicateTh",
+      "displayName": "Efficacia roaming",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "type": "enum",
+      "validValues": "0: 1. Disattivata, 1: 2. Minimo, 2: 3. Medio-basso, 3: 4. Medio, 4: 5. Medio-alto, 5: 6. Massimo"
+    },
+    {
+      "keyword": "DisableGTKRekey",
+      "displayName": "GTK Rekey for WOWLAN",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Attivata, 1: Disattivata"
+    },
+    {
+      "keyword": "DisableWakeOnMagic",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Attivata, 1: Disattivata"
+    },
+    {
+      "keyword": "WfdGOOperatingChannel",
+      "displayName": "Miracast prefer band",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Auto, 11: 2.4G, 36: 5G"
+    },
+    {
+      "keyword": "LowPowerEnable",
+      "displayName": "Power Saving",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Auto"
+    },
+    {
+      "keyword": "TxPowerLevel",
+      "displayName": "Transmit Power Level",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: 1. Massimo, 1: 2. Medio, 2: 3. Minimo"
+    },
+    {
+      "keyword": "UAPSDSupport",
+      "displayName": "U-APSD Support",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "type": "enum",
+      "validValues": "0: Disattivata, 1: Attivata"
+    }
+  ],
+  "capabilities": [
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "BWSelection24G",
+      "displayName": "2.4GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Auto",
+          "display": "1. Auto (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 20MHz only",
+          "display": "2. 20MHz only (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "rejected": false,
+      "settingId": "nic.BWSelection24G",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "BWSelection5G",
+      "displayName": "5GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Auto",
+          "display": "1. Auto (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 20MHz only",
+          "display": "2. 20MHz only (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "rejected": false,
+      "settingId": "nic.BWSelection5G",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "BWSelection6G",
+      "displayName": "6GHz channel bandwidth",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Auto",
+          "display": "1. Auto (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 20MHz only",
+          "display": "2. 20MHz only (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Narrowing channel width reduces interference but caps throughput; widening it can make the link unusable in a crowded environment.",
+      "rejected": false,
+      "settingId": "nic.BWSelection6G",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. Auto",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "1. Auto (0), 2. 20MHz only (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "CurrPhyMode",
+      "displayName": "802.11ax/ac/n/abg",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. 802.11ax",
+          "display": "1. 802.11ax (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 802.11ac",
+          "display": "2. 802.11ac (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. 802.11n",
+          "display": "3. 802.11n (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. 802.11a/b/g",
+          "display": "4. 802.11a/b/g (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Restricting the PHY mode can disconnect the adapter if the access point does not offer the selected standard.",
+      "rejected": false,
+      "settingId": "nic.CurrPhyMode",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. 802.11ax",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "1. 802.11ax (0), 2. 802.11ac (1), 3. 802.11n (2), 4. 802.11a/b/g (3)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "AMSDURx",
+      "displayName": "AMSDU Rx",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Attivata",
+          "display": "Attivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Frame aggregation raises throughput and adds a little latency and retransmission cost.",
+      "rejected": false,
+      "settingId": "nic.AMSDURx",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Attivata (1), Disattivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "AMSDUTx",
+      "displayName": "AMSDU Tx",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Attivata",
+          "display": "Attivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Throughput, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Frame aggregation raises throughput and adds a little latency and retransmission cost.",
+      "rejected": false,
+      "settingId": "nic.AMSDUTx",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Throughput, WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Attivata (1), Disattivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "DisableARPOffload",
+      "displayName": "ARP Offload for WOWLAN",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Attivata",
+          "display": "Attivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "rejected": false,
+      "settingId": "nic.DisableARPOffload",
+      "isStandardKeyword": false,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disattivata (1), Attivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "BandSelection",
+      "displayName": "Band Selection",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. All Band",
+          "display": "1. All Band (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. 2.4G Only",
+          "display": "2. 2.4G Only (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. 5G Only",
+          "display": "3. 5G Only (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. 6G Only",
+          "display": "4. 6G Only (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+      "rejected": false,
+      "settingId": "nic.BandSelection",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. All Band",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "1. All Band (0), 2. 2.4G Only (1), 3. 5G Only (2), 4. 6G Only (3)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "PreferredBand",
+      "displayName": "Banda preferita",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Nessuna preferenza",
+          "display": "1. Nessuna preferenza (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Preferenza a banda a 2,4 GHz",
+          "display": "2. Preferenza a banda a 2,4 GHz (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Banda a 5 GHz",
+          "display": "3. Banda a 5 GHz (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. Banda a 6 GHz",
+          "display": "4. Banda a 6 GHz (3)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Restricting the band can improve stability but removes faster channels and may disconnect if the preferred band is unavailable.",
+      "rejected": false,
+      "settingId": "nic.PreferredBand",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. Nessuna preferenza",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "1. Nessuna preferenza (0), 2. Preferenza a banda a 2,4 GHz (1), 3. Banda a 5 GHz (2), 4. Banda a 6 GHz (3)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "DisableWakeOnPattern",
+      "displayName": "Corrispondenza motivo per riattivazione",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Attivata",
+          "display": "Attivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.DisableWakeOnPattern",
+      "isStandardKeyword": false,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disattivata (1), Attivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "RoamIndicateTh",
+      "displayName": "Efficacia roaming",
+      "currentValue": "[redacted]",
+      "defaultValue": "3",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Disattivata",
+          "display": "1. Disattivata (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Minimo",
+          "display": "2. Minimo (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Medio-basso",
+          "display": "3. Medio-basso (2)"
+        },
+        {
+          "registryValue": "3",
+          "displayValue": "4. Medio",
+          "display": "4. Medio (3)"
+        },
+        {
+          "registryValue": "4",
+          "displayValue": "5. Medio-alto",
+          "display": "5. Medio-alto (4)"
+        },
+        {
+          "registryValue": "5",
+          "displayValue": "6. Massimo",
+          "display": "6. Massimo (5)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "More aggressive roaming switches access points sooner, which helps while moving and causes needless disconnects while stationary.",
+      "rejected": false,
+      "settingId": "nic.RoamIndicateTh",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "4. Medio",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "1. Disattivata (0), 2. Minimo (1), 3. Medio-basso (2), 4. Medio (3), 5. Medio-alto (4), 6. Massimo (5)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "DisableGTKRekey",
+      "displayName": "GTK Rekey for WOWLAN",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Attivata",
+          "display": "Attivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU more often.",
+      "rejected": false,
+      "settingId": "nic.DisableGTKRekey",
+      "isStandardKeyword": false,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disattivata (1), Attivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "DisableWakeOnMagic",
+      "displayName": "Magic Packet per riattivazione",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Attivata",
+          "display": "Attivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, Wake",
+      "risk": "Low",
+      "tradeOff": "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
+      "rejected": false,
+      "settingId": "nic.DisableWakeOnMagic",
+      "isStandardKeyword": false,
+      "evidence": "DriverAdvertised",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Attivata",
+      "areasDisplay": "Power, Wake",
+      "riskBadge": "+ Low",
+      "constraintDisplay": "Disattivata (1), Attivata (0)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "WfdGOOperatingChannel",
+      "displayName": "Miracast prefer band",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Auto",
+          "display": "Auto (0)"
+        },
+        {
+          "registryValue": "11",
+          "displayValue": "2.4G",
+          "display": "2.4G (11)"
+        },
+        {
+          "registryValue": "36",
+          "displayValue": "5G",
+          "display": "5G (36)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Affects medium access and beacon behaviour; changes interoperability with some access points.",
+      "rejected": false,
+      "settingId": "nic.WfdGOOperatingChannel",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Auto",
+      "areasDisplay": "WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Auto (0), 2.4G (11), 5G (36)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "LowPowerEnable",
+      "displayName": "Power Saving",
+      "currentValue": "[redacted]",
+      "defaultValue": "1",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "Auto",
+          "display": "Auto (1)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Latency, Power",
+      "risk": "Medium",
+      "tradeOff": "Power saving reduces idle draw but can add latency on the first packet after an idle period.",
+      "rejected": false,
+      "settingId": "nic.LowPowerEnable",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Auto",
+      "areasDisplay": "Latency, Power",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Disattivata (0), Auto (1)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "TxPowerLevel",
+      "displayName": "Transmit Power Level",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "0",
+          "displayValue": "1. Massimo",
+          "display": "1. Massimo (0)"
+        },
+        {
+          "registryValue": "1",
+          "displayValue": "2. Medio",
+          "display": "2. Medio (1)"
+        },
+        {
+          "registryValue": "2",
+          "displayValue": "3. Minimo",
+          "display": "3. Minimo (2)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, WiFiRadio",
+      "risk": "High",
+      "tradeOff": "Transmit power is regulatory-constrained; raising it may be unlawful and increases interference and heat.",
+      "rejected": false,
+      "settingId": "nic.TxPowerLevel",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "1. Massimo",
+      "areasDisplay": "Power, WiFiRadio",
+      "riskBadge": "! High",
+      "constraintDisplay": "1. Massimo (0), 2. Medio (1), 3. Minimo (2)",
+      "isModifiedFromDefault": true
+    },
+    {
+      "adapterId": "00000000-0000-0000-0000-000000000002",
+      "adapterName": "Adapter 2",
+      "interfaceDescription": "MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card",
+      "keyword": "UAPSDSupport",
+      "displayName": "U-APSD Support",
+      "currentValue": "[redacted]",
+      "defaultValue": "0",
+      "choices": [
+        {
+          "registryValue": "1",
+          "displayValue": "Attivata",
+          "display": "Attivata (1)"
+        },
+        {
+          "registryValue": "0",
+          "displayValue": "Disattivata",
+          "display": "Disattivata (0)"
+        }
+      ],
+      "minimum": null,
+      "maximum": null,
+      "step": null,
+      "registryDataType": 1,
+      "canRemove": false,
+      "areas": "Power, WiFiRadio",
+      "risk": "Medium",
+      "tradeOff": "Radio power-save modes trade a little latency for battery life.",
+      "rejected": false,
+      "settingId": "nic.UAPSDSupport",
+      "isStandardKeyword": false,
+      "evidence": "Experimental",
+      "isEnumerated": true,
+      "isNumericRange": false,
+      "currentDisplay": "[redacted]",
+      "defaultDisplay": "Disattivata",
+      "areasDisplay": "Power, WiFiRadio",
+      "riskBadge": "~ Medium",
+      "constraintDisplay": "Attivata (1), Disattivata (0)",
+      "isModifiedFromDefault": true
+    }
+  ]
+}

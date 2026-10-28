@@ -164,7 +164,8 @@ public sealed class BufferbloatReportImporterTests
         Assert.Contains(local.Changes, change => change.SettingId.StartsWith("nic.", StringComparison.Ordinal));
         Assert.All(local.Changes, change => Assert.True(
             change.SettingId.StartsWith("nic.", StringComparison.Ordinal)
-            || change.SettingId.StartsWith("mmcss.", StringComparison.Ordinal),
+            || change.SettingId.StartsWith("mmcss.", StringComparison.Ordinal)
+            || change.SettingId.StartsWith("adapter.", StringComparison.Ordinal),
             $"unexpected setting family: {change.SettingId}"));
 
         // The planner runs with no findings at all, which is exactly what an import gives it.

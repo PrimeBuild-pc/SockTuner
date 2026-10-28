@@ -9,7 +9,7 @@ using SockTuner.Services;
 namespace SockTuner.Views;
 
 /// <summary>
-/// Live-changes consent, language, log retention and the compatibility report. Each setting is
+/// Appearance, language, log retention, the compatibility report and updates. Each setting is
 /// saved on its own, read-modify-write, so nothing here overwrites what another surface saved.
 /// </summary>
 public partial class PreferencesView : UserControl
@@ -25,6 +25,9 @@ public partial class PreferencesView : UserControl
         LogRetentionComboBox.SelectedItem = preferences.LogFileMegabytes;
         LanguageComboBox.ItemsSource = Loc.Languages;
         LanguageComboBox.SelectedItem = Loc.Languages.First(language => language.Tag == Loc.CurrentTag);
+        ThemeComboBox.ItemsSource = Themes;
+        ThemeComboBox.SelectedItem = Themes.Contains(preferences.Theme) ? preferences.Theme : "System";
+        RememberSectionSwitch.IsChecked = preferences.RememberSection;
     }
 
     /// <summary>A line for the window's status bar.</summary>
@@ -33,46 +36,50 @@ public partial class PreferencesView : UserControl
     /// <summary>The inventory a compatibility report is built from; null until the first refresh.</summary>
     public Func<NetworkSnapshot?> Snapshot { get; set; } = () => null;
 
-    /// <summary>Keeps the switch in step with consent granted or withdrawn anywhere else.</summary>
-    public void ShowLiveChanges(bool accepted) => LiveChangesSwitch.IsChecked = accepted;
+    public static readonly string[] Themes = ["System", "Light", "Dark"];
 
-    /// <summary>
-    /// The Preferences switch. On asks the same alpha risk notice as the first apply; off withdraws
-    /// consent, after which every write path — plan, resolvers, interrupts — asks again.
-    /// </summary>
-    private void LiveChangesSwitch_Click(object sender, RoutedEventArgs e)
+    /// <summary>Applies a saved theme name; an unknown one falls back to following Windows.</summary>
+    // ThemeMode is the supported Fluent switch in this WPF; App.xaml already depends on it.
+#pragma warning disable WPF0001
+    public static void ApplyTheme(string? name) => Application.Current.ThemeMode = name switch
     {
-        var problem = default(string);
-        var saved = LiveChangesSwitch.IsChecked == true
-            ? WriteConsentDialog.Ensure(out problem)
-            : WriteConsentDialog.Revoke(out problem);
-        var accepted = WriteConsent.IsAccepted(AppPreferences.Load());
-        if (!saved) ShowLiveChanges(accepted);
-        PreferenceStatusText.Text = problem ?? (accepted
-            ? Loc.T("Live network changes are enabled.")
-            : Loc.T("Live network changes are disabled. SockTuner only reads."));
+        "Light" => ThemeMode.Light,
+        "Dark" => ThemeMode.Dark,
+        _ => ThemeMode.System
+    };
+#pragma warning restore WPF0001
+
+    private void Theme_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!IsLoaded || ThemeComboBox.SelectedItem is not string theme) return;
+        Save(preferences => preferences with { Theme = theme }, () => { ApplyTheme(theme); return Loc.T("Saved."); });
     }
 
-    private void LogRetention_SelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        // The constructor's own selection is not a choice; saving it would pin today's values.
-        if (!IsLoaded || LogRetentionComboBox.SelectedItem is not int megabytes)
-        {
-            return;
-        }
+    private void RememberSection_Click(object sender, RoutedEventArgs e) =>
+        Save(preferences => preferences with { RememberSection = RememberSectionSwitch.IsChecked == true });
 
+    /// <summary>The one save path: read-modify-write, then say what happened. <paramref name="message"/> may also apply the change.</summary>
+    private void Save(Func<UserPreferences, UserPreferences> change, Func<string>? message = null)
+    {
         try
         {
-            AppPreferences.Update(preferences => preferences with { LogFileMegabytes = megabytes });
-            var error = AppLog.ConfigureRetention(megabytes);
-            PreferenceStatusText.Text = error is null
-                ? Loc.F($"Retention saved: two files of up to {megabytes} MB each.")
-                : Loc.F($"Retention saved, but existing logs could not be trimmed: {error}");
+            AppPreferences.Update(change);
+            PreferenceStatusText.Text = message?.Invoke() ?? Loc.T("Saved.");
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
         }
+    }
+
+    private void LogRetention_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // The constructor's own selection is not a choice; saving it would pin today's values.
+        if (!IsLoaded || LogRetentionComboBox.SelectedItem is not int megabytes) return;
+        Save(preferences => preferences with { LogFileMegabytes = megabytes }, () =>
+            AppLog.ConfigureRetention(megabytes) is { } error
+                ? Loc.F($"Retention saved, but existing logs could not be trimmed: {error}")
+                : Loc.F($"Retention saved: two files of up to {megabytes} MB each."));
     }
 
     /// <summary>
@@ -86,18 +93,9 @@ public partial class PreferencesView : UserControl
         // the app stopped following Windows from then on.
         if (!IsLoaded || LanguageComboBox.SelectedItem is not Loc.Language language) return;
         if (string.Equals(AppPreferences.Load().Language, language.Tag, StringComparison.Ordinal)) return;
-
-        try
-        {
-            AppPreferences.Update(preferences => preferences with { Language = language.Tag });
-            PreferenceStatusText.Text = language.Tag == Loc.CurrentTag
-                ? Loc.F($"Language saved: {language.NativeName}.")
-                : Loc.F($"Language saved: {language.NativeName}. Restart SockTuner to apply it.");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            PreferenceStatusText.Text = Loc.F($"Preference save failed: {exception.Message}");
-        }
+        Save(preferences => preferences with { Language = language.Tag }, () => language.Tag == Loc.CurrentTag
+            ? Loc.F($"Language saved: {language.NativeName}.")
+            : Loc.F($"Language saved: {language.NativeName}. Restart SockTuner to apply it."));
     }
 
     private void CreateCompatibilityReport_Click(object sender, RoutedEventArgs e) => CreateCompatibilityReport();
@@ -149,26 +147,17 @@ public partial class PreferencesView : UserControl
         StatusChanged?.Invoke(this, Loc.T("Compatibility report saved."));
         AppLog.Write("compatibility_report.saved", "A privacy-safe compatibility report was saved.");
 
-        if (MessageBox.Show(
-                Loc.T("The JSON file is plain text. Inspect it if you wish, then attach it to the GitHub issue. Open the issue form now?"),
-                Loc.T("Compatibility report saved"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question) != MessageBoxResult.Yes)
-        {
-            return;
-        }
+        var saved = new ReportSavedWindow { Owner = owner, GitHubUrl = CompatibilityIssueUrl };
+        if (saved.ShowDialog() != true || saved.ChosenUrl is not { } url) return;
 
         try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(CompatibilityIssueUrl)
-            {
-                UseShellExecute = true
-            });
-            ContributionStatusText.Text = Loc.T("GitHub issue form opened. Attach the saved JSON file before submitting.");
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+            ContributionStatusText.Text = Loc.T("Page opened. Attach the saved JSON file before sending.");
         }
         catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            ContributionStatusText.Text = Loc.F($"Report saved, but the GitHub issue form could not be opened: {exception.Message}");
+            ContributionStatusText.Text = Loc.F($"Report saved, but the page could not be opened: {exception.Message}");
         }
     }
 }

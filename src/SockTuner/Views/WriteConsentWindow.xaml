@@ -1,0 +1,35 @@
+<Window x:Class="SockTuner.Views.WriteConsentWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Enable live network changes" Width="560" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" Style="{StaticResource AppWindowStyle}"
+        UseLayoutRounding="True" SnapsToDevicePixels="True" ContentRendered="Window_ContentRendered">
+    <StackPanel Margin="28,24,28,24">
+        <StackPanel Orientation="Horizontal">
+            <TextBlock Text="&#xEA18;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="28"
+                       Foreground="{DynamicResource SystemFillColorCautionBrush}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+            <TextBlock Text="Enable live network changes" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center"/>
+        </StackPanel>
+        <TextBlock x:Name="IntroText" TextWrapping="Wrap" Margin="0,16,0,10"/>
+        <ItemsControl x:Name="PointsList" Margin="0,0,0,16" Focusable="False">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="22"/><ColumnDefinition/></Grid.ColumnDefinitions>
+                        <TextBlock Text="&#xE73E;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="13"
+                                   Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="0,3,0,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Border Background="{DynamicResource SystemFillColorCautionBackgroundBrush}" BorderBrush="{DynamicResource SystemFillColorCautionBrush}"
+                BorderThickness="1" CornerRadius="8" Padding="14,10">
+            <TextBlock x:Name="WarningText" TextWrapping="Wrap" FontWeight="SemiBold"/>
+        </Border>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">
+            <Button x:Name="CancelButton" Content="Cancel" IsCancel="True" MinWidth="110" Margin="0,0,8,0"/>
+            <Button Content="I understand, enable changes" Style="{StaticResource PrimaryButton}" Click="Accept_Click"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
