@@ -48,9 +48,7 @@ public sealed class CimAdapterSettingStore : ISettingStore
         }
 
         var adapterId = ParseAdapterId(address);
-        using var instance = FindProperty(address);
-        instance["RegistryValue"] = new[] { value.Value };
-        instance.Put();
+        ModifyRegistryValue($"{adapterId.ToString("B").ToUpperInvariant()}::{address.ValueName}", address.ValueName, adapterId, value.Value);
 
         // Remember the pre-change link state so the restart can be checked against what the
         // adapter actually was, not against an assumption that every adapter starts connected.
@@ -128,6 +126,22 @@ public sealed class CimAdapterSettingStore : ISettingStore
         Guid.TryParse(address.TargetId, out var adapterId)
             ? adapterId
             : throw new InvalidOperationException($"{address.SettingId} has no valid adapter target.");
+
+    /// <summary>
+    /// Writes through the CIM API's ModifyInstance, which sends only the changed property, as Set-NetAdapterAdvancedProperty
+    /// does. The WMI <c>Put()</c> sends the whole object and was refused ("Invalid object") by a Hyper-V synthetic adapter
+    /// whose provider accepts ModifyInstance.
+    /// </summary>
+    private static void ModifyRegistryValue(string instanceId, string keyword, Guid adapterId, string value)
+    {
+        const string cimNamespace = "root/StandardCimv2";
+        using var session = Microsoft.Management.Infrastructure.CimSession.Create(null);
+        var query = $"SELECT * FROM {WindowsAdapterCapabilityInventory.ClassName} WHERE InstanceID = '{instanceId.Replace("\\", "\\\\").Replace("'", "\'")}'";
+        var instance = session.QueryInstances(cimNamespace, "WQL", query).FirstOrDefault()
+            ?? throw new InvalidOperationException($"The driver no longer advertises {keyword} on adapter {adapterId}.");
+        instance.CimInstanceProperties["RegistryValue"].Value = new[] { value };
+        session.ModifyInstance(cimNamespace, instance);
+    }
 
     private ManagementObject FindProperty(SettingAddress address)
     {

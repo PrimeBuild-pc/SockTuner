@@ -251,7 +251,18 @@ def render_index(entries):
     return "\n".join(lines) + "\n"
 
 
+VERIFIED = os.path.join(ROOT, "src", "SockTuner", "Assets", "verified-adapters.json")
+
+
+def render_verified(entries):
+    """The physical adapter models the app can call verified: just what it needs, no capability data."""
+    models = sorted({entry["model"] for entry in entries.values() if not entry["isVirtual"]})
+    return json.dumps(models, ensure_ascii=False, indent=2) + "\n"
+
+
 def write_index(entries):
+    with open(VERIFIED, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(render_verified(entries))
     with open(os.path.join(ARCHIVE, "INDEX.md"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(render_index(entries))
 
@@ -273,6 +284,9 @@ def check_archive(entries):
     with open(os.path.join(ARCHIVE, "INDEX.md"), encoding="utf-8") as handle:
         if handle.read() != render_index(entries):
             failures.append("INDEX.md")
+    with open(VERIFIED, encoding="utf-8") as handle:
+        if handle.read() != render_verified(entries):
+            failures.append("verified-adapters.json")
     if failures:
         print("archive differs from regenerated output:", ", ".join(sorted(set(failures))))
         return False

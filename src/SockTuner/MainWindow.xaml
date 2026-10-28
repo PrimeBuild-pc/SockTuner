@@ -8,6 +8,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -28,6 +29,9 @@
                 <TextBox x:Name="InventoryFilterText" Width="260" Margin="0,4,8,4"
                          Style="{StaticResource PlaceholderBox}" Tag="Search all inventory  (Ctrl+F)"
                          TextChanged="InventoryFilter_TextChanged" AutomationProperties.Name="Search all inventory"/>
+                <CheckBox x:Name="AdvancedModeCheck" Style="{StaticResource ToggleSwitch}" Content="Advanced mode" Margin="0,4,12,4" VerticalAlignment="Center"
+                          Checked="AdvancedMode_Changed" Unchecked="AdvancedMode_Changed"
+                          ToolTip="Show every section, including the technical ones. Off keeps only what a first-time user needs."/>
                 <Button Content="Refresh" ContentTemplate="{StaticResource IconContent}" Tag="&#xE72C;" Click="RefreshInventory_Click" Margin="0,4,8,4"
                         Style="{StaticResource PrimaryButton}" ToolTip="Re-read the whole Windows network inventory  (F5)"
                         AutomationProperties.Name="Refresh network inventory"/>
@@ -58,15 +62,176 @@
                                    ToolTip="Writes require accepting the change consent, elevation, and an explicit confirmation in the tuning plan."/>
                     </StackPanel>
                 </Border>
+                <Button x:Name="SettingsButton" Content="&#xE713;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                        Margin="8,4,0,4" Padding="10,6" Click="Settings_Click"
+                        ToolTip="Preferences" AutomationProperties.Name="Preferences"/>
             </WrapPanel>
         </Grid>
 
-        <TabControl x:Name="InventoryTabs" Grid.Row="1" SelectionChanged="InventoryTabs_SelectionChanged">
+        <!-- Shown only while something is running: a large spinner and the current step, so nobody
+             mistakes a long analysis for a frozen window. -->
+        <Border x:Name="BusyBanner" Grid.Row="1" Visibility="Collapsed" Margin="20,0,16,10" Padding="18,12"
+                Background="{DynamicResource SubtleFillColorSecondaryBrush}" CornerRadius="8"
+                BorderBrush="{DynamicResource AccentFillColorDefaultBrush}" BorderThickness="2">
+            <DockPanel>
+                <views:BusySpinner Width="48" Height="48" DockPanel.Dock="Left" Margin="0,0,16,0" VerticalAlignment="Center"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Working…" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding Text, ElementName=StatusText}" FontSize="14" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <TabControl x:Name="InventoryTabs" Grid.Row="2" SelectionChanged="InventoryTabs_SelectionChanged">
             <TabItem Header="Overview" Style="{StaticResource NavGroupHeader}"/>
 
             <TabItem Header="Dashboard" IsSelected="True">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
+                        <Border Style="{StaticResource Card}" Padding="24">
+                            <StackPanel>
+                                <TextBlock Text="Get ready to play" FontSize="28" FontWeight="SemiBold"/>
+                                <TextBlock Text="Four steps. Nothing changes without your OK." FontSize="15"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,18"/>
+                                <UniformGrid Columns="4">
+                                    <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Margin="0,0,12,0" Padding="18">
+                                        <DockPanel>
+                                            <Button x:Name="QuickCheckButton" DockPanel.Dock="Bottom" Content="Check my connection" ContentTemplate="{StaticResource IconContent}"
+                                                    Tag="&#xE768;" Click="QuickCheck_Click" Style="{StaticResource PrimaryButton}"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentFillColorDefaultBrush}">
+                                                        <TextBlock Text="1" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                                    </Border>
+                                                    <TextBlock Text="&#xE9D9;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
+                                                </StackPanel>
+                                                <TextBlock Text="Check" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                                <views:BusySpinner x:Name="QuickCheckSpinner" Width="44" Height="44" Visibility="Collapsed"
+                                                                   HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                                                <TextBlock x:Name="QuickCheckStatusText" Text="Test your connection." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                           AutomationProperties.LiveSetting="Polite"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Margin="0,0,12,0" Padding="18">
+                                        <DockPanel>
+                                            <Button x:Name="QuickPresetButton" DockPanel.Dock="Bottom" Content="Apply gaming preset" ContentTemplate="{StaticResource IconContent}"
+                                                    Tag="&#xE945;" Click="QuickPreset_Click" Style="{StaticResource PrimaryButton}"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentFillColorDefaultBrush}">
+                                                        <TextBlock Text="2" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                                    </Border>
+                                                    <TextBlock Text="&#xE945;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
+                                                </StackPanel>
+                                                <TextBlock Text="Improve" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                                <TextBlock x:Name="QuickPresetStatusText" Text="You review the changes first." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                           AutomationProperties.LiveSetting="Polite"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Margin="0,0,12,0" Padding="18">
+                                        <DockPanel>
+                                            <Button x:Name="QuickRestartButton" DockPanel.Dock="Bottom" Content="Restart Windows…" ContentTemplate="{StaticResource IconContent}"
+                                                    Tag="&#xE777;" Click="QuickRestart_Click"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentFillColorDefaultBrush}">
+                                                        <TextBlock Text="3" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                                    </Border>
+                                                    <TextBlock Text="&#xE777;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
+                                                </StackPanel>
+                                                <TextBlock Text="Restart" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                                <TextBlock x:Name="QuickRestartStatusText" Text="Only if the preset asks for it." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                           AutomationProperties.LiveSetting="Polite"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                    <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Padding="18">
+                                        <DockPanel>
+                                            <Button x:Name="QuickCompareButton" DockPanel.Dock="Bottom" Content="Did it help?" ContentTemplate="{StaticResource IconContent}"
+                                                    Tag="&#xE895;" Click="ReRunAndCompare_Click" IsEnabled="{Binding IsEnabled, ElementName=ReRunDiagnosticButton}"
+                                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Border Width="28" Height="28" CornerRadius="14" Background="{DynamicResource AccentFillColorDefaultBrush}">
+                                                        <TextBlock Text="4" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"/>
+                                                    </Border>
+                                                    <TextBlock Text="&#xE7FC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
+                                                </StackPanel>
+                                                <TextBlock Text="Play" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                                <TextBlock x:Name="QuickPlayStatusText" Text="Not checked yet." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                           AutomationProperties.LiveSetting="Polite"/>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <StackPanel>
+                                        <TextBlock Text="Health check" FontSize="20" FontWeight="SemiBold"/>
+                                        <TextBlock x:Name="HealthSummaryText" Text="Runs automatically with every inventory refresh." Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" x:Name="OpenHealthSectionButton" Content="Open the section that fixes this" ContentTemplate="{StaticResource IconContent}" Tag="&#xE8A7;"
+                                            Click="OpenHealthSection_Click" IsEnabled="False" VerticalAlignment="Top"/>
+                                </Grid>
+                                <!-- These rows are the point of the dashboard, so they wrap instead of
+                                     clipping: an evidence line cut at "Configured: 8.8.8.8, 8.8.4.4, 19"
+                                     is worse than no line at all. Double-click opens the fixing section. -->
+                                <Expander Header="Show all findings" Margin="0,12,0,0" AutomationProperties.Name="All health findings">
+                                <DataGrid x:Name="HealthGrid" AutoGenerateColumns="False" MinHeight="120" Margin="0,12,0,0"
+                                          RowHeight="NaN" MinRowHeight="40"
+                                          SelectionChanged="HealthGrid_SelectionChanged"
+                                          MouseDoubleClick="HealthGrid_MouseDoubleClick">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130"
+                                                            ElementStyle="{StaticResource VerdictCellText}"/>
+                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*" MinWidth="130"
+                                                            ElementStyle="{StaticResource WrapCellText}"/>
+                                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150" ElementStyle="{StaticResource WrapCellText}"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                </Expander>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Undo" FontSize="20" FontWeight="SemiBold"/>
+                                    <TextBlock x:Name="RecoverySummaryText" Text="No successful change is waiting to be undone."
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,12,0"/>
+                                    <TextBlock x:Name="WorkflowWriteStateText" Foreground="{DynamicResource SystemFillColorCautionBrush}" TextWrapping="Wrap" Margin="0,6,12,0"/>
+                                </StackPanel>
+                                <WrapPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <Button x:Name="UndoLastChangeButton" Content="Undo last successful change" ContentTemplate="{StaticResource IconContent}" Tag="&#xE7A7;"
+                                            Click="UndoLastChange_Click" IsEnabled="False" Margin="0,0,8,0"/>
+                                    <Button Content="Check for drift" ContentTemplate="{StaticResource IconContent}" Tag="&#xE9D9;" Click="DashboardCheckDrift_Click" Margin="0,0,8,0"/>
+                                    <Button Content="Open recovery history" ContentTemplate="{StaticResource IconContent}" Tag="&#xE81C;" Click="OpenTuningPlan_Click"/>
+                                </WrapPanel>
+                            </Grid>
+                        </Border>
+
+                        <Expander Header="Details" Margin="0,18,0,0" HorizontalAlignment="Stretch" AutomationProperties.Name="Dashboard details">
+                            <StackPanel Margin="0,8,0,0">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition/>
@@ -106,39 +271,6 @@
                                 </StackPanel>
                             </Border>
                         </Grid>
-
-                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
-                            <StackPanel>
-                                <Grid>
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <StackPanel>
-                                        <TextBlock Text="Health check" FontSize="20" FontWeight="SemiBold"/>
-                                        <TextBlock x:Name="HealthSummaryText" Text="Runs automatically with every inventory refresh." Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                                    </StackPanel>
-                                    <Button Grid.Column="1" x:Name="OpenHealthSectionButton" Content="Open the section that fixes this" ContentTemplate="{StaticResource IconContent}" Tag="&#xE8A7;"
-                                            Click="OpenHealthSection_Click" IsEnabled="False" VerticalAlignment="Top"/>
-                                </Grid>
-                                <!-- These rows are the point of the dashboard, so they wrap instead of
-                                     clipping: an evidence line cut at "Configured: 8.8.8.8, 8.8.4.4, 19"
-                                     is worse than no line at all. Double-click opens the fixing section. -->
-                                <DataGrid x:Name="HealthGrid" AutoGenerateColumns="False" MinHeight="120" Margin="0,12,0,0"
-                                          RowHeight="NaN" MinRowHeight="40"
-                                          SelectionChanged="HealthGrid_SelectionChanged"
-                                          MouseDoubleClick="HealthGrid_MouseDoubleClick">
-                                    <DataGrid.Columns>
-                                        <DataGridTextColumn Header="Severity" Binding="{Binding SeverityBadge}" Width="130"
-                                                            ElementStyle="{StaticResource VerdictCellText}"/>
-                                        <DataGridTextColumn Header="Finding" Binding="{Binding Title}" Width="2*" MinWidth="130"
-                                                            ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Evidence" Binding="{Binding Evidence}" Width="2*" MinWidth="130"
-                                                            ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="What to do" Binding="{Binding Action}" Width="3*" MinWidth="130"
-                                                            ElementStyle="{StaticResource WrapCellText}"/>
-                                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="150" ElementStyle="{StaticResource WrapCellText}"/>
-                                    </DataGrid.Columns>
-                                </DataGrid>
-                            </StackPanel>
-                        </Border>
 
                         <Border Style="{StaticResource Card}" Margin="0,18,0,0">
                             <StackPanel>
@@ -184,11 +316,7 @@
                         </Border>
 
                         <Grid Margin="0,18,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" MinWidth="130"/>
-                                <ColumnDefinition Width="*" MinWidth="130"/>
-                            </Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource Card}" Margin="0,0,12,0">
+                            <Border Style="{StaticResource Card}" >
                                 <StackPanel>
                                     <TextBlock Text="System baseline" FontSize="18" FontWeight="SemiBold"/>
                                     <TextBlock Text="Current read-only system facts. No setting is changed during discovery." Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,5,0,18"/>
@@ -206,29 +334,10 @@
                                     </Grid>
                                 </StackPanel>
                             </Border>
-                            <Border Grid.Column="1" Style="{StaticResource Card}">
-                                <StackPanel>
-                                    <TextBlock Text="Safe workflow" FontSize="18" FontWeight="SemiBold"/>
-                                    <TextBlock Text="1  Inspect the current state" Margin="0,18,0,8"/>
-                                    <TextBlock Text="2  Diagnose each network boundary" Margin="0,8" TextWrapping="Wrap"/>
-                                    <TextBlock Text="3  Preview a typed change plan" Margin="0,8"/>
-                                    <TextBlock Text="4  Snapshot, apply, verify, roll back" Margin="0,8" TextWrapping="Wrap"/>
-                                    <TextBlock x:Name="WorkflowWriteStateText" Foreground="{DynamicResource SystemFillColorCautionBrush}" TextWrapping="Wrap" Margin="0,18,0,0"/>
-                                    <Separator Margin="0,18,0,14"/>
-                                    <TextBlock Text="Recovery" FontSize="18" FontWeight="SemiBold"/>
-                                    <TextBlock x:Name="RecoverySummaryText" Text="No successful change is waiting to be undone."
-                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
-                                    <WrapPanel>
-                                        <Button x:Name="UndoLastChangeButton" Content="Undo last successful change" ContentTemplate="{StaticResource IconContent}" Tag="&#xE7A7;"
-                                                Click="UndoLastChange_Click" IsEnabled="False" Margin="0,0,8,8"/>
-                                        <Button Content="Check for drift" ContentTemplate="{StaticResource IconContent}" Tag="&#xE9D9;" Click="DashboardCheckDrift_Click" Margin="0,0,8,8"/>
-                                        <Button Content="Open recovery history" ContentTemplate="{StaticResource IconContent}" Tag="&#xE81C;" Click="OpenTuningPlan_Click" Margin="0,0,0,8"/>
-                                    </WrapPanel>
-                                </StackPanel>
-                            </Border>
                         </Grid>
+                            </StackPanel>
+                        </Expander>
 
-                        <views:UpdatesCard x:Name="Updates" Margin="0,18,0,0"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -236,10 +345,13 @@
             <TabItem Header="Measure" Style="{StaticResource NavGroupHeader}"/>
 
             <TabItem Header="Gaming diagnostics">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+                <TabControl x:Name="DiagnosisTabs" Style="{StaticResource PivotTabControl}">
+                    <TabItem Header="Diagnosis">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
                     <StackPanel>
                         <Border Style="{StaticResource Card}">
-                            <WrapPanel>
+                            <StackPanel>
+                                <WrapPanel>
                                 <StackPanel Width="260" Margin="0,0,12,12">
                                     <TextBlock Text="ENDPOINT" Style="{StaticResource FieldLabelText}"/>
                                     <TextBox x:Name="DiagnosticTargetText" Margin="0,6,0,0" Style="{StaticResource PlaceholderBox}"
@@ -247,20 +359,28 @@
                                              ToolTip="The game server or regional endpoint to measure. A host name or an IP address."
                                              AutomationProperties.Name="Game or regional endpoint"/>
                                 </StackPanel>
-                                <StackPanel Width="140" Margin="0,0,12,12">
-                                    <TextBlock Text="PROFILE" Style="{StaticResource FieldLabelText}"/>
-                                    <ComboBox x:Name="DiagnosticProfileComboBox" Margin="0,6,0,0"
-                                              AutomationProperties.Name="Diagnostic profile">
+                                <StackPanel Width="220" Margin="0,0,12,12">
+                                    <TextBlock Text="GAME (TICK RATE)" Style="{StaticResource FieldLabelText}"/>
+                                    <ComboBox x:Name="DiagnosticGameComboBox" Margin="0,6,0,0"
+                                              ToolTip="Sets the probe's packet size and the thresholds the result is judged against"
+                                              AutomationProperties.Name="Game tick rate profile">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                 </StackPanel>
-                                <StackPanel Width="190" Margin="0,0,12,12">
-                                    <TextBlock Text="GAME (TICK RATE)" Style="{StaticResource FieldLabelText}"/>
-                                    <ComboBox x:Name="DiagnosticGameComboBox" Margin="0,6,0,0"
-                                              ToolTip="Sets the probe's packet size and the thresholds the result is judged against"
-                                              AutomationProperties.Name="Game tick rate profile">
+                                <Button x:Name="RunDiagnosticButton" Content="Run complete check" ContentTemplate="{StaticResource IconContent}" Tag="&#xE768;" Click="RunDiagnostic_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,8,12" Style="{StaticResource PrimaryButton}"
+                                        ToolTip="Runs the read-only inventory and path checks together. Loaded-latency and throughput tests stay separate because they generate traffic."/>
+                                <Button x:Name="CancelDiagnosticButton" Content="Cancel" ContentTemplate="{StaticResource IconContent}" Tag="&#xE711;" Click="CancelDiagnostic_Click"
+                                        VerticalAlignment="Bottom" Margin="0,0,0,12" IsEnabled="False"/>
+                                                            </WrapPanel>
+                                <Expander Header="Advanced options" AutomationProperties.Name="Advanced diagnostic options">
+                                    <WrapPanel Margin="0,8,0,0">
+                                <StackPanel Width="140" Margin="0,0,12,12">
+                                    <TextBlock Text="PROFILE" Style="{StaticResource FieldLabelText}"/>
+                                    <ComboBox x:Name="DiagnosticProfileComboBox" Margin="0,6,0,0"
+                                              AutomationProperties.Name="Diagnostic profile">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
                                         </ComboBox.ItemTemplate>
@@ -276,15 +396,10 @@
                                              Tag="e.g. 7777" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
-                                <Button x:Name="RunDiagnosticButton" Content="Run complete check" ContentTemplate="{StaticResource IconContent}" Tag="&#xE768;" Click="RunDiagnostic_Click"
-                                        VerticalAlignment="Bottom" Margin="0,0,8,12" Style="{StaticResource PrimaryButton}"/>
-                                <Button x:Name="CancelDiagnosticButton" Content="Cancel" ContentTemplate="{StaticResource IconContent}" Tag="&#xE711;" Click="CancelDiagnostic_Click"
-                                        VerticalAlignment="Bottom" Margin="0,0,0,12" IsEnabled="False"/>
-                            </WrapPanel>
+                                    </WrapPanel>
+                                </Expander>
+                            </StackPanel>
                         </Border>
-
-                        <ContentControl Style="{StaticResource InfoBar}" Margin="0,12,0,0"
-                                        Content="Runs the read-only inventory and path checks together. Loaded-latency and throughput tests stay separate because they generate traffic."/>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
@@ -294,7 +409,9 @@
                                 <TextBlock x:Name="PlayabilityHeadlineText" Text="Not run" FontSize="17" FontWeight="SemiBold" TextWrapping="Wrap"/>
                                 <TextBlock x:Name="PlayabilityDetailText" Text="Run a diagnosis to judge the game endpoint against a tick rate."
                                            Margin="0,8,0,0" TextWrapping="Wrap"/>
-                                <DataGrid x:Name="PlayabilityMetricsGrid" AutoGenerateColumns="False" Margin="0,12,0,0" MaxHeight="190" RowHeight="NaN" MinRowHeight="40"
+                                <Expander Header="The numbers behind this" Margin="0,10,0,0" AutomationProperties.Name="Playability numbers">
+                                <StackPanel>
+                                <DataGrid x:Name="PlayabilityMetricsGrid" AutoGenerateColumns="False" Margin="0,8,0,0" MaxHeight="190" RowHeight="NaN" MinRowHeight="40"
                                           Style="{StaticResource ResultGrid}">
                                     <DataGrid.Columns>
                                         <DataGridTextColumn Header="Metric" Binding="{Binding Name}" Width="110" ElementStyle="{StaticResource WrapCellText}"/>
@@ -304,9 +421,14 @@
                                     </DataGrid.Columns>
                                 </DataGrid>
                                 <TextBlock x:Name="PlayabilityTickText" Text="" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                                </Expander>
                             </StackPanel>
                         </Border>
 
+                        <Expander Header="More tools: compare, import, monitor" Margin="0,12,0,0" HorizontalAlignment="Stretch"
+                                  AutomationProperties.Name="More diagnostic tools">
+                            <StackPanel>
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
                                 <Grid>
@@ -385,6 +507,8 @@
                                 <TextBlock x:Name="MonitorStatusText" Grid.Column="6" Text="Not running" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center" Margin="16,0,0,0" AutomationProperties.LiveSetting="Polite"/>
                             </Grid>
                         </Border>
+                            </StackPanel>
+                        </Expander>
 
                         <!-- The probe targets read left to right as the path a packet takes, so the first
                              segment that looks wrong is where the trouble starts. -->
@@ -518,6 +642,15 @@
                         </Expander>
                     </StackPanel>
                 </ScrollViewer>
+                    </TabItem>
+                    <TabItem Header="Recommendations">
+                        <views:RecommendationsView x:Name="Recommendations"/>
+                    </TabItem>
+                </TabControl>
+            </TabItem>
+
+            <TabItem Header="Game ports &amp; NAT">
+                <views:NatDiagnosticsView x:Name="NatDiagnostics"/>
             </TabItem>
 
             <TabItem Header="Wi-Fi diagnostics">
@@ -533,10 +666,6 @@
             </TabItem>
 
             <TabItem Header="Act" Style="{StaticResource NavGroupHeader}"/>
-
-            <TabItem Header="Recommendations">
-                <views:RecommendationsView x:Name="Recommendations"/>
-            </TabItem>
 
             <TabItem Header="Tuning plan">
                 <views:TuningPlanView x:Name="TuningPlan"/>
@@ -923,15 +1052,11 @@
             </TabItem>
         </TabControl>
 
-        <Grid Grid.Row="2" Margin="20,6,16,6">
+        <Grid Grid.Row="3" Margin="20,6,16,6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/><ColumnDefinition/>
                 <ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <!-- The status line said what had started but never that it was still going. -->
-            <ProgressBar x:Name="BusyBar" Width="90" Height="3" Margin="0,0,10,0" IsIndeterminate="True"
-                         Visibility="Collapsed" VerticalAlignment="Center"
-                         AutomationProperties.Name="Working"/>
             <TextBlock x:Name="StatusText" Grid.Column="1" Text="Ready" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                        AutomationProperties.LiveSetting="Polite"/>

@@ -19,12 +19,14 @@ default) that the tuning surface uses. Older probe reports may have only
 | ASIX | ASIX AX88179 USB 3.0 to Gigabit Ethernet Adapter | 1.18.19.1128 | 25 | — (not reported) | 10.0.26200.0 |
 | Intel | Intel(R) Dual Band Wireless-AC 3168 | 19.51.38.2 | 19 | 19 | 10.0.26200.0 |
 | Intel | Intel(R) Ethernet Controller I226-V | 2.1.5.7 | 21 | 21 | 10.0.26200.0 |
+| MediaTek | MediaTek Wi-Fi 6E MT7922 (RZ616) 160MHz Wireless LAN Card | 3.6.0.1425 | 17 | 17 | 10.0.26300.0 |
 | MediaTek | MediaTek Wi-Fi 7 MT7925 Wireless LAN Card | 5.7.0.4669 | 20 | — (not reported) | 10.0.26200.0 |
 | Realtek | Realtek 8852BE Wireless LAN WiFi 6 PCI-E NIC | 6001.15.157.0 | 11 | 11 | 10.0.26200.0 |
 | Realtek | Realtek 8852CE WiFi 6E PCI-E NIC | 6001.16.172.0 | 13 | — (not reported) | 10.0.26200.0 |
 | Realtek | Realtek 8922AE WiFi 7 PCI-E NIC | 6102.24.146.0 | 12 | 12 | 10.0.26200.0 |
 | Realtek | Realtek Gaming 2.5GbE Family Controller | 1125.20.729.2024 | 28 | — (not reported) | 10.0.26200.0 |
 | Realtek | Realtek Gaming 2.5GbE Family Controller | 1125.28.20.1224 | 28 | — (not reported) | 10.0.26200.0 |
+| Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.27.50.919 | 30 | 30 | 10.0.26300.0 |
 | Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.20.729.2024 | 30 | 30 | 10.0.26200.0 |
 | Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.21.903.2024 | 30 | — (not reported) | 10.0.26200.0 |
 | Realtek | Realtek PCIe 2.5GbE Family Controller | 1125.31.50.603 | 30 | 30 | 10.0.26200.0 |
@@ -41,8 +43,8 @@ Kept for completeness; these are not tuning targets.
 
 ## Coverage
 
-- 13 physical adapter model(s) across 4 vendor(s): ASIX, Intel, MediaTek, Realtek.
-- 91 distinct NDIS keywords observed.
+- 15 physical adapter model(s) across 4 vendor(s): ASIX, Intel, MediaTek, Realtek.
+- 96 distinct NDIS keywords observed.
 
 ### Gaps worth filling
 

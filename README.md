@@ -86,6 +86,7 @@ to you.
 | --- | --- |
 | **Inventory** | Adapters, routes, interfaces, DNS, network profiles, bindings, NIC counters, TCP templates and globals, QoS policies, offloads, interrupts, Winsock catalog, driver identity and every driver-advertised NDIS property — read natively, no third-party tools |
 | **Gaming diagnostics** | One check walks the path layer by layer (PC/NIC, LAN or Wi-Fi, router, access link, ISP, route, server) with latency, loss and jitter percentiles, DNS and TCP timing, path MTU, route quality and a playability verdict against the game's tick rate |
+| **Game ports & NAT** | Opt-in IPv4 UDP observations on a chosen local port, game/platform port references, controlled alternate-port checks and security-ranked guidance — no misleading universal Open/Strict grade or automatic router changes. [Method and limits](docs/NAT-DIAGNOSTICS.md) |
 | **Wi-Fi diagnostics** | Passive WLAN data from the Windows cache — signal, rate, band, nearby channel pressure — without triggering a scan |
 | **Throughput & bufferbloat** | Opt-in loaded-latency and throughput tests graded on the Waveform scale; external Waveform results can be imported and graded by the same code |
 | **DNS resolvers** | Benchmark configured and extra resolvers, apply the fastest one or restore DHCP |
@@ -142,6 +143,29 @@ The report contains the adapter model, driver version, OS version, and driver-ad
 constraints. It excludes current setting values, persistent adapter and PnP identifiers, MAC and IP
 addresses, routes, DNS servers, INF and user paths, machine name and exact timestamps. Creating it is
 read-only. The [capability archive](alpha-tester-output/INDEX.md) lists the hardware covered so far.
+
+### Hardware covered so far
+
+SockTuner shows **Verified adapter** next to an adapter whose model is in this list, and **Adapter not verified**
+for any other physical adapter; for those, presets are generic and only touch what the driver advertises.
+Verified means the driver's properties were captured on real hardware and characterised — not that every
+setting helps. The list is regenerated from the [capability archive](alpha-tester-output/INDEX.md).
+
+| Vendor | Adapter | Driver versions seen |
+| --- | --- | --- |
+| ASIX | AX88179 USB 3.0 Gigabit Ethernet | 1.18.19.1128 |
+| Intel | Ethernet Controller I226-V | 2.1.5.7 |
+| Intel | Dual Band Wireless-AC 3168 | 19.51.38.2 |
+| MediaTek | Wi-Fi 6E MT7922 (RZ616) | 3.6.0.1425 |
+| MediaTek | Wi-Fi 7 MT7925 | 5.7.0.4669 |
+| Realtek | PCIe 2.5GbE Family Controller (RTL8125) | 10.79.50.1003, 1125.20.729.2024, 1125.21.903.2024, 1125.27.50.919, 1125.31.50.603 |
+| Realtek | Gaming 2.5GbE Family Controller | 1125.20.729.2024, 1125.28.20.1224 |
+| Realtek | 8852BE Wi-Fi 6 | 6001.15.157.0 |
+| Realtek | 8852CE Wi-Fi 6E | 6001.16.172.0 |
+| Realtek | 8922AE Wi-Fi 7 | 6102.24.146.0 |
+
+Still missing: Intel I219 and I225, Realtek RTL8111, Killer/Qualcomm, Broadcom, Marvell, other Intel Wi-Fi
+generations, and Windows 10. If your adapter says "not verified", use **Report this adapter…** in the Tuning plan.
 
 ## Building from source
 

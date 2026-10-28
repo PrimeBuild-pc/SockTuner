@@ -137,6 +137,14 @@ one, and **inconclusive** when the evidence cannot isolate the fault. An interme
 faulty unless repeated end-to-end measurements support it, TCP-only changes are not presented as UDP game
 fixes, and throughput or bufferbloat is never inferred from registry state.
 
+### Game ports and NAT observations
+
+`NatDiagnosticsView` owns a separate, opt-in `NatDiagnosticProbe`. It exclusively binds the chosen
+IPv4 UDP port, sends validated STUN binding requests from that one socket and separately reports
+mapping samples, controlled alternate-source-port behavior and unverified game inbound reachability.
+It never shares a running game's socket, substitutes an occupied port, writes firewall/router rules
+or converts timeouts into an Open/Moderate/Strict grade. See [method and limits](NAT-DIAGNOSTICS.md).
+
 ## 9. Passive Wi-Fi diagnostics
 
 ```text

@@ -46,13 +46,13 @@ public partial class RecommendationsView : UserControl
     private void RemediationGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         SendToPlanButton.IsEnabled = RemediationGrid.SelectedItem is RemediationAction { AppliesLocally: true };
 
-    private void BuildRecommendations_Click(object sender, RoutedEventArgs e) => Build();
+    private async void BuildRecommendations_Click(object sender, RoutedEventArgs e) => await BuildAsync();
 
     /// <summary>
     /// Turns what the last runs established into actions. Everything here is derived from facts
     /// already collected — nothing is measured, and nothing is written.
     /// </summary>
-    public void Build()
+    public async Task BuildAsync()
     {
         var report = LastDiagnosis();
         var download = Throughput?.LastDownload;
@@ -76,8 +76,11 @@ public partial class RecommendationsView : UserControl
                 && Guid.TryParse(item.Id, out _));
             var adapterId = adapter is not null && Guid.TryParse(adapter.Id, out var parsed) ? parsed : (Guid?)null;
 
-            var capabilities = WindowsAdapterCapabilityInventory.Read().Capabilities;
-            var globals = WindowsGlobalSettingInventory.Read().Capabilities;
+            // WMI and registry reads: slow enough to freeze the window if done on its thread.
+            var (capabilities, globals, powerManagementOff) = await Task.Run(() => (
+                WindowsAdapterCapabilityInventory.Read().Capabilities,
+                WindowsGlobalSettingInventory.Read().Capabilities,
+                adapterId is { } id && AdapterPowerSavingSpecification.IsPowerManagementOff(id)));
 
             // The receive-window advice is computed from this path, so it is only offered when a
             // throughput run actually measured one.
@@ -108,7 +111,9 @@ public partial class RecommendationsView : UserControl
             // explicitly and only when there is an adapter whose advertised keywords can carry it.
             if (UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
             {
-                actions.Insert(0, UseCaseProfiles.PlanFor(profile, id, capabilities));
+                actions.Insert(0, UseCaseProfiles.PlanFor(
+                    profile, id, capabilities, globals, wireless: adapter?.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211,
+                    devicePowerIsOff: _ => powerManagementOff));
             }
 
             RemediationGrid.ItemsSource = actions;
@@ -223,22 +228,29 @@ public partial class RecommendationsView : UserControl
     /// the manual path stops — on the tuning plan — because the preview, the read-back check and
     /// the typed confirmation are what make any of this reversible, and no button skips them.
     /// </summary>
-    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e)
+    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e) => QueueAll();
+
+    /// <summary>Chooses a use-case profile by id, so another surface can ask for one without reaching into the combo box.</summary>
+    public void SelectProfile(string id) =>
+        UseCaseComboBox.SelectedItem = UseCaseProfiles.All.FirstOrDefault(profile => profile.Id == id) ?? UseCaseComboBox.SelectedItem;
+
+    /// <summary>Queues every action this machine can make and returns how many changes the plan accepted.</summary>
+    public int QueueAll(Func<RemediationAction, bool>? only = null)
     {
         if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions)
         {
             SetStatus(Loc.T("Build recommendations first."));
-            return;
+            return 0;
         }
 
-        var applicable = actions.Where(action => action.AppliesLocally).ToArray();
+        var applicable = actions.Where(action => action.AppliesLocally && (only?.Invoke(action) ?? true)).ToArray();
         if (applicable.Length == 0)
         {
             SetStatus(Loc.T("Nothing here is a change this machine can make."));
-            return;
+            return 0;
         }
 
-        if (Plan is not { } plan) return;
+        if (Plan is not { } plan) return 0;
         var requested = 0;
         var accepted = 0;
         foreach (var action in applicable)
@@ -253,6 +265,7 @@ public partial class RecommendationsView : UserControl
             : Loc.F($"Sent {accepted} of {requested} change(s); the rest are not advertised by the selected adapter's driver."));
         AppLog.Write("recommendations.sent_all", $"Actions={applicable.Length}; Accepted={accepted}/{requested}.");
         if (accepted > 0) OpenPlanRequested?.Invoke(this, EventArgs.Empty);
+        return accepted;
     }
 
     /// <summary>

@@ -52,7 +52,6 @@ public partial class MainWindow : Window
         UiTranslator.Apply(this);
         _preferences = AppPreferences.Load();
         WifiDiagnostics.PreferredInterfaceId = _preferences.WifiInterfaceId;
-        if (_preferences.SelectedSection is { Length: > 0 } section) SelectTab(section);
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
         DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All;
         DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[0];
@@ -71,6 +70,8 @@ public partial class MainWindow : Window
             ShowDashboardLatency(ProbeStatistics.Calculate("Game endpoint", string.Empty, []), live: false);
         DrawChart(DashboardWifiCanvas, [], (Brush)FindResource("AccentFillColorDefaultBrush"));
         WifiDiagnostics.ObservationUpdated += (_, samples) => ShowDashboardWifi(samples);
+        NatDiagnostics.StatusChanged += (_, text) => StatusText.Text = text;
+        NatDiagnostics.BusyChanged += (_, busy) => SetBusy(busy);
         DnsResolvers.StatusChanged += (_, text) => StatusText.Text = text;
         DnsResolvers.BusyChanged += (_, busy) => SetBusy(busy);
         DnsResolvers.Applied += async (_, _) => await RefreshInventoryAsync();
@@ -78,13 +79,14 @@ public partial class MainWindow : Window
         Interfaces.StatusChanged += (_, text) => StatusText.Text = text;
         Interfaces.OpenPlanRequested += (_, _) => SelectTab("Tuning plan");
         Preferences.Snapshot = () => _snapshot;
+        TuningPlan.ReportAdapterRequested += (_, _) => Preferences.CreateCompatibilityReport();
         Preferences.StatusChanged += (_, text) => StatusText.Text = text;
         Throughput.StatusChanged += (_, text) => StatusText.Text = text;
         Throughput.BusyChanged += (_, busy) => SetBusy(busy);
         Throughput.CurrentGame = () => DiagnosticGameComboBox.SelectedItem as GameProfile;
-        Throughput.RecommendationsRequested += (_, _) =>
+        Throughput.RecommendationsRequested += async (_, _) =>
         {
-            Recommendations.Build();
+            await Recommendations.BuildAsync();
             SelectTab("Recommendations");
         };
         Recommendations.LastDiagnosis = () => _lastReport;
@@ -103,6 +105,7 @@ public partial class MainWindow : Window
         TuningPlan.Applied += async (_, _) =>
         {
             CaptureVerificationBaseline();
+            QuickRestartStatusText.Text = Loc.T("Restart to finish: some changes apply only after a restart.");
             await RefreshInventoryAsync();
             ShowRecoveryState();
         };
@@ -116,8 +119,12 @@ public partial class MainWindow : Window
         {
             await RefreshInventoryAsync();
             InterruptAffinity.Load();
-            await Updates.CheckIfDueAsync();
+            await Preferences.Updates.CheckIfDueAsync();
         };
+        PreferencesView.ApplyTheme(_preferences.Theme);
+        if (_preferences.RememberSection && _preferences.SelectedSection is { Length: > 0 } section) SelectTab(section);
+        AdvancedModeCheck.IsChecked = _preferences.AdvancedMode;
+        ApplyMode();
         ShowWriteState();
         ShowRecoveryState();
         WriteLog("app.started", "SockTuner UI started.");
@@ -148,7 +155,7 @@ public partial class MainWindow : Window
         var foreground = (Brush)FindResource(accepted ? "SystemFillColorCautionBrush" : "TextFillColorSecondaryBrush");
         WriteStateIcon.Foreground = foreground;
         WriteStateText.Foreground = foreground;
-        Preferences.ShowLiveChanges(accepted);
+        TuningPlan.ShowLiveChanges(accepted);
     }
 
     /// <summary>
@@ -214,7 +221,7 @@ public partial class MainWindow : Window
     private async void RefreshInventory_Click(object sender, RoutedEventArgs e) => await RefreshInventoryAsync();
 
     /// <summary>
-    /// Shows the status-bar activity bar while anything long is running. A counter rather than a
+    /// Shows the busy banner (large spinner plus the current step) while anything long is running. A counter rather than a
     /// flag because a diagnosis and a throughput run are separate surfaces that can overlap, and a
     /// flag would clear the bar the moment the first of them finished. Clamped, so a
     /// <c>finally</c> that unwinds a run which never started cannot drive it negative.
@@ -222,118 +229,28 @@ public partial class MainWindow : Window
     private void SetBusy(bool isBusy)
     {
         _busyCount = Math.Max(0, _busyCount + (isBusy ? 1 : -1));
-        BusyBar.Visibility = _busyCount > 0 ? Visibility.Visible : Visibility.Collapsed;
-    }
-
-    /// <summary>
-    /// F5 re-reads the inventory, Ctrl+F goes to the global search, Ctrl+K jumps to a section by
-    /// name, and Ctrl+1..9 select the first nine destinations in navigation order. Twenty sections
-    /// is more than a mouse should have to carry.
-    /// </summary>
-    private void Window_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-    {
-        var control = e.KeyboardDevice.Modifiers == System.Windows.Input.ModifierKeys.Control;
-
-        if (e.Key == System.Windows.Input.Key.F5)
-        {
-            e.Handled = true;
-            _ = RefreshInventoryAsync();
-            return;
-        }
-
-        if (control && e.Key == System.Windows.Input.Key.F)
-        {
-            e.Handled = true;
-            InventoryFilterText.SelectAll();
-            InventoryFilterText.Focus();
-            return;
-        }
-
-        if (control && e.Key == System.Windows.Input.Key.K)
-        {
-            e.Handled = true;
-            ShowSectionJump();
-            return;
-        }
-
-        // Ctrl+1..9 over the selectable tabs, in the order the navigation shows them.
-        if (control && e.Key is >= System.Windows.Input.Key.D1 and <= System.Windows.Input.Key.D9)
-        {
-            var index = e.Key - System.Windows.Input.Key.D1;
-            var selectable = SelectableTabs();
-            if (index < selectable.Count)
-            {
-                e.Handled = true;
-                InventoryTabs.SelectedItem = selectable[index];
-            }
-        }
+        BusyBanner.Visibility = _busyCount > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private List<System.Windows.Controls.TabItem> SelectableTabs() =>
-        [.. InventoryTabs.Items.OfType<System.Windows.Controls.TabItem>().Where(item => item.IsEnabled)];
+        [.. InventoryTabs.Items.OfType<System.Windows.Controls.TabItem>().Where(item => item.IsEnabled && item.Visibility == Visibility.Visible)];
+
+    /// <summary>What a first-time user needs: look, improve, undo. Everything else is behind Advanced mode.</summary>
+    private static readonly HashSet<string> BasicSections = new(StringComparer.Ordinal)
+    {
+        "Dashboard", "Gaming diagnostics", "Game ports & NAT", "Wi-Fi diagnostics", "Tuning plan"
+    };
 
     /// <summary>
     /// Every destination in navigation order, the "Network details" sub-pages included right after
     /// their parent. Section names are what health findings and saved preferences route by.
     /// </summary>
     private IEnumerable<System.Windows.Controls.TabItem> AllSections() =>
-        SelectableTabs().SelectMany(item => item.Content is System.Windows.Controls.TabControl inner
+        InventoryTabs.Items.OfType<System.Windows.Controls.TabItem>().Where(item => item.IsEnabled).SelectMany(item => item.Content is System.Windows.Controls.TabControl inner
             ? [item, .. inner.Items.OfType<System.Windows.Controls.TabItem>()]
             : new[] { item });
 
     // UiTranslator parks the English header in Tag; the analyzers name sections in English.
-    private static string? SectionName(System.Windows.Controls.TabItem item) =>
-        item.Tag as string ?? item.Header?.ToString();
-
-    private void ShowSection(System.Windows.Controls.TabItem tab)
-    {
-        if (tab.Parent is System.Windows.Controls.TabControl inner && !ReferenceEquals(inner, InventoryTabs))
-        {
-            inner.SelectedItem = tab;
-            InventoryTabs.SelectedItem = inner.Parent;
-            return;
-        }
-        InventoryTabs.SelectedItem = tab;
-    }
-
-    /// <summary>
-    /// Jump to a section by typing part of its name. The global search box doubles as the input:
-    /// typing there and pressing Ctrl+K again moves to the first section whose name matches, which
-    /// keeps one text field rather than introducing a modal palette over a modal-free app.
-    /// </summary>
-    private void ShowSectionJump()
-    {
-        var typed = InventoryFilterText.Text.Trim();
-        if (typed.Length == 0)
-        {
-            InventoryFilterText.Focus();
-            StatusText.Text = Loc.T("Type part of a section name, then press Ctrl+K again to jump to it.");
-            return;
-        }
-
-        var match = AllSections().FirstOrDefault(item =>
-            item.Header?.ToString()?.Contains(typed, StringComparison.OrdinalIgnoreCase) == true);
-        if (match is null)
-        {
-            StatusText.Text = Loc.F($"No section matching \u201c{typed}\u201d.");
-            return;
-        }
-
-        ShowSection(match);
-        StatusText.Text = Loc.F($"Jumped to {match.Header}.");
-    }
-
-    /// <summary>
-    /// One button for the three exports. WPF gives a Button no dropdown of its own, so its own
-    /// context menu is opened under it — no menu bar, no popup plumbing.
-    /// </summary>
-    private void ExportMenu_Click(object sender, RoutedEventArgs e)
-    {
-        if (ExportMenuButton.ContextMenu is not { } menu) return;
-        menu.PlacementTarget = ExportMenuButton;
-        menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-        menu.IsOpen = true;
-    }
 
     private void HealthGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) =>
         OpenHealthSection_Click(sender, e);
@@ -579,385 +496,24 @@ public partial class MainWindow : Window
         finally
         {
             SetDiagnosticBusy(false);
+            UpdateQuickStatus();
         }
-    }
-
-    private void ExportSnapshot_Click(object sender, RoutedEventArgs e)
-    {
-        if (_snapshot is null)
-        {
-            StatusText.Text = Loc.T("Refresh inventory before exporting a snapshot.");
-            return;
-        }
-
-        if (MessageBox.Show(
-                Loc.T("The snapshot contains machine, network profile names/IDs, adapter, binding component, address, route, DNS, driver, and Winsock provider identifiers. Export it anyway?"),
-                Loc.T("Export diagnostic snapshot"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        SaveSnapshot(redact: false);
-    }
-
-    private void ExportSupportSnapshot_Click(object sender, RoutedEventArgs e)
-    {
-        if (_snapshot is null)
-        {
-            StatusText.Text = Loc.T("Refresh inventory before exporting a support snapshot.");
-            return;
-        }
-
-        SaveSnapshot(redact: true);
-    }
-
-    private void SaveSnapshot(bool redact)
-    {
-        var kind = redact ? "support" : "snapshot";
-        var dialog = new SaveFileDialog
-        {
-            Filter = Loc.T("SockTuner JSON snapshot (*.json)|*.json"),
-            DefaultExt = ".json",
-            AddExtension = true,
-            FileName = $"SockTuner-{kind}-{DateTime.Now:yyyyMMdd-HHmmss}.json"
-        };
-        if (dialog.ShowDialog(this) != true)
-        {
-            return;
-        }
-
-        try
-        {
-            File.WriteAllText(dialog.FileName, SnapshotExporter.Serialize(_snapshot!, redact));
-            StatusText.Text = Loc.F($"{(redact ? Loc.T("Redacted support snapshot") : Loc.T("Snapshot"))} exported to {dialog.FileName}.");
-            WriteLog(redact ? "support_snapshot.exported" : "snapshot.exported", dialog.FileName);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            StatusText.Text = Loc.F($"Snapshot export failed: {exception.Message}");
-            WriteLog("snapshot.export_failed", exception.Message);
-        }
-    }
-
-    private void CreateCompatibilityReport_Click(object sender, RoutedEventArgs e) => Preferences.CreateCompatibilityReport();
-
-    private void ExportReportJson_Click(object sender, RoutedEventArgs e) => SaveReport(html: false, redact: false);
-    private void ExportReportHtml_Click(object sender, RoutedEventArgs e) => SaveReport(html: true, redact: false);
-    private void ExportRedactedReportHtml_Click(object sender, RoutedEventArgs e) => SaveReport(html: true, redact: true);
-
-    private void SaveReport(bool html, bool redact)
-    {
-        if (_lastReport is null)
-        {
-            StatusText.Text = Loc.T("Run a completed diagnosis before exporting a report.");
-            return;
-        }
-
-        SaveReport(_lastReport, html, redact);
-    }
-
-    private void SaveReport(GamingDiagnosticReport report, bool html, bool redact)
-    {
-        if (!redact && MessageBox.Show(
-                Loc.T("The full report contains diagnostic targets, addresses, routes, adapter identifiers, Wi-Fi network names/BSSIDs, and error details. Export it anyway?"),
-                Loc.T("Export full diagnostic report"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        var extension = html ? ".html" : ".json";
-        var dialog = new SaveFileDialog
-        {
-            Filter = html ? Loc.T("Self-contained HTML report (*.html)|*.html") : Loc.T("SockTuner JSON report (*.json)|*.json"),
-            DefaultExt = extension,
-            AddExtension = true,
-            FileName = $"SockTuner-report-{DateTime.Now:yyyyMMdd-HHmmss}{extension}"
-        };
-        if (dialog.ShowDialog(this) != true) return;
-        try
-        {
-            var content = html
-                ? DiagnosticReportExporter.SerializeHtml(report, redact)
-                : DiagnosticReportExporter.SerializeJson(report, redact);
-            File.WriteAllText(dialog.FileName, content);
-            StatusText.Text = Loc.F($"Report exported to {dialog.FileName}.");
-            WriteLog("report.exported", $"Format={(html ? "html" : "json")}; Redacted={redact}.");
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            StatusText.Text = Loc.F($"Report export failed: {exception.Message}");
-            WriteLog("report.export_failed", exception.Message);
-        }
-    }
-
-    private void ExportLogs_Click(object sender, RoutedEventArgs e)
-    {
-        if (MessageBox.Show(
-                Loc.T("Logs can contain diagnostic targets and local file paths. Export them anyway?"),
-                Loc.T("Export application logs"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning) != MessageBoxResult.Yes)
-        {
-            return;
-        }
-
-        var dialog = new SaveFileDialog
-        {
-            Filter = Loc.T("SockTuner JSON Lines log (*.jsonl)|*.jsonl"),
-            DefaultExt = ".jsonl",
-            AddExtension = true,
-            FileName = $"SockTuner-log-{DateTime.Now:yyyyMMdd-HHmmss}.jsonl"
-        };
-        if (dialog.ShowDialog(this) != true)
-        {
-            return;
-        }
-
-        try
-        {
-            AppLog.Export(dialog.FileName);
-            StatusText.Text = Loc.F($"Log exported to {dialog.FileName}.");
-            WriteLog("log.exported", dialog.FileName);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            StatusText.Text = Loc.F($"Log export failed: {exception.Message}");
-        }
-    }
-
-    private void InventoryFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyInventoryFilter();
-
-    private void InventoryTabs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        // Either level of navigation: switching a Network details sub-page changes the table too.
-        if (e.OriginalSource is System.Windows.Controls.TabControl)
-        {
-            _selectedInventoryItem = null;
-            _selectedInventoryGrid = null;
-            CopyInventoryRowButton.IsEnabled = false;
-        }
-    }
-
-    private void InventoryGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (sender is not System.Windows.Controls.DataGrid grid)
-        {
-            return;
-        }
-
-        if (grid.SelectedItem is { } item)
-        {
-            _selectedInventoryItem = item;
-            _selectedInventoryGrid = grid;
-            CopyInventoryRowButton.IsEnabled = true;
-        }
-        else if (ReferenceEquals(grid, _selectedInventoryGrid))
-        {
-            _selectedInventoryItem = null;
-            _selectedInventoryGrid = null;
-            CopyInventoryRowButton.IsEnabled = false;
-        }
-    }
-
-    private void CopyInventorySelected_Click(object sender, RoutedEventArgs e)
-    {
-        if (_selectedInventoryItem is null)
-        {
-            StatusText.Text = Loc.T("Select an inventory row to copy.");
-            return;
-        }
-
-        CopyToClipboard(
-            JsonSerializer.Serialize(_selectedInventoryItem, _selectedInventoryItem.GetType(), new JsonSerializerOptions { WriteIndented = true }),
-            "Copied selected inventory row.");
-    }
-
-    private void ApplyInventoryFilter()
-    {
-        if (_snapshot is null)
-        {
-            return;
-        }
-
-        var query = InventoryFilterText.Text;
-        RoutesGrid.ItemsSource = Filter(_snapshot.Routes, query);
-        DnsInterfacesGrid.ItemsSource = Filter(_snapshot.Adapters.Where(adapter => adapter.Ipv4Index > 0 || adapter.Ipv6Index > 0), query);
-        NetworkProfilesGrid.ItemsSource = Filter(_snapshot.NetworkProfiles ?? [], query);
-        BindingsGrid.ItemsSource = Filter(_snapshot.NetworkBindings ?? [], query);
-        GlobalOffloadsGrid.ItemsSource = Filter(_snapshot.GlobalOffloads ?? [], query);
-        AdapterOffloadsGrid.ItemsSource = Filter(_snapshot.AdapterOffloads ?? [], query);
-        TcpSettingsGrid.ItemsSource = Filter(_snapshot.TcpSettings ?? [], query);
-        QosPoliciesGrid.ItemsSource = Filter(_snapshot.QosPolicies ?? [], query);
-        WinsockProvidersGrid.ItemsSource = Filter(_snapshot.WinsockProviders ?? [], query);
-        ApplyAdapterFilter();
-        ApplyNdisFilter();
     }
 
     private static IReadOnlyList<T> Filter<T>(IEnumerable<T> items, string query) =>
         items.Where(item => item is not null && InventorySearch.Matches(item, query)).ToArray();
 
-    private void AdapterFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyAdapterFilter();
-
-    private void NdisFilter_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) => ApplyNdisFilter();
-
     // Both per-grid boxes reuse InventorySearch, which already walks every public property
     // (including the computed *Display ones) and so cannot fall behind when a field is added.
-    private void ApplyAdapterFilter() =>
-        AdaptersGrid.ItemsSource = Filter(
-            Filter(_adapterRows, AdapterFilterText.Text), InventoryFilterText.Text);
-
-    private void ApplyNdisFilter() =>
-        NdisPropertiesGrid.ItemsSource = Filter(
-            Filter(_ndisRows, NdisFilterText.Text), InventoryFilterText.Text);
-
-    private void CopyAdapter_Click(object sender, RoutedEventArgs e)
-    {
-        if (AdaptersGrid.SelectedItem is not AdapterInfo adapter)
-        {
-            StatusText.Text = Loc.T("Select an adapter to copy.");
-            return;
-        }
-
-        CopyToClipboard(
-            $"Name\t{adapter.Name}\nDescription\t{adapter.Description}\nID\t{adapter.Id}\nStatus\t{adapter.Status}\nKind\t{adapter.AdapterKindDisplay}\nType\t{adapter.InterfaceType}\nSpeed\t{adapter.SpeedDisplay}\nMTU\t{adapter.MtuDisplay}\nIPv4 index\t{adapter.Ipv4Index}\nIPv6 index\t{adapter.Ipv6Index}\nIP metrics\t{adapter.MetricDisplay}\nDefault routes\t{adapter.DefaultRoutePolicyDisplay}\nReceived\t{adapter.ReceivedDisplay}\nSent\t{adapter.SentDisplay}\nReceive issues\t{adapter.ReceiveIssuesDisplay}\nSend issues\t{adapter.SendIssuesDisplay}\nDriver\t{adapter.DriverDisplay}\nNDIS\t{adapter.NdisPropertyCountDisplay}\nProtocols\t{adapter.ProtocolsDisplay}\nInventory\t{adapter.InventoryStatus}\nAddresses\t{adapter.AddressesDisplay}\nGateways\t{adapter.GatewaysDisplay}\nDNS\t{adapter.DnsDisplay}",
-            $"Copied adapter {adapter.Name}.");
-    }
-
-    private void CopyNdisProperty_Click(object sender, RoutedEventArgs e)
-    {
-        if (NdisPropertiesGrid.SelectedItem is not NdisPropertyRow property)
-        {
-            StatusText.Text = Loc.T("Select an NDIS property to copy.");
-            return;
-        }
-
-        CopyToClipboard(
-            $"Adapter\t{property.Adapter}\nDriver\t{property.Driver}\nProperty\t{property.Property}\nKeyword\t{property.Keyword}\nCurrent\t{property.Current}\nDefault\t{property.Default}\nType\t{property.Type}\nValid values\t{property.ValidValues}",
-            $"Copied {property.Keyword}.");
-    }
-
-    private void CopyToClipboard(string text, string successMessage)
-    {
-        try
-        {
-            Clipboard.SetText(text);
-            StatusText.Text = successMessage;
-        }
-        catch (ExternalException exception)
-        {
-            StatusText.Text = Loc.F($"Clipboard unavailable: {exception.Message}");
-        }
-    }
-
-    private async void StartMonitor_Click(object sender, RoutedEventArgs e)
-    {
-        var target = DiagnosticTargetText.Text.Trim();
-        if (string.IsNullOrWhiteSpace(target)
-            || !int.TryParse(MonitorDurationText.Text, out var durationSeconds) || durationSeconds is < 1 or > 3600
-            || !int.TryParse(MonitorIntervalText.Text, out var intervalMilliseconds) || intervalMilliseconds is < 100 or > 60_000)
-        {
-            SetMonitorStatus("Enter a target, duration 1–3600 seconds, and interval 100–60000 ms.");
-            return;
-        }
-
-        _monitorCancellation?.Dispose();
-        _monitorCancellation = new CancellationTokenSource();
-        MonitorStartButton.IsEnabled = false;
-        MonitorStopButton.IsEnabled = true;
-        _monitorSamples.Clear();
-        SetMonitorStatus("Monitoring…");
-        try
-        {
-            if (_snapshot is null)
-            {
-                _snapshot = await Task.Run(_inventory.Capture, _monitorCancellation.Token);
-                ShowSnapshot(_snapshot);
-            }
-            var gateway = await _routeGatewayResolver.ResolveAsync(target, _snapshot, _monitorCancellation.Token);
-            var resolvedTarget = IPAddress.TryParse(target, out _)
-                ? target
-                : (await Dns.GetHostAddressesAsync(target, _monitorCancellation.Token)).First().ToString();
-            var targets = new List<MonitorTarget>
-            {
-                new("Reference", "1.1.1.1"),
-                new("Game endpoint", resolvedTarget)
-            };
-            if (!string.IsNullOrWhiteSpace(gateway)) targets.Insert(0, new("Gateway", gateway));
-            // Judged on a rolling window, not on single samples: one lost probe is not an outage,
-            // and a user alerted on every one of them stops reading the alerts.
-            var watchdog = new Watchdog(new WatchdogThresholds());
-            var progress = new Progress<MonitorSample>(sample =>
-            {
-                if (_monitorSamples.Count == MonitorMaximumSamples) _monitorSamples.RemoveAt(0);
-                _monitorSamples.Add(sample);
-                if (watchdog.Observe(sample) is { } alert)
-                {
-                    SetMonitorStatus(alert.Summary);
-                    WriteLog(alert.Open ? "watchdog.opened" : "watchdog.closed", alert.Summary);
-                }
-            });
-            var report = await _monitor.RunAsync(
-                targets,
-                TimeSpan.FromSeconds(durationSeconds),
-                TimeSpan.FromMilliseconds(intervalMilliseconds),
-                TimeSpan.FromSeconds(1),
-                MonitorMaximumSamples,
-                progress,
-                _monitorCancellation.Token);
-            var window = report.SamplesTruncated ? $"Newest {report.Samples.Count}/{report.TotalSampleCount} samples: " : string.Empty;
-            // A run that averages well can still have dropped out entirely for two seconds, which is
-            // what a player actually feels. The episode list is the part worth reading.
-            var stability = StabilityAnalyzer.Analyze(report);
-            if (watchdog.Alerts.Count > 0)
-            {
-                WriteLog("watchdog.summary", $"{watchdog.Alerts.Count} alert(s); {watchdog.OpenAlerts.Count} still open at the end of the run.");
-            }
-            SetMonitorStatus(
-                window
-                + string.Join(" · ", report.Summaries.Select(summary => $"{summary.Label}: {summary.Summary}"))
-                + Environment.NewLine + stability.Verdict
-                + Environment.NewLine + PlayabilityAnalyzer.Availability(stability)
-                + (stability.Episodes.Count == 0
-                    ? string.Empty
-                    : Environment.NewLine + string.Join(Environment.NewLine, stability.Episodes.Select(episode => "• " + episode.Summary))));
-            WriteLog("monitor.completed", $"Target={target}; Duration={report.Duration.TotalSeconds:0.0}s; Samples={report.Samples.Count}; {stability.Verdict}");
-        }
-        catch (OperationCanceledException)
-        {
-            SetMonitorStatus($"Stopped; {_monitorSamples.Count} visible sample(s) retained.");
-            WriteLog("monitor.canceled", $"Target={target}; Samples={_monitorSamples.Count}.");
-        }
-        catch (Exception exception)
-        {
-            SetMonitorStatus($"Monitoring failed: {exception.Message}");
-            WriteLog("monitor.failed", exception.Message);
-        }
-        finally
-        {
-            MonitorStartButton.IsEnabled = true;
-            MonitorStopButton.IsEnabled = false;
-        }
-    }
-
-    private void SetMonitorStatus(string value)
-    {
-        MonitorStatusText.Text = value;
-        var peer = System.Windows.Automation.Peers.UIElementAutomationPeer.FromElement(MonitorStatusText)
-            ?? new System.Windows.Automation.Peers.FrameworkElementAutomationPeer(MonitorStatusText);
-        peer.RaiseAutomationEvent(System.Windows.Automation.Peers.AutomationEvents.LiveRegionChanged);
-    }
-
-    private void StopMonitor_Click(object sender, RoutedEventArgs e) => _monitorCancellation?.Cancel();
 
     private void CancelDiagnostic_Click(object sender, RoutedEventArgs e) => _diagnosticCancellation?.Cancel();
 
     private void SetDiagnosticBusy(bool isBusy)
     {
         SetBusy(isBusy);
+        QuickCheckSpinner.Visibility = isBusy ? Visibility.Visible : Visibility.Collapsed;
+        QuickCheckButton.IsEnabled = !isBusy;
+        if (isBusy) QuickCheckStatusText.Text = Loc.T("Checking… about 15 seconds.");
         RunDiagnosticButton.IsEnabled = !isBusy;
         CancelDiagnosticButton.IsEnabled = isBusy;
         DiagnosticTargetText.IsEnabled = !isBusy;
@@ -969,6 +525,8 @@ public partial class MainWindow : Window
 
     private void ClearDiagnosticResults(string value)
     {
+        _lastGrade = null;
+        _lastCheckAt = null;
         GatewayResultText.Text = value;
         ReferenceResultText.Text = value;
         GameResultText.Text = value;
@@ -986,115 +544,14 @@ public partial class MainWindow : Window
     private void ShowPlayability(ProbeStatistics gameEndpoint, GameProfile game)
     {
         var verdict = PlayabilityAnalyzer.Judge(gameEndpoint, game);
+        _lastGrade = verdict.Grade;
+        _lastCheckAt = DateTimeOffset.Now;
         PlayabilityHeadlineText.Text = Loc.F($"{verdict.Headline} — decided by {verdict.DecidedBy}");
         PlayabilityDetailText.Text = verdict.Detail;
         PlayabilityMetricsGrid.ItemsSource = verdict.Metrics;
         PlayabilityTickText.Text = Loc.F($"{game.DisplayName}: {game.TickDisplay} ({game.SourceDisplay}). {game.Evidence} "
             + $"Probes carried {game.PayloadBytes} bytes of payload.");
         WriteLog("playability.judged", $"Game={game.Id}; Grade={verdict.Grade}; DecidedBy={verdict.DecidedBy}.");
-    }
-
-    private void ShowDashboardLatency(ProbeStatistics statistics, bool live)
-    {
-        var values = statistics.Samples.Select(sample => sample.RoundTripTimeMs).ToArray();
-        DrawChart(DashboardLatencyCanvas, values, (Brush)FindResource("AccentFillColorDefaultBrush"));
-        AddLossMarkers(DashboardLatencyCanvas, values);
-
-        DashboardLatencyLegendText.Text = statistics.Received == 0
-            ? live ? Loc.T("Waiting for game-endpoint replies…") : Loc.T("No completed latency measurement")
-            : Loc.F($"{statistics.MedianMs:0.0} ms median · {statistics.P95Ms:0.0} ms P95 · {(statistics.JitterMs is { } jitter ? $"{jitter:0.0} ms" : "n/a")} jitter · {statistics.LossPercent:0.#}% loss");
-        System.Windows.Automation.AutomationProperties.SetHelpText(
-            DashboardLatencyCanvas, DashboardLatencyLegendText.Text);
-        if (statistics.Sent > 0)
-        {
-            DashboardNetworkSummaryText.Text = live
-                ? Loc.F($"Live game-endpoint measurement: {statistics.Received}/{statistics.Sent} replies.")
-                : Loc.F($"Latest completed gaming diagnostic for {statistics.Target}.");
-        }
-    }
-
-    private void ShowDashboardWifi(IReadOnlyList<WifiObservationSample> samples)
-    {
-        var signal = samples.Select(sample => sample.RssiDbm is { } rssi ? (double?)rssi : null).ToArray();
-        var rates = samples.Select(sample =>
-        {
-            var rate = Math.Max(sample.ReceiveRateKbps, sample.TransmitRateKbps);
-            return rate > 0 ? (double?)(rate / 1000d) : null;
-        }).ToArray();
-        DrawChart(DashboardWifiCanvas, signal, (Brush)FindResource("AccentFillColorDefaultBrush"));
-        DrawSeries(DashboardWifiCanvas, rates, (Brush)FindResource("SystemFillColorCautionBrush"));
-
-        var validSignal = signal.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
-        var validRates = rates.Where(value => value.HasValue).Select(value => value!.Value).ToArray();
-        DashboardWifiLegendText.Text = samples.Count == 0
-            ? Loc.T("No passive Wi-Fi observation")
-            : Loc.F($"{samples.Count} samples · RSSI {Range(validSignal, "dBm")} · rate {Range(validRates, "Mbps")} (independent scales)");
-        DashboardNetworkSummaryText.Text = samples.Count == 0
-            ? Loc.T("Passive Wi-Fi observation started; no samples collected yet.")
-            : Loc.F($"Passive Wi-Fi association observation contains {samples.Count} sample(s).");
-        System.Windows.Automation.AutomationProperties.SetHelpText(
-            DashboardWifiCanvas, DashboardWifiLegendText.Text);
-    }
-
-    private static string Range(double[] values, string unit) => values.Length == 0
-        ? $"n/a {unit}"
-        : $"{values.Min():0.#}–{values.Max():0.#} {unit}";
-
-    private void DrawChart(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values, Brush brush)
-    {
-        canvas.Children.Clear();
-        var gridBrush = (Brush)FindResource("CardStrokeColorDefaultBrush");
-        foreach (var y in new[] { 30d, 60d, 90d })
-        {
-            canvas.Children.Add(new Line
-            {
-                X1 = 0,
-                X2 = 600,
-                Y1 = y,
-                Y2 = y,
-                Stroke = gridBrush,
-                StrokeThickness = 1
-            });
-        }
-        DrawSeries(canvas, values, brush);
-    }
-
-    private static void DrawSeries(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values, Brush brush)
-    {
-        foreach (var segment in SparklineGeometry.Build(values))
-        {
-            if (segment.Count == 1)
-            {
-                var point = segment[0];
-                var marker = new Ellipse { Width = 7, Height = 7, Fill = brush };
-                System.Windows.Controls.Canvas.SetLeft(marker, point.X - 3.5);
-                System.Windows.Controls.Canvas.SetTop(marker, point.Y - 3.5);
-                canvas.Children.Add(marker);
-                continue;
-            }
-
-            canvas.Children.Add(new Polyline
-            {
-                Points = new PointCollection(segment),
-                Stroke = brush,
-                StrokeThickness = 3,
-                StrokeLineJoin = PenLineJoin.Round
-            });
-        }
-    }
-
-    private void AddLossMarkers(System.Windows.Controls.Canvas canvas, IReadOnlyList<double?> values)
-    {
-        if (values.Count == 0) return;
-        var danger = (Brush)FindResource("SystemFillColorCriticalBrush");
-        for (var index = 0; index < values.Count; index++)
-        {
-            if (values[index].HasValue) continue;
-            var marker = new Rectangle { Width = 4, Height = 12, Fill = danger };
-            System.Windows.Controls.Canvas.SetLeft(marker, values.Count == 1 ? 298 : index * 596d / (values.Count - 1));
-            System.Windows.Controls.Canvas.SetTop(marker, 104);
-            canvas.Children.Add(marker);
-        }
     }
 
     private void WriteLog(string eventName, string message)
@@ -1193,7 +650,8 @@ public partial class MainWindow : Window
         _monitorCancellation?.Cancel();
         Throughput.CancelActiveWork();
         DnsResolvers.CancelActiveWork();
-        Updates.CancelActiveWork();
+        NatDiagnostics.CancelActiveWork();
+        Preferences.Updates.CancelActiveWork();
         WifiDiagnostics.CancelActiveWork();
     }
 
@@ -1225,7 +683,6 @@ public partial class MainWindow : Window
 
     private void HealthGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) =>
         OpenHealthSectionButton.IsEnabled = HealthGrid.SelectedItem is HealthFinding;
-
 
     // ---- Network devices -------------------------------------------------------------------
 
@@ -1329,109 +786,12 @@ public partial class MainWindow : Window
 
     // ---- QoS policies -----------------------------------------------------------------------
 
-    /// <summary>
-    /// Queues a policy that marks one application's packets. Like every other write in this app it
-    /// goes to the tuning plan rather than being applied here, so it is previewed, confirmed,
-    /// verified by read-back and recorded where it can be rolled back.
-    /// </summary>
-    private void QosRunningApplication_DropDownOpened(object sender, EventArgs e)
-    {
-        var names = new List<string>();
-        try
-        {
-            foreach (var process in System.Diagnostics.Process.GetProcesses())
-            {
-                using (process)
-                {
-                    try
-                    {
-                        names.Add(process.ProcessName);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // The process exited between enumeration and reading its name.
-                    }
-                }
-            }
-        }
-        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-            QosActionStatusText.Text = Loc.F($"Running applications could not be listed: {exception.Message}");
-            return;
-        }
-
-        QosRunningApplicationComboBox.ItemsSource = NormalizeApplicationNames(names);
-    }
-
-    private void QosRunningApplication_SelectionChanged(
-        object sender,
-        System.Windows.Controls.SelectionChangedEventArgs e)
-    {
-        if (QosRunningApplicationComboBox.SelectedItem is string application)
-            QosApplicationText.Text = application;
-    }
-
     internal static IReadOnlyList<string> NormalizeApplicationNames(IEnumerable<string?> names) => names
         .Where(name => !string.IsNullOrWhiteSpace(name))
         .Select(name => name!.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) ? name : $"{name}.exe")
         .Distinct(StringComparer.OrdinalIgnoreCase)
         .Order(StringComparer.OrdinalIgnoreCase)
         .ToArray();
-
-    private void QueueQosPolicy_Click(object sender, RoutedEventArgs e)
-    {
-        var application = QosApplicationText.Text.Trim();
-        if (application.Length == 0)
-        {
-            QosActionStatusText.Text =
-                Loc.T("Name the application to match. A policy with no application would mark everything this "
-                + "machine sends, which is not what prioritising a game means.");
-            return;
-        }
-
-        if (!int.TryParse(QosDscpText.Text.Trim(), out var dscp))
-        {
-            QosActionStatusText.Text = Loc.T("The DSCP value must be a number between 0 and 63.");
-            return;
-        }
-
-        var value = new QosPolicyValue(
-            dscp,
-            application,
-            (QosProtocolComboBox.SelectedItem as string) ?? "*",
-            QosPortsText.Text.Trim() is { Length: > 0 } ports ? ports : "*");
-
-        QueueQos(QosPolicySpecification.NameFor(application), value.Canonical, $"mark {application} with DSCP {dscp}");
-    }
-
-    private void QueueRemoveQosPolicy_Click(object sender, RoutedEventArgs e)
-    {
-        var application = QosApplicationText.Text.Trim();
-        if (application.Length == 0)
-        {
-            QosActionStatusText.Text = Loc.T("Name the application whose policy should be removed.");
-            return;
-        }
-
-        var name = QosPolicySpecification.NameFor(application);
-        QueueQos(name, null, $"remove the policy {name}");
-    }
-
-    /// <summary>
-    /// A null value queues the removal: absent is how "no policy" is expressed, and it is what a
-    /// rollback of a created policy restores.
-    /// </summary>
-    private void QueueQos(string name, string? value, string description)
-    {
-        var accepted = TuningPlan.ProposeDeviceChanges(
-            [new ChangeRequest(QosPolicySpecification.SettingId, name, value, ChangeSource.Manual)]);
-
-        QosActionStatusText.Text = accepted == 1
-            ? Loc.F($"Queued: {description}. Nothing is written until you preview and confirm it in the tuning plan. "
-              + $"A mark only does something once your router is configured to act on it.")
-            : Loc.F($"Refused: \u201c{name}\u201d is not a policy SockTuner can manage, or the values are not valid.");
-        WriteLog("qos.queued", $"Policy={name}; Remove={value is null}; Accepted={accepted}.");
-    }
 
     private void OpenTuningPlan_Click(object sender, RoutedEventArgs e) => SelectTab("Tuning plan");
 
@@ -1451,53 +811,6 @@ public partial class MainWindow : Window
     {
         RecoverySummaryText.Text = TuningPlan.RecoverySummary;
         UndoLastChangeButton.IsEnabled = TuningPlan.CanUndoLastChange;
-    }
-
-    private void SelectTab(string header)
-    {
-        var tab = AllSections().FirstOrDefault(item => string.Equals(SectionName(item), header, StringComparison.Ordinal));
-        if (tab is not null) ShowSection(tab);
-    }
-
-    private void OpenHealthSection_Click(object sender, RoutedEventArgs e)
-    {
-        if (HealthGrid.SelectedItem is not HealthFinding finding) return;
-
-        var tab = AllSections().FirstOrDefault(item => string.Equals(
-            SectionName(item)?.Replace("_", string.Empty), finding.Section, StringComparison.OrdinalIgnoreCase));
-        if (tab is null)
-        {
-            StatusText.Text = Loc.F($"No section named {finding.Section}.");
-            return;
-        }
-
-        ShowSection(tab);
-        StatusText.Text = finding.Action;
-    }
-
-    /// <summary>
-    /// Opens a reference in the default browser. The URL comes from the fixed list rather than from
-    /// the control, and only https is launched, so a link can never become a way to start something
-    /// local.
-    /// </summary>
-    private void OpenReference_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not System.Windows.Controls.Button { Tag: string url }) return;
-        if (!ReferenceLinks.All.Any(link => string.Equals(link.Url, url, StringComparison.Ordinal)))
-        {
-            ReferenceStatusText.Text = Loc.T("That link is not one of the listed references.");
-            return;
-        }
-
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
-            ReferenceStatusText.Text = Loc.F($"Opened {url} in your browser.");
-        }
-        catch (Exception exception)
-        {
-            ReferenceStatusText.Text = Loc.F($"Could not open the link: {exception.Message}");
-        }
     }
 
     /// <summary>

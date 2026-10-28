@@ -22,12 +22,8 @@ internal static class WriteConsentDialog
         var preferences = AppPreferences.Load();
         if (WriteConsent.IsAccepted(preferences)) return true;
 
-        if (MessageBox.Show(
-                Loc.T(WriteConsent.Text),
-                Loc.T("Enable live network changes"),
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning,
-                MessageBoxResult.No) != MessageBoxResult.Yes)
+        var owner = Application.Current.MainWindow;
+        if (new WriteConsentWindow { Owner = owner is { IsLoaded: true } ? owner : null }.ShowDialog() != true)
         {
             problem = Loc.T("Live changes stay disabled until the alpha risk notice is accepted.");
             return false;

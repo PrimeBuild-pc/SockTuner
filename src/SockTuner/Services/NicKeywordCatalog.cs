@@ -86,10 +86,11 @@ public static class NicKeywordCatalog
         Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
             "Energy-efficient Ethernet saves power but adds wake-up latency and destabilises the link "
             + "with some switches.",
-            "*EEE", "AdvancedEEE", "EEEMaxSupportSpeed", "EnableGreenEthernet", "GigaLite");
+            "*EEE", "AdvancedEEE", "EEEMaxSupportSpeed", "EnableGreenEthernet", "GreenEthernet", "GigaLite");
         Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
             "Power saving reduces idle draw but can add latency on the first packet after an idle period.",
-            "PowerSavingMode", "*IdleRestriction", "LowPowerEnable");
+            "PowerSavingMode", "*IdleRestriction", "LowPowerEnable", "*NicAutoPowerSaver", "*EnableDynamicPowerGating",
+            "EnableConnectedPowerGating", "AutoPowerSaveModeEnabled", "ReduceSpeedOnPowerDown");
         Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
             "Selective suspend saves idle power but waking the adapter can add first-packet latency; "
             + "shorter idle timeouts increase how often that transition happens.",
@@ -101,7 +102,7 @@ public static class NicKeywordCatalog
             + "not an optimisation.",
             "*IPChecksumOffloadIPv4", "*TCPChecksumOffloadIPv4", "*TCPChecksumOffloadIPv6",
             "*UDPChecksumOffloadIPv4", "*UDPChecksumOffloadIPv6", "*LsoV2IPv4", "*LsoV2IPv6",
-            "*UsoIPv4", "*UsoIPv6");
+            "*LsoV1IPv4", "*UsoIPv4", "*UsoIPv6");
 
         // ---- Buffers and flow control ------------------------------------------------------
         Add(TuningArea.Throughput | TuningArea.Latency, ChangeRisk.Medium,
@@ -120,7 +121,7 @@ public static class NicKeywordCatalog
         Add(TuningArea.Throughput, ChangeRisk.High,
             "Every device on the path must accept the same frame size; a mismatch silently discards "
             + "large packets while small ones keep working.",
-            "*JumboPacket");
+            "*JumboPacket", "JumboPacket");
 
         // ---- VLAN and identity -------------------------------------------------------------
         Add(TuningArea.Vlan, ChangeRisk.Medium,
@@ -128,7 +129,7 @@ public static class NicKeywordCatalog
             "*PriorityVLANTag", "*PriorityVlanTag");
         Add(TuningArea.Vlan, ChangeRisk.High,
             "A wrong VLAN ID removes the adapter from its network.",
-            "RegVlanid");
+            "RegVlanid", "VLAN_ID");
         Add(TuningArea.Identity, ChangeRisk.High,
             "Overriding the hardware MAC address can break DHCP reservations, port security, and "
             + "licence activation.",
@@ -141,15 +142,15 @@ public static class NicKeywordCatalog
         Add(TuningArea.Wake | TuningArea.Power, ChangeRisk.Low,
             "Affects wake-on-LAN behaviour only; no effect on active latency or throughput.",
             "*WakeOnMagicPacket", "*WakeOnPattern", "*ModernStandbyWoLMagicPacket", "WakeOnPattern",
-            "WakeOnMagicPacketFromS5", "S5WakeOnLan");
+            "WakeOnMagicPacketFromS5", "S5WakeOnLan", "DisableWakeOnMagic", "DisableWakeOnPattern", "WakeOnLinkChange");
         Add(TuningArea.Wake | TuningArea.Power, ChangeRisk.Medium,
             "Reducing link speed at shutdown saves power but can prevent wake-on-LAN on some switches.",
-            "WolShutdownLinkSpeed");
+            "WolShutdownLinkSpeed", "WolLinkSpeed");
         Add(TuningArea.Power | TuningArea.Wake, ChangeRisk.Low,
             "Lets the NIC answer ARP/NS and rekey while the system sleeps; disabling it wakes the CPU "
             + "more often.",
             "*PMARPOffload", "*PMNSOffload", "PMARPOffload", "PMNSOffload",
-            "*PMWiFiRekeyOffload", "PMWiFiRekeyOffload");
+            "*PMWiFiRekeyOffload", "PMWiFiRekeyOffload", "DisableARPOffload", "DisableGTKRekey");
         Add(TuningArea.Power, ChangeRisk.Medium,
             "Controls whether the device sleeps while the link is down.",
             "*DeviceSleepOnDisconnect");
@@ -167,7 +168,7 @@ public static class NicKeywordCatalog
         Add(TuningArea.WiFiRadio, ChangeRisk.Medium,
             "More aggressive roaming switches access points sooner, which helps while moving and causes "
             + "needless disconnects while stationary.",
-            "RoamAggressiveness", "RegRoamLevel", "RoamNeedIndicateTh");
+            "RoamAggressiveness", "RegRoamLevel", "RoamNeedIndicateTh", "RoamIndicateTh");
         Add(TuningArea.WiFiRadio | TuningArea.Power, ChangeRisk.High,
             "Transmit power is regulatory-constrained; raising it may be unlawful and increases "
             + "interference and heat.",
@@ -213,6 +214,10 @@ public static class NicKeywordCatalog
             "Silently discards legitimate fragmented traffic. That is a correctness change, not a "
             + "latency control.",
             "DropHighlyFragmentedPacket");
+        Reject(TuningArea.Other,
+            "Vendor option whose meaning is not published (seen on the ASIX AX88179 USB adapter). With no "
+            + "documented effect there is no value SockTuner can honestly call safe.",
+            "AutoDetach", "IMR", "MaskTimer");
 
         return profiles;
     }

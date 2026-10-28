@@ -369,6 +369,14 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
             RegistryValueKind.DWord);
     }
 
+    /// <summary>Whether both power-management boxes are already cleared for this adapter. Read-only.</summary>
+    public static bool IsPowerManagementOff(Guid adapterId)
+    {
+        if (!ReadAdapterKeys().TryGetValue(adapterId, out var subkey)) return false;
+        using var key = Registry.LocalMachine.OpenSubKey($@"{NetClassKey}\{subkey}", writable: false);
+        return key?.GetValue("PnPCapabilities") is int raw && (unchecked((uint)raw) & PowerManagementOff) == PowerManagementOff;
+    }
+
     /// <summary>
     /// Maps each adapter's interface GUID to its four-digit subkey under the network class, by
     /// reading the <c>NetCfgInstanceId</c> each subkey publishes.
