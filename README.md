@@ -50,20 +50,26 @@
     <td align="center"><b>Gaming diagnostics</b> — judge an endpoint against your game's tick rate, then re-run to see if a change helped</td>
   </tr>
   <tr>
+    <td><a href="docs/assets/screenshots/host-diagnostics.png"><img src="docs/assets/screenshots/host-diagnostics.png" alt="Host diagnostics with per-process TCP connections"></a></td>
     <td><a href="docs/assets/screenshots/tuning-plan.png"><img src="docs/assets/screenshots/tuning-plan.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
-    <td><a href="docs/assets/screenshots/dns-resolvers.png"><img src="docs/assets/screenshots/dns-resolvers.png" alt="DNS resolver benchmark"></a></td>
   </tr>
   <tr>
+    <td align="center"><b>Host diagnostics</b> — which process owns each TCP connection, plus opt-in DPC/ISR culprit detection with one-click fixes</td>
     <td align="center"><b>Tuning plan</b> — only what the driver advertises, with current, default, accepted values and risk</td>
-    <td align="center"><b>DNS resolvers</b> — benchmark any resolver over UDP 53, then apply or restore DHCP</td>
   </tr>
   <tr>
+    <td><a href="docs/assets/screenshots/dns-resolvers.png"><img src="docs/assets/screenshots/dns-resolvers.png" alt="DNS resolver benchmark"></a></td>
     <td><a href="docs/assets/screenshots/interrupt-affinity.png"><img src="docs/assets/screenshots/interrupt-affinity.png" alt="Interrupt affinity per device"></a></td>
-    <td><a href="docs/assets/screenshots/preferences.png"><img src="docs/assets/screenshots/preferences.png" alt="Preferences with the live changes switch"></a></td>
   </tr>
   <tr>
+    <td align="center"><b>DNS resolvers</b> — benchmark any resolver over UDP 53, then apply or restore DHCP</td>
     <td align="center"><b>Interrupt affinity</b> — which CPUs service each device's interrupts, and MSI state</td>
-    <td align="center"><b>Preferences</b> — live changes stay off until you turn them on</td>
+  </tr>
+  <tr>
+    <td colspan="2"><a href="docs/assets/screenshots/preferences.png"><img src="docs/assets/screenshots/preferences.png" alt="Preferences with appearance, language, retention and update settings"></a></td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center"><b>Preferences</b> — appearance, language, local log retention and update channel</td>
   </tr>
 </table>
 
