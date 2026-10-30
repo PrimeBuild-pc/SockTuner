@@ -3,6 +3,14 @@
 Resolves [#49](https://github.com/PrimeBuild-pc/SockTuner/issues/49), a research child of the
 [DPC/ISR latency diagnosis map (#32)](https://github.com/PrimeBuild-pc/SockTuner/issues/32).
 
+> [!NOTE]
+> Historical research for #49, written before the alpha.7 implementation. This is not a
+> description of every detail shipped today: `EtwDpcIsrCapture.Capture` uses TraceEvent to
+> write a temporary `.etl` and aggregates it after the capture, and
+> `MainWindow.ShowDpcIsrResultAsync` compares that capture with jitter measured earlier in
+> the same diagnostic run, not simultaneously. Design/implementation discrepancies remain
+> tracked in [#32](https://github.com/PrimeBuild-pc/SockTuner/issues/32).
+
 ## 1. DPC/ISR capture
 
 **Recommendation: `Microsoft.Diagnostics.Tracing.TraceEvent` (in-process ETW session), not

@@ -42,38 +42,38 @@
 
 <table>
   <tr>
-    <td width="50%"><a href="docs/assets/screenshots/dashboard.png"><img src="docs/assets/screenshots/dashboard.png" alt="Dashboard with adapter counts and the health check"></a></td>
-    <td width="50%"><a href="docs/assets/screenshots/gaming-diagnostics.png"><img src="docs/assets/screenshots/gaming-diagnostics.png" alt="Gaming diagnostics with endpoint, profile and tick rate"></a></td>
+    <td width="50%"><a href="docs/assets/screenshots/dashboard-20261030.png"><img src="docs/assets/screenshots/dashboard-20261030.png" alt="Dashboard with adapter counts and the health check"></a></td>
+    <td width="50%"><a href="docs/assets/screenshots/gaming-diagnostics-20261030.png"><img src="docs/assets/screenshots/gaming-diagnostics-20261030.png" alt="Gaming diagnostics with endpoint, profile and tick rate"></a></td>
   </tr>
   <tr>
     <td align="center"><b>Dashboard</b> — inventory at a glance and a health check that opens the section that fixes each finding</td>
     <td align="center"><b>Gaming diagnostics</b> — judge an endpoint against your game's tick rate, then re-run to see if a change helped</td>
   </tr>
   <tr>
-    <td><a href="docs/assets/screenshots/host-diagnostics.png"><img src="docs/assets/screenshots/host-diagnostics.png" alt="Host diagnostics with per-process TCP connections"></a></td>
-    <td><a href="docs/assets/screenshots/tuning-plan.png"><img src="docs/assets/screenshots/tuning-plan.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
+    <td><a href="docs/assets/screenshots/host-diagnostics-20261030.png"><img src="docs/assets/screenshots/host-diagnostics-20261030.png" alt="Host diagnostics with per-process TCP connections"></a></td>
+    <td><a href="docs/assets/screenshots/tuning-plan-20261030.png"><img src="docs/assets/screenshots/tuning-plan-20261030.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
   </tr>
   <tr>
     <td align="center"><b>Host diagnostics</b> — which process owns each TCP connection, plus opt-in DPC/ISR culprit detection with one-click fixes</td>
     <td align="center"><b>Tuning plan</b> — only what the driver advertises, with current, default, accepted values and risk</td>
   </tr>
   <tr>
-    <td><a href="docs/assets/screenshots/dns-resolvers.png"><img src="docs/assets/screenshots/dns-resolvers.png" alt="DNS resolver benchmark"></a></td>
-    <td><a href="docs/assets/screenshots/interrupt-affinity.png"><img src="docs/assets/screenshots/interrupt-affinity.png" alt="Interrupt affinity per device"></a></td>
+    <td><a href="docs/assets/screenshots/dns-resolvers-20261030.png"><img src="docs/assets/screenshots/dns-resolvers-20261030.png" alt="DNS resolver benchmark"></a></td>
+    <td><a href="docs/assets/screenshots/interrupt-affinity-20261030.png"><img src="docs/assets/screenshots/interrupt-affinity-20261030.png" alt="Interrupt affinity per device"></a></td>
   </tr>
   <tr>
     <td align="center"><b>DNS resolvers</b> — benchmark any resolver over UDP 53, then apply or restore DHCP</td>
     <td align="center"><b>Interrupt affinity</b> — which CPUs service each device's interrupts, and MSI state</td>
   </tr>
   <tr>
-    <td colspan="2"><a href="docs/assets/screenshots/preferences.png"><img src="docs/assets/screenshots/preferences.png" alt="Preferences with appearance, language, retention and update settings"></a></td>
+    <td colspan="2"><a href="docs/assets/screenshots/preferences-20261030.png"><img src="docs/assets/screenshots/preferences-20261030.png" alt="Preferences with appearance, language, retention and update settings"></a></td>
   </tr>
   <tr>
     <td colspan="2" align="center"><b>Preferences</b> — appearance, language, local log retention and update channel</td>
   </tr>
 </table>
 
-<sub>Screenshots from a real machine; private addresses are blanked out.</sub>
+<sub>Captured on 2026-10-30 from a Release build of <a href="https://github.com/PrimeBuild-pc/SockTuner/commit/2306d007376e05cddeb3db7dbc3faa33db236967">main at 2306d00</a>, including the five dependency updates. Diagnostics are shown before a run; no live settings were changed.</sub>
 
 ## Who it is for
 
