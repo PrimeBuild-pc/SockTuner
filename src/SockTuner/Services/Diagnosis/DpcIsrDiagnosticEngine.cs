@@ -2,47 +2,45 @@ using SockTuner.Models;
 
 namespace SockTuner.Services.Diagnosis;
 
-/// <summary>
-/// Diagnosis layer: judges a DPC/ISR capture against what the same run actually measured, instead
-/// of a fixed microsecond threshold table — the same philosophy <c>PlayabilityAnalyzer</c> already
-/// applies to jitter. Never runs on its own: it always rides an existing network/gaming diagnostic,
-/// so SockTuner never becomes a general system-health scanner independent of a network context.
-/// </summary>
-/// <remarks>
-/// This layer only names the culprit and what was measured. Whether an uninstall is worth
-/// suggesting is a separate, factual question — does a genuinely outdated duplicate of this exact
-/// driver sit in the store? — answered by <c>DriverStoreDuplicateFinder</c> against data this
-/// engine never reads, so it is resolved in <c>Services.Remediation.DpcIsrGuidance</c> instead.
-/// </remarks>
+/// <summary>Ranks observed activity; actionable evidence needs repeated, concurrent latency observations.</summary>
 public static class DpcIsrDiagnosticEngine
 {
-    public static DpcIsrFinding Analyze(DpcIsrCaptureResult capture, double? jitterMsInSameWindow)
+    public static DpcIsrFinding Analyze(DpcIsrCaptureResult capture, double? baselineJitterMs)
     {
         if (capture.Error is { } error)
-        {
-            return new(null, 0, [], jitterMsInSameWindow, error);
-        }
+            return new(null, 0, [], null, error);
 
         var ranking = capture.Drivers.OrderByDescending(driver => driver.TotalElapsedMs).ToArray();
         if (ranking.Length == 0)
+            return new(null, 0, ranking, null, "No driver interrupt activity was resolved during the capture.");
+
+        var busiest = ranking[0];
+        var share = capture.Duration.TotalMilliseconds <= 0 ? 0
+            : busiest.TotalElapsedMs / capture.Duration.TotalMilliseconds * 100;
+        var windows = capture.Windows ?? [];
+        var usable = windows.Where(window => window.Latency.Sent >= 3
+            && window.Latency.Received == window.Latency.Sent && window.Latency.JitterMs is >= 0
+            && window.Latency.Samples.All(sample => sample.Timestamp >= window.StartedAt
+                && sample.Timestamp < window.EndedAt)).ToArray();
+        var repeated = usable.Count(window =>
         {
-            return new(null, 0, ranking, jitterMsInSameWindow,
-                "No driver used enough ISR or DPC time during the capture to report.");
-        }
-
-        var culprit = ranking[0];
-        var windowMs = capture.Duration.TotalMilliseconds;
-        var share = windowMs <= 0 ? 0 : culprit.TotalElapsedMs / windowMs * 100;
-
-        var jitterClause = jitterMsInSameWindow is { } jitter
-            ? $" The same check measured {jitter:0.#} ms of jitter right before this capture; a share this size is "
-                + "worth weighing against that figure yourself — this is a correlation across one run, not a proof."
-            : " No jitter figure from this run was available to compare it against.";
-
-        var reason = $"{culprit.DriverName} held {culprit.TotalElapsedMs:0.##} ms of ISR/DPC time "
-            + $"({share:0.#}% of the {capture.Duration.TotalSeconds:0.#}s capture) across {culprit.EventCount} event(s)."
-            + jitterClause;
-
-        return new(culprit.DriverName, share, ranking, jitterMsInSameWindow, reason);
+            var ordered = window.Drivers.OrderByDescending(driver => driver.TotalElapsedMs).ToArray();
+            return ordered.Length > 0 && ordered[0].TotalElapsedMs > 0
+                && string.Equals(ordered[0].DriverName, busiest.DriverName, StringComparison.OrdinalIgnoreCase)
+                && (ordered.Length == 1 || ordered[0].TotalElapsedMs > ordered[1].TotalElapsedMs)
+                // Windows Ping reports whole milliseconds: changes within one tick are inconclusive.
+                && baselineJitterMs is >= 0 && window.Latency.JitterMs > baselineJitterMs + 1;
+        });
+        var evidence = usable.Length >= 3 && repeated > windows.Count / 2
+            && !string.Equals(busiest.DriverName, "(unresolved)", StringComparison.OrdinalIgnoreCase);
+        double? jitter = usable.Length == 0 ? null : usable.Average(window => window.Latency.JitterMs!.Value);
+        var reason = $"{busiest.DriverName} used {busiest.TotalElapsedMs:0.##} ms of ISR/DPC time "
+            + $"({share:0.#}% of {capture.Duration.TotalSeconds:0.#}s wall time; activity can span multiple CPUs). "
+            + $"{usable.Length}/{windows.Count} concurrent latency windows were usable; "
+            + $"{repeated} showed this driver uniquely busiest with jitter above the initial baseline and the ICMP resolution. "
+            + (evidence
+                ? "This is repeated co-occurrence, not proof of causation. Any change needs a before/after check."
+                : "Evidence is inconclusive: no affinity or device-disable action is proposed. Driver-store cleanup is independent of this result.");
+        return new(busiest.DriverName, share, ranking, jitter, reason, evidence);
     }
 }

@@ -15,11 +15,17 @@ public sealed record DriverStorePackage(
         : null;
 }
 
-public sealed record DriverStoreInventoryResult(IReadOnlyList<DriverStorePackage> Packages, string? Error);
+public sealed record DriverStoreInventoryResult(
+    IReadOnlyList<DriverStorePackage> Packages, string? Error,
+    IReadOnlySet<string>? InUsePublishedNames = null);
 
 /// <summary>
-/// An older package for the same original driver as the one actually bound to a device — the exact
-/// case <c>Active.PublishedName != Outdated.PublishedName</c> guarantees the outdated one is never
-/// the package currently in use.
+/// An unused older package and the newest retained version of the same driver family.
+/// Eligibility must be revalidated against every device binding immediately before removal.
 /// </summary>
-public sealed record DriverDuplicate(DriverStorePackage Active, DriverStorePackage Outdated);
+public sealed record DriverDuplicate(
+    [property: System.Text.Json.Serialization.JsonPropertyName("Active")] DriverStorePackage Retained,
+    DriverStorePackage Outdated)
+{
+    public string Summary => $"{Outdated.OriginalName}: {Outdated.PublishedName} ({Outdated.ParsedVersion}) → keep {Retained.PublishedName} ({Retained.ParsedVersion})";
+}

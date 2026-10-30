@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using Microsoft.Diagnostics.Tracing;
 using Microsoft.Diagnostics.Tracing.Etlx;
@@ -8,26 +9,12 @@ using SockTuner.Models;
 
 namespace SockTuner.Services.Collection;
 
-/// <summary>
-/// Captures the kernel's own ISR and DPC trace events for a bounded window and attributes each one
-/// to the driver file that owns it — the same measurement LatencyMon reports, taken with the
-/// in-process <c>TraceEvent</c> library rather than shelling out to <c>wpr.exe</c>/<c>xperf</c>.
-/// </summary>
-/// <remarks>
-/// Runs only inside the elevated capture process (<see cref="DpcIsrCaptureHost"/>): starting a
-/// kernel trace session needs Administrator rights, and the NT Kernel Logger is a system-wide
-/// singleton — if another tool already has one running, this fails outright rather than retrying.
-/// </remarks>
+/// <summary>Bounded, elevated ETW capture with ICMP samples collected only while the session is active.</summary>
 internal static class EtwDpcIsrCapture
 {
-    internal static DpcIsrCaptureResult Capture(TimeSpan duration, CancellationToken cancellationToken)
+    internal static DpcIsrCaptureResult Capture(TimeSpan duration, string target, CancellationToken cancellationToken)
     {
-        if (!OperatingSystem.IsWindows())
-        {
-            return new([], duration, null);
-        }
-
-        if (TraceEventSession.IsElevated() != true)
+        if (!OperatingSystem.IsWindows() || TraceEventSession.IsElevated() != true)
         {
             return new([], duration, "Administrator rights are required to capture driver interrupt activity.");
         }
@@ -35,24 +22,53 @@ internal static class EtwDpcIsrCapture
         var etlPath = Path.Combine(Path.GetTempPath(), $"socktuner-dpcisr-{Guid.NewGuid():N}.etl");
         try
         {
-            using (var session = new TraceEventSession(
-                       KernelTraceEventParser.KernelSessionName, etlPath, TraceEventSessionOptions.Create))
+            var profile = new DiagnosticProfile("dpcisr", "Concurrent driver check", 4,
+                TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(150));
+            var baseline = NetworkDiagnosticService.ProbeAsync("Driver check baseline", target,
+                profile with { SampleCount = 12 }, cancellationToken).GetAwaiter().GetResult();
+            var windows = new List<DpcIsrWindow>();
+            using (var session = new TraceEventSession(KernelTraceEventParser.KernelSessionName, etlPath,
+                       TraceEventSessionOptions.Create | TraceEventSessionOptions.NoRestartOnCreate))
             {
                 session.StopOnDispose = true;
-                // ImageLoad is what lets the offline pass below resolve a routine address back to
-                // the driver file that owns it; without it every sample would read "(unresolved)".
-                session.EnableKernelProvider(
-                    KernelTraceEventParser.Keywords.Interrupt
+                session.EnableKernelProvider(KernelTraceEventParser.Keywords.Interrupt
                     | KernelTraceEventParser.Keywords.DeferedProcedureCalls
                     | KernelTraceEventParser.Keywords.ImageLoad);
 
-                cancellationToken.WaitHandle.WaitOne(duration);
+                for (var index = 0; index < (int)duration.TotalSeconds; index++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var started = DateTimeOffset.UtcNow;
+                    var timer = Stopwatch.StartNew();
+                    var latency = NetworkDiagnosticService.ProbeAsync(
+                        "Concurrent driver check", target, profile, cancellationToken).GetAwaiter().GetResult();
+                    var remaining = TimeSpan.FromSeconds(1) - timer.Elapsed;
+                    if (remaining > TimeSpan.Zero)
+                    {
+                        cancellationToken.WaitHandle.WaitOne(remaining);
+                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    windows.Add(new(started, DateTimeOffset.UtcNow, [], latency));
+                }
             }
 
-            return Aggregate(etlPath, duration);
+            using var traceLog = TraceLog.OpenOrConvert(etlPath);
+            var kernelModules = traceLog.Processes.Where(process => process.ProcessID is 0 or 4)
+                .Select(process => process.LoadedModules).ToArray();
+            var events = traceLog.Events.Where(item => item is ISRTraceData or DPCTraceData)
+                .Select(item => item switch
+                {
+                    ISRTraceData isr => (new DateTimeOffset(isr.TimeStamp.ToUniversalTime()),
+                        new DpcIsrDriverSample(ResolveModule(kernelModules, isr.Routine, isr.TimeStampRelativeMSec), isr.ElapsedTimeMSec, 0, 1)),
+                    DPCTraceData dpc => (new DateTimeOffset(dpc.TimeStamp.ToUniversalTime()),
+                        new DpcIsrDriverSample(ResolveModule(kernelModules, dpc.Routine, dpc.TimeStampRelativeMSec), 0, dpc.ElapsedTimeMSec, 1)),
+                    _ => throw new InvalidOperationException()
+                });
+            return AggregateWindows(events, windows) with { Baseline = baseline };
         }
         catch (Exception exception) when (exception is UnauthorizedAccessException or InvalidOperationException
-            or IOException or System.Runtime.InteropServices.COMException)
+            or IOException or System.Runtime.InteropServices.COMException or System.ComponentModel.Win32Exception
+            or DllNotFoundException or BadImageFormatException)
         {
             return new([], duration, $"Could not capture driver interrupt activity: {exception.Message}");
         }
@@ -63,56 +79,47 @@ internal static class EtwDpcIsrCapture
         }
     }
 
-    private static DpcIsrCaptureResult Aggregate(string etlPath, TimeSpan duration)
+    internal static DpcIsrCaptureResult AggregateWindows(
+        IEnumerable<(DateTimeOffset Timestamp, DpcIsrDriverSample Sample)> events,
+        IReadOnlyList<DpcIsrWindow> windows)
     {
-        using var traceLog = TraceLog.OpenOrConvert(etlPath);
-        var totals = new Dictionary<string, (double IsrMs, double DpcMs, int Count)>(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var isr in traceLog.Events.ByEventType<ISRTraceData>())
+        var totals = windows.Select(_ => new Dictionary<string, DpcIsrDriverSample>(StringComparer.OrdinalIgnoreCase)).ToArray();
+        foreach (var (timestamp, sample) in events)
         {
-            Accumulate(totals, ResolveModule(traceLog, isr.RoutineCodeAddressIndex()), isr.ElapsedTimeMSec, isDpc: false);
+            for (var index = 0; index < windows.Count; index++)
+            {
+                if (timestamp < windows[index].StartedAt || timestamp >= windows[index].EndedAt) continue;
+                var previous = totals[index].GetValueOrDefault(sample.DriverName);
+                totals[index][sample.DriverName] = new(sample.DriverName,
+                    (previous?.ElapsedIsrMs ?? 0) + sample.ElapsedIsrMs,
+                    (previous?.ElapsedDpcMs ?? 0) + sample.ElapsedDpcMs,
+                    (previous?.EventCount ?? 0) + sample.EventCount);
+                break;
+            }
         }
 
-        foreach (var dpc in traceLog.Events.ByEventType<DPCTraceData>())
-        {
-            Accumulate(totals, ResolveModule(traceLog, dpc.RoutineCodeAddressIndex()), dpc.ElapsedTimeMSec, isDpc: true);
-        }
-
-        var drivers = totals
-            .Select(entry => new DpcIsrDriverSample(entry.Key, entry.Value.IsrMs, entry.Value.DpcMs, entry.Value.Count))
-            .ToArray();
-        return new(drivers, duration, null);
+        var measured = windows.Select((window, index) => window with { Drivers = totals[index].Values.ToArray() }).ToArray();
+        var ranking = measured.SelectMany(window => window.Drivers)
+            .GroupBy(sample => sample.DriverName, StringComparer.OrdinalIgnoreCase)
+            .Select(group => new DpcIsrDriverSample(group.Key, group.Sum(item => item.ElapsedIsrMs),
+                group.Sum(item => item.ElapsedDpcMs), group.Sum(item => item.EventCount))).ToArray();
+        return new(ranking, TimeSpan.FromTicks(measured.Sum(window => (window.EndedAt - window.StartedAt).Ticks)), null, measured);
     }
 
-    private static void Accumulate(
-        Dictionary<string, (double IsrMs, double DpcMs, int Count)> totals, string module, double elapsedMs, bool isDpc)
+    private static string ResolveModule(IReadOnlyList<TraceLoadedModules> kernelModules, ulong routine, double timeMs)
     {
-        var current = totals.GetValueOrDefault(module);
-        totals[module] = isDpc
-            ? (current.IsrMs, current.DpcMs + elapsedMs, current.Count + 1)
-            : (current.IsrMs + elapsedMs, current.DpcMs, current.Count + 1);
-    }
-
-    private static string ResolveModule(TraceLog traceLog, CodeAddressIndex index)
-    {
-        if (index == CodeAddressIndex.Invalid)
+        // TraceEvent 3.1.21 does not index ISR/DPC code addresses; resolve the actual image range.
+        foreach (var modules in kernelModules)
         {
-            return "(unresolved)";
+            var path = modules.GetModuleContainingAddress(routine, timeMs)?.FilePath;
+            if (!string.IsNullOrEmpty(path)) return Path.GetFileName(path);
         }
-
-        var moduleName = traceLog.CodeAddresses[index]?.ModuleName;
-        return string.IsNullOrEmpty(moduleName) ? "(unresolved)" : moduleName;
+        return "(unresolved)";
     }
 
     private static void TryDelete(string path)
     {
-        try
-        {
-            if (File.Exists(path))
-            {
-                File.Delete(path);
-            }
-        }
+        try { File.Delete(path); }
         catch (IOException) { }
         catch (UnauthorizedAccessException) { }
     }

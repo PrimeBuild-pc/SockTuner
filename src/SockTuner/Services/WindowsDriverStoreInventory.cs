@@ -36,11 +36,34 @@ internal static class WindowsDriverStoreInventory
             }) ?? throw new InvalidOperationException("pnputil could not be started.");
             var output = process.StandardOutput.ReadToEnd();
             process.WaitForExit();
-            return process.ExitCode == 0
-                ? new(ParseRecords(output), null)
-                : new([], $"pnputil /enum-drivers exited with code {process.ExitCode}.");
+            if (process.ExitCode != 0)
+            {
+                return new([], $"pnputil /enum-drivers exited with code {process.ExitCode}.");
+            }
+
+            // Do not filter by driver image or device presence: a package can serve another device.
+            using var searcher = new System.Management.ManagementObjectSearcher(
+                "SELECT InfName FROM Win32_PnPSignedDriver");
+            using var bindings = searcher.Get();
+            var inUse = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var binding in bindings)
+            {
+                using (binding)
+                {
+                    if (binding["InfName"] is not string name || string.IsNullOrWhiteSpace(name))
+                    {
+                        return new([], "A device driver binding could not be identified; cleanup is unavailable.");
+                    }
+                    inUse.Add(name);
+                }
+            }
+            return inUse.Count == 0
+                ? new([], "No device driver bindings were returned; cleanup is unavailable.")
+                : new(ParseRecords(output), null, inUse);
         }
-        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException)
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException
+            or System.Management.ManagementException or UnauthorizedAccessException
+            or System.Runtime.InteropServices.COMException)
         {
             return new([], $"Could not read the driver store: {exception.Message}");
         }
@@ -85,28 +108,37 @@ internal static class WindowsDriverStoreInventory
 }
 
 /// <summary>
-/// Pure judgement: does a device's currently-active driver package have an older duplicate sitting
-/// in the store? Never names the active package itself as removable — <c>Active.PublishedName</c>
-/// always differs from <c>Outdated.PublishedName</c> by construction.
+/// Cleanup is independent of latency: retain the newest version and every package bound to any
+/// device. Missing bindings or ambiguous metadata fail closed rather than guessing.
 /// </summary>
 public static class DriverStoreDuplicateFinder
 {
-    public static DriverDuplicate? FindOutdatedDuplicate(IReadOnlyList<DriverStorePackage> packages, string activePublishedName)
+    public static IReadOnlyList<DriverDuplicate> FindOutdatedDuplicates(
+        IReadOnlyList<DriverStorePackage> packages, IReadOnlySet<string>? inUsePublishedNames)
     {
-        var active = packages.FirstOrDefault(package =>
-            string.Equals(package.PublishedName, activePublishedName, StringComparison.OrdinalIgnoreCase));
-        if (active?.ParsedVersion is not { } activeVersion)
+        if (inUsePublishedNames is null || inUsePublishedNames.Count == 0)
         {
-            return null;
+            return [];
         }
 
-        var outdated = packages
-            .Where(package => !string.Equals(package.PublishedName, active.PublishedName, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(package.OriginalName, active.OriginalName, StringComparison.OrdinalIgnoreCase)
-                && package.ParsedVersion is { } version && version < activeVersion)
-            .OrderBy(package => package.ParsedVersion)
-            .FirstOrDefault();
-
-        return outdated is null ? null : new DriverDuplicate(active, outdated);
+        var inUse = inUsePublishedNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return packages
+            .Where(package => !string.IsNullOrWhiteSpace(package.OriginalName)
+                && !string.IsNullOrWhiteSpace(package.ProviderName)
+                && !string.IsNullOrWhiteSpace(package.ClassName))
+            .GroupBy(package => (package.OriginalName.ToUpperInvariant(),
+                package.ProviderName.ToUpperInvariant(), package.ClassName.ToUpperInvariant()))
+            .Where(group => group.All(package => package.ParsedVersion is not null))
+            .SelectMany(group =>
+            {
+                var newest = group.OrderByDescending(package => package.ParsedVersion).First();
+                return group.Where(package => package.ParsedVersion! < newest.ParsedVersion!
+                        && !inUse.Contains(package.PublishedName)
+                        && Regex.IsMatch(package.PublishedName, @"\Aoem[0-9]+\.inf\z", RegexOptions.IgnoreCase))
+                    .Select(package => new DriverDuplicate(newest, package));
+            })
+            .OrderBy(duplicate => duplicate.Outdated.OriginalName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(duplicate => duplicate.Outdated.ParsedVersion)
+            .ToArray();
     }
 }

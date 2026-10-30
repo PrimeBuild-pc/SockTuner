@@ -15,11 +15,12 @@ public sealed class DpcIsrDiagnosticEngineTests
             ],
             TimeSpan.FromSeconds(10), null);
 
-        var finding = DpcIsrDiagnosticEngine.Analyze(capture, jitterMsInSameWindow: 15);
+        var finding = DpcIsrDiagnosticEngine.Analyze(capture, baselineJitterMs: 15);
 
         Assert.Equal("loud.sys", finding.CulpritDriver);
         Assert.Equal(["loud.sys", "quiet.sys"], finding.Ranking.Select(sample => sample.DriverName));
-        Assert.Equal(15, finding.JitterMsInSameWindow);
+        Assert.Null(finding.JitterMsInSameWindow);
+        Assert.False(finding.HasRepeatedEvidence);
     }
 
     [Fact]

@@ -1,4 +1,34 @@
 {
+ "Driver store cleanup": {
+  "es": "Limpieza del almacén de controladores",
+  "ru": "Очистка хранилища драйверов",
+  "zh-Hans": "驱动程序存储清理"
+ },
+ "Open Driver Store Explorer (RAPR)": {
+  "es": "Abrir Driver Store Explorer (RAPR)",
+  "ru": "Открыть Driver Store Explorer (RAPR)",
+  "zh-Hans": "打开 Driver Store Explorer (RAPR)"
+ },
+ "Analysis runs with your network check. Driver cleanup is separate from latency diagnosis; every change requires your choice and administrator approval.": {
+  "es": "El análisis se ejecuta con la prueba de red. La limpieza de controladores es independiente del diagnóstico de latencia; cada cambio requiere tu elección y aprobación de administrador.",
+  "ru": "Анализ выполняется вместе с проверкой сети. Очистка драйверов не связана с диагностикой задержек; каждое изменение требует вашего выбора и подтверждения администратора.",
+  "zh-Hans": "分析随网络检查运行。驱动程序清理独立于延迟诊断；每项更改都需要您选择并获得管理员批准。"
+ },
+ "Measures driver activity and latency together in repeated windows after a short baseline. A single spike, missing replies or ambiguous device mapping cannot enable an action. Repeated co-occurrence is not proof of causation. Needs administrator rights.": {
+  "es": "Tras una breve medición inicial, mide simultáneamente la actividad de los controladores y la latencia en varios intervalos. Un pico aislado, respuestas ausentes o una asociación ambigua con un dispositivo no permiten proponer acciones. La coincidencia repetida no demuestra causalidad. Requiere permisos de administrador.",
+  "ru": "После короткого исходного замера одновременно измеряет активность драйверов и задержку в нескольких интервалах. Одиночный всплеск, отсутствие ответов или неоднозначное сопоставление устройства не позволяют предложить действие. Повторяющееся совпадение не доказывает причинную связь. Требуются права администратора.",
+  "zh-Hans": "在简短的基线测量后，在多个时间段同时测量驱动程序活动和延迟。单次峰值、缺少响应或设备映射不明确时不会提供操作。重复同时出现并不证明因果关系。需要管理员权限。"
+ },
+ "{0} unused older package(s). Newest and in-use versions are protected. Cleanup is not a latency fix.": {
+  "es": "{0} paquetes antiguos sin uso. Se protegen las versiones más recientes y las que están en uso. La limpieza no corrige la latencia.",
+  "ru": "Неиспользуемых старых пакетов: {0}. Новейшие и используемые версии защищены. Очистка не исправляет задержки.",
+  "zh-Hans": "{0} 个未使用的旧版本包。最新版本和正在使用的版本受到保护。清理不会修复延迟。"
+ },
+ "Could not open the browser. Visit github.com/lostindark/DriverStoreExplorer/releases.": {
+  "es": "No se pudo abrir el navegador. Visita github.com/lostindark/DriverStoreExplorer/releases.",
+  "ru": "Не удалось открыть браузер. Откройте github.com/lostindark/DriverStoreExplorer/releases.",
+  "zh-Hans": "无法打开浏览器。请访问 github.com/lostindark/DriverStoreExplorer/releases。"
+ },
  "  Captured {0:yyyy-MM-dd HH:mm}.": {
   "es": "  Capturado el {0:yyyy-MM-dd HH:mm}.",
   "ru": "  Записано {0:yyyy-MM-dd HH:mm}.",
