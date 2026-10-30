@@ -43,34 +43,30 @@
 
 <table>
   <tr>
-    <td width="50%"><a href="docs/assets/screenshots/dashboard-alpha8.png"><img src="docs/assets/screenshots/dashboard-alpha8.png" alt="Dashboard with adapter counts and the health check"></a></td>
-    <td width="50%"><a href="docs/assets/screenshots/gaming-diagnostics-alpha8.png"><img src="docs/assets/screenshots/gaming-diagnostics-alpha8.png" alt="Gaming diagnostics with endpoint, profile and tick rate"></a></td>
+    <td colspan="3"><a href="docs/assets/screenshots/dashboard-alpha8.png"><img src="docs/assets/screenshots/dashboard-alpha8.png" alt="Dashboard with adapter counts and the health check" width="100%"></a></td>
   </tr>
   <tr>
-    <td align="center"><b>Dashboard</b> — inventory at a glance and a health check that opens the section that fixes each finding</td>
-    <td align="center"><b>Gaming diagnostics</b> — judge an endpoint against your game's tick rate, then re-run to see if a change helped</td>
+    <td colspan="3" align="center"><b>Dashboard</b> — inventory at a glance and a health check that opens the section that fixes each finding</td>
   </tr>
   <tr>
-    <td><a href="docs/assets/screenshots/host-diagnostics-alpha8.png"><img src="docs/assets/screenshots/host-diagnostics-alpha8.png" alt="Host diagnostics with per-process TCP connections"></a></td>
-    <td><a href="docs/assets/screenshots/tuning-plan-alpha8.png"><img src="docs/assets/screenshots/tuning-plan-alpha8.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
+    <td width="33%"><a href="docs/assets/screenshots/gaming-diagnostics-alpha8.png"><img src="docs/assets/screenshots/gaming-diagnostics-alpha8.png" alt="Gaming diagnostics with endpoint, profile and tick rate" width="100%"></a></td>
+    <td width="33%"><a href="docs/assets/screenshots/host-diagnostics-alpha8.png"><img src="docs/assets/screenshots/host-diagnostics-alpha8.png" alt="Host diagnostics with per-process TCP connections" width="100%"></a></td>
+    <td width="33%"><a href="docs/assets/screenshots/tuning-plan-alpha8.png"><img src="docs/assets/screenshots/tuning-plan-alpha8.png" alt="Tuning plan listing driver-advertised NIC properties" width="100%"></a></td>
   </tr>
   <tr>
-    <td align="center"><b>Host diagnostics</b> — TCP connection ownership, optional unused-driver cleanup, and opt-in simultaneous DPC/ISR and latency observations</td>
-    <td align="center"><b>Tuning plan</b> — only what the driver advertises, with current, default, accepted values and risk</td>
+    <td align="center"><b>Gaming diagnostics</b></td>
+    <td align="center"><b>Host diagnostics</b></td>
+    <td align="center"><b>Tuning plan</b></td>
   </tr>
   <tr>
-    <td><a href="docs/assets/screenshots/dns-resolvers-alpha8.png"><img src="docs/assets/screenshots/dns-resolvers-alpha8.png" alt="DNS resolver benchmark"></a></td>
-    <td><a href="docs/assets/screenshots/interrupt-affinity-alpha8.png"><img src="docs/assets/screenshots/interrupt-affinity-alpha8.png" alt="Interrupt affinity per device"></a></td>
+    <td><a href="docs/assets/screenshots/dns-resolvers-alpha8.png"><img src="docs/assets/screenshots/dns-resolvers-alpha8.png" alt="DNS resolver benchmark" width="100%"></a></td>
+    <td><a href="docs/assets/screenshots/interrupt-affinity-alpha8.png"><img src="docs/assets/screenshots/interrupt-affinity-alpha8.png" alt="Interrupt affinity per device" width="100%"></a></td>
+    <td><a href="docs/assets/screenshots/preferences-alpha8.png"><img src="docs/assets/screenshots/preferences-alpha8.png" alt="Preferences with appearance, language, retention and update settings" width="100%"></a></td>
   </tr>
   <tr>
-    <td align="center"><b>DNS resolvers</b> — benchmark any resolver over UDP 53, then apply or restore DHCP</td>
-    <td align="center"><b>Interrupt affinity</b> — which CPUs service each device's interrupts, and MSI state</td>
-  </tr>
-  <tr>
-    <td colspan="2"><a href="docs/assets/screenshots/preferences-alpha8.png"><img src="docs/assets/screenshots/preferences-alpha8.png" alt="Preferences with appearance, language, retention and update settings"></a></td>
-  </tr>
-  <tr>
-    <td colspan="2" align="center"><b>Preferences</b> — appearance, language, local log retention and update channel</td>
+    <td align="center"><b>DNS resolvers</b></td>
+    <td align="center"><b>Interrupt affinity</b></td>
+    <td align="center"><b>Preferences</b></td>
   </tr>
 </table>
 
