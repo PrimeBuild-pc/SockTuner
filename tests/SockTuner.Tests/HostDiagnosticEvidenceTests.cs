@@ -59,8 +59,11 @@ public sealed class HostDiagnosticEvidenceTests
         Assert.False(Analyze(missing).HasRepeatedEvidence);
         var sequential = windows.Select(window => window with
         {
-            Latency = window.Latency with { Samples = window.Latency.Samples.Select(sample =>
-                sample with { Timestamp = sample.Timestamp.AddSeconds(-10) }).ToArray() }
+            Latency = window.Latency with
+            {
+                Samples = window.Latency.Samples.Select(sample =>
+                sample with { Timestamp = sample.Timestamp.AddSeconds(-10) }).ToArray()
+            }
         }).ToArray();
         Assert.False(Analyze(sequential).HasRepeatedEvidence);
     }

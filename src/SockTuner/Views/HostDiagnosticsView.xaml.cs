@@ -89,7 +89,8 @@ public partial class HostDiagnosticsView : UserControl
         try
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
-                "https://github.com/lostindark/DriverStoreExplorer/releases") { UseShellExecute = true });
+                "https://github.com/lostindark/DriverStoreExplorer/releases")
+            { UseShellExecute = true });
         }
         catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
         {

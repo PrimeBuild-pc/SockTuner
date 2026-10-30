@@ -36,6 +36,9 @@ if ($LASTEXITCODE -ne 0) { throw 'Cannot read the driver store before testing.' 
 $capture = Invoke-HostAction 'CaptureDpcIsr' '127.0.0.1' 5
 if (-not $capture.Success) { throw "ETW capture failed: $($capture.Error)" }
 if (@($capture.Capture.Windows).Count -ne 5) { throw 'Expected five concurrent windows.' }
+if (-not @($capture.Drivers | Where-Object { $_.DriverName -ne '(unresolved)' }).Count) {
+    throw 'No ISR/DPC routine could be attributed to a loaded kernel module.'
+}
 if ($capture.Capture.Baseline.Received -ne 12) { throw 'Baseline replies missing.' }
 foreach ($window in $capture.Capture.Windows) {
     if ($window.Latency.Received -ne 4) { throw 'Concurrent replies missing.' }

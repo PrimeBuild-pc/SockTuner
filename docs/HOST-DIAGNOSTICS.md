@@ -34,7 +34,9 @@ Opt-in, elevated ETW capture stays attached to an explicit network/gaming check:
 3. Collect five approximately one-second windows. Each contains four ICMP samples **while ETW is
    active**, using the same 100 ms interval and 150 ms timeout as the initial samples.
 4. Attribute ISR/DPC events to the matching window by timestamp and preserve the `.sys` filename
-   when mapping activity back to a device. Activity outside the measured windows is excluded.
+   when mapping activity back to a device. Resolve routine addresses against the timestamped
+   kernel image ranges directly: TraceEvent 3.1.21 does not populate its ISR/DPC code-address index.
+   Activity outside the measured windows is excluded.
 
 The busiest total remains visible for inspection. Affinity/disable suggestions require at least
 three usable windows and a strict majority of all windows in which that same driver is uniquely
@@ -62,7 +64,8 @@ must confirm the named device and can re-enable it in Device Manager. No change 
   ten seconds, without starting a capture or changing the system.
 - Packaged executable (elevated, ideally in the clean Windows 11 VM):
   `powershell -NoProfile -File tools/Test-HostDiagnostics.ps1 -ExecutablePath <published-SockTuner.exe>`.
-  This collects loopback ETW/ICMP data and verifies refusal of an invalid package name and a
+  This collects loopback ETW/ICMP data, verifies that routine addresses resolve to kernel modules,
+  and verifies refusal of an invalid package name and a
   System-class device. It never requests an eligible removal or disable. It requires the kernel
   trace session to be free and verifies that driver-store output is unchanged.
 

@@ -53,13 +53,15 @@ internal static class EtwDpcIsrCapture
             }
 
             using var traceLog = TraceLog.OpenOrConvert(etlPath);
+            var kernelModules = traceLog.Processes.Where(process => process.ProcessID is 0 or 4)
+                .Select(process => process.LoadedModules).ToArray();
             var events = traceLog.Events.Where(item => item is ISRTraceData or DPCTraceData)
                 .Select(item => item switch
                 {
                     ISRTraceData isr => (new DateTimeOffset(isr.TimeStamp.ToUniversalTime()),
-                        new DpcIsrDriverSample(ResolveModule(traceLog, isr.RoutineCodeAddressIndex()), isr.ElapsedTimeMSec, 0, 1)),
+                        new DpcIsrDriverSample(ResolveModule(kernelModules, isr.Routine, isr.TimeStampRelativeMSec), isr.ElapsedTimeMSec, 0, 1)),
                     DPCTraceData dpc => (new DateTimeOffset(dpc.TimeStamp.ToUniversalTime()),
-                        new DpcIsrDriverSample(ResolveModule(traceLog, dpc.RoutineCodeAddressIndex()), 0, dpc.ElapsedTimeMSec, 1)),
+                        new DpcIsrDriverSample(ResolveModule(kernelModules, dpc.Routine, dpc.TimeStampRelativeMSec), 0, dpc.ElapsedTimeMSec, 1)),
                     _ => throw new InvalidOperationException()
                 });
             return AggregateWindows(events, windows) with { Baseline = baseline };
@@ -104,12 +106,15 @@ internal static class EtwDpcIsrCapture
         return new(ranking, TimeSpan.FromTicks(measured.Sum(window => (window.EndedAt - window.StartedAt).Ticks)), null, measured);
     }
 
-    private static string ResolveModule(TraceLog traceLog, CodeAddressIndex index)
+    private static string ResolveModule(IReadOnlyList<TraceLoadedModules> kernelModules, ulong routine, double timeMs)
     {
-        if (index == CodeAddressIndex.Invalid) return "(unresolved)";
-        // ModuleName omits .sys; the filename must match the signed-driver device inventory.
-        var modulePath = traceLog.CodeAddresses[index]?.ModuleFilePath;
-        return string.IsNullOrEmpty(modulePath) ? "(unresolved)" : Path.GetFileName(modulePath);
+        // TraceEvent 3.1.21 does not index ISR/DPC code addresses; resolve the actual image range.
+        foreach (var modules in kernelModules)
+        {
+            var path = modules.GetModuleContainingAddress(routine, timeMs)?.FilePath;
+            if (!string.IsNullOrEmpty(path)) return Path.GetFileName(path);
+        }
+        return "(unresolved)";
     }
 
     private static void TryDelete(string path)
