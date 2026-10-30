@@ -9,14 +9,14 @@ public sealed class DpcIsrGuidanceTests
     private static readonly CpuTopologyResult FlatTopology = new([], null);
 
     private static DpcIsrFinding Finding(string driver = "flaky.sys") => new(
-        driver, CulpritSharePercent: 5, [new DpcIsrDriverSample(driver, 50, 50, 10)], null, "Test reason.");
+        driver, CulpritSharePercent: 5, [new DpcIsrDriverSample(driver, 50, 50, 10)], null, "Test reason.", HasRepeatedEvidence: true);
 
     private static DriverImageDevice Device(string driver, string instanceId, string name) => new(driver, instanceId, name, InfName: "oem1.inf");
 
     [Fact]
     public void UninstallGuidance_IsNullWithoutAGenuineDuplicate()
     {
-        Assert.Null(DpcIsrGuidance.UninstallGuidance(Finding(), duplicate: null));
+        Assert.Null(DpcIsrGuidance.UninstallGuidance(duplicate: null));
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public sealed class DpcIsrGuidanceTests
         var active = new DriverStorePackage("oem17.inf", "culprit.inf", "Vendor", "Net", "01/01/2026 2.0.0.0");
         var outdated = new DriverStorePackage("oem19.inf", "culprit.inf", "Vendor", "Net", "01/01/2025 1.0.0.0");
 
-        var guidance = DpcIsrGuidance.UninstallGuidance(Finding("culprit.sys"), new DriverDuplicate(active, outdated));
+        var guidance = DpcIsrGuidance.UninstallGuidance(new DriverDuplicate(active, outdated));
 
         Assert.NotNull(guidance);
         Assert.Equal(RemediationOwner.ManualOnly, guidance.Owner);
@@ -97,6 +97,33 @@ public sealed class DpcIsrGuidanceTests
 
         Assert.NotNull(action);
         Assert.Contains("CPU 0", action.Title, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void InconclusiveEvidenceCannotEnableAffinityOrDisable()
+    {
+        var finding = Finding() with { HasRepeatedEvidence = false };
+        var device = Device("flaky.sys", @"PCI\present", "Audio");
+        Assert.Null(DpcIsrGuidance.DisableNonNicGuidance(finding, device));
+        Assert.Null(DpcIsrGuidance.AffinityAction(finding, device, [new(0, 5)], FlatTopology,
+            1, new HashSet<string> { device.DeviceInstanceId }));
+    }
+
+    [Theory]
+    [InlineData("MEDIA", true)]
+    [InlineData("Bluetooth", true)]
+    [InlineData("Display", false)]
+    [InlineData("SCSIAdapter", false)]
+    [InlineData("System", false)]
+    [InlineData("HIDClass", false)]
+    [InlineData("Net", false)]
+    [InlineData("", false)]
+    public void DeviceDisableOnlyAllowsKnownAncillaryClasses(string deviceClass, bool expected)
+    {
+        var device = new InterruptAffinityDevice("id", "Device", deviceClass, InterruptPolicy.MachineDefault,
+            InterruptPriority.Undefined, null, null, IsNetwork: false);
+        Assert.Equal(expected, DpcIsrGuidance.CanDisableDevice(device));
+        Assert.False(DpcIsrGuidance.CanDisableDevice(device with { IsNetwork = true }));
     }
 
     [Fact]

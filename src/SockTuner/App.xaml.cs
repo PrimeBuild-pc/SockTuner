@@ -31,7 +31,8 @@ public partial class App : Application
         // was given, serves exactly one typed request and audits it in the launching user's folder.
         if (e.Args.Length == 3 && string.Equals(e.Args[0], ElevatedWorkerClient.WorkerArgument, StringComparison.Ordinal))
         {
-            Shutdown(ElevatedWorkerHost.RunAsync(e.Args[1], e.Args[2], CancellationToken.None).GetAwaiter().GetResult());
+            // Worker continuations must not wait for this blocked WPF dispatcher.
+            Shutdown(Task.Run(() => ElevatedWorkerHost.RunAsync(e.Args[1], e.Args[2], CancellationToken.None)).GetAwaiter().GetResult());
             return;
         }
 
@@ -40,7 +41,7 @@ public partial class App : Application
         // envelope above.
         if (e.Args.Length == 2 && string.Equals(e.Args[0], HostActionClient.WorkerArgument, StringComparison.Ordinal))
         {
-            Shutdown(HostActionHost.RunAsync(e.Args[1], CancellationToken.None).GetAwaiter().GetResult());
+            Shutdown(Task.Run(() => HostActionHost.RunAsync(e.Args[1], CancellationToken.None)).GetAwaiter().GetResult());
             return;
         }
 

@@ -386,7 +386,8 @@ public sealed record GamingDiagnosticReport(
     WifiDiagnosticReport? Wifi = null,
     DpcIsrFinding? DpcIsr = null,
     IReadOnlyList<ProcessConnectionSummary>? ProcessConnections = null,
-    DriverDuplicate? DpcIsrDuplicate = null);
+    DriverDuplicate? DpcIsrDuplicate = null,
+    IReadOnlyList<DriverDuplicate>? DriverCleanup = null);
 
 internal static class DoubleArrayExtensions
 {

@@ -24,9 +24,8 @@ public enum HostActionKind
 
     /// <summary>
     /// Remove one driver-store package (<see cref="HostActionRequest.Target"/>, a published name
-    /// like <c>oem19.inf</c>) via <c>pnputil /delete-driver ... /uninstall</c>. Never passes
-    /// <c>/force</c>: the caller must only ever target a package that is not the one currently bound
-    /// to a device.
+    /// like <c>oem19.inf</c>) via <c>pnputil /delete-driver</c>. Never passes <c>/uninstall</c> or <c>/force</c>;
+    /// eligibility is re-read in this elevated worker and Windows also refuses in-use packages.
     /// </summary>
     DeleteDriverPackage,
 
@@ -39,7 +38,8 @@ public enum HostActionKind
 }
 
 public sealed record HostActionRequest(Guid RequestId, HostActionKind Kind, int DurationSeconds = 0, string? Target = null);
-public sealed record HostActionResponse(Guid RequestId, bool Success, string? Error, IReadOnlyList<DpcIsrDriverSample> Drivers);
+public sealed record HostActionResponse(Guid RequestId, bool Success, string? Error,
+    IReadOnlyList<DpcIsrDriverSample> Drivers, DpcIsrCaptureResult? Capture = null);
 
 /// <summary>
 /// Launches the same signed executable to run one <see cref="HostActionKind"/> and exchanges a
@@ -93,8 +93,11 @@ public sealed class HostActionClient
         // process's thread blocked in a native call for a while after it has already answered —
         // waiting for it to fully exit would re-introduce the same hang this client is meant to avoid.
 
-        return JsonSerializer.Deserialize<HostActionResponse>(payload, Options)
+        var response = JsonSerializer.Deserialize<HostActionResponse>(payload, Options)
             ?? throw new InvalidDataException("The elevated host-action process returned an unreadable response.");
+        if (response.RequestId != request.RequestId)
+            throw new InvalidDataException("The host-action response does not match the request.");
+        return response;
     }
 
     private static Process Launch(string pipeName)
@@ -150,9 +153,9 @@ internal static class HostActionHost
             request = JsonSerializer.Deserialize<HostActionRequest>(line, Options)
                 ?? throw new InvalidDataException("Host-action request is empty.");
 
-            var (success, error, drivers) = await ExecuteAsync(request, cancellationToken);
+            var (success, error, capture) = await ExecuteAsync(request, cancellationToken);
             await writer.WriteLineAsync(JsonSerializer.Serialize(
-                new HostActionResponse(request.RequestId, success, error, drivers), Options));
+                new HostActionResponse(request.RequestId, success, error, capture?.Drivers ?? [], capture), Options));
             pipe.WaitForPipeDrain();
 
             // A capture the watchdog gave up on leaves its thread blocked inside a native call that
@@ -174,7 +177,7 @@ internal static class HostActionHost
         }
     }
 
-    private static async Task<(bool Success, string? Error, IReadOnlyList<DpcIsrDriverSample> Drivers)> ExecuteAsync(
+    private static async Task<(bool Success, string? Error, DpcIsrCaptureResult? Capture)> ExecuteAsync(
         HostActionRequest request, CancellationToken cancellationToken)
     {
         switch (request.Kind)
@@ -185,7 +188,9 @@ internal static class HostActionHost
                     throw new InvalidDataException("DPC/ISR capture duration must be between 1 and 120 seconds.");
                 }
 
-                return await CaptureWithWatchdogAsync(TimeSpan.FromSeconds(request.DurationSeconds), cancellationToken);
+                if (!System.Net.IPAddress.TryParse(request.Target, out _))
+                    throw new InvalidDataException("A resolved IP address is required for the concurrent latency check.");
+                return await CaptureWithWatchdogAsync(TimeSpan.FromSeconds(request.DurationSeconds), request.Target!, cancellationToken);
 
             case HostActionKind.DeleteDriverPackage:
                 if (string.IsNullOrWhiteSpace(request.Target))
@@ -193,8 +198,14 @@ internal static class HostActionHost
                     throw new InvalidDataException("A driver package name is required.");
                 }
 
-                var deleteExit = await RunPnputilAsync(["/delete-driver", request.Target, "/uninstall"], cancellationToken);
-                return (deleteExit.ExitCode == 0, deleteExit.ExitCode == 0 ? null : deleteExit.Output, []);
+                var inventory = WindowsDriverStoreInventory.Read();
+                if (inventory.Error is not null || !DriverStoreDuplicateFinder.FindOutdatedDuplicates(
+                        inventory.Packages, inventory.InUsePublishedNames).Any(duplicate =>
+                        string.Equals(duplicate.Outdated.PublishedName, request.Target, StringComparison.OrdinalIgnoreCase)))
+                    return (false, "Cleanup refused: the package is in use, no longer an older duplicate, or its bindings could not be verified.", null);
+
+                var deleteExit = await RunPnputilAsync(["/delete-driver", request.Target], cancellationToken);
+                return (deleteExit.ExitCode == 0, deleteExit.ExitCode == 0 ? null : deleteExit.Output, null);
 
             case HostActionKind.DisableDevice:
                 if (string.IsNullOrWhiteSpace(request.Target))
@@ -202,8 +213,13 @@ internal static class HostActionHost
                     throw new InvalidDataException("A device instance ID is required.");
                 }
 
+                var device = InterruptAffinityInventory.Read(onlyInteresting: false).Devices.FirstOrDefault(item =>
+                    string.Equals(item.InstanceId, request.Target, StringComparison.OrdinalIgnoreCase));
+                if (!Remediation.DpcIsrGuidance.CanDisableDevice(device))
+                    return (false, "Device disable refused: only verified ancillary device classes are allowed.", null);
+
                 var disableExit = await RunPnputilAsync(["/disable-device", request.Target], cancellationToken);
-                return (disableExit.ExitCode == 0, disableExit.ExitCode == 0 ? null : disableExit.Output, []);
+                return (disableExit.ExitCode == 0, disableExit.ExitCode == 0 ? null : disableExit.Output, null);
 
             default:
                 throw new InvalidDataException($"Unknown host action: {request.Kind}.");
@@ -218,20 +234,20 @@ internal static class HostActionHost
     /// thread is a background thread-pool thread, so it does not keep the process alive once this
     /// method moves on without it.
     /// </summary>
-    private static async Task<(bool Success, string? Error, IReadOnlyList<DpcIsrDriverSample> Drivers)> CaptureWithWatchdogAsync(
-        TimeSpan duration, CancellationToken cancellationToken)
+    private static async Task<(bool Success, string? Error, DpcIsrCaptureResult? Capture)> CaptureWithWatchdogAsync(
+        TimeSpan duration, string target, CancellationToken cancellationToken)
     {
-        var captureTask = Task.Run(() => EtwDpcIsrCapture.Capture(duration, cancellationToken), cancellationToken);
+        var captureTask = Task.Run(() => EtwDpcIsrCapture.Capture(duration, target, cancellationToken), cancellationToken);
         var watchdog = duration + TimeSpan.FromSeconds(30);
         var winner = await Task.WhenAny(captureTask, Task.Delay(watchdog, cancellationToken));
         if (!ReferenceEquals(winner, captureTask))
         {
             return (false, "The ETW capture did not respond in time — another tool may already be using the "
-                + "system's kernel trace session.", []);
+                + "system's kernel trace session.", null);
         }
 
         var result = await captureTask;
-        return (result.Error is null, result.Error, result.Drivers);
+        return (result.Error is null, result.Error, result);
     }
 
     private static async Task<(int ExitCode, string Output)> RunPnputilAsync(string[] arguments, CancellationToken cancellationToken)

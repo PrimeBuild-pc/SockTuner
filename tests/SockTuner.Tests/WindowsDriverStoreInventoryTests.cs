@@ -113,12 +113,13 @@ public sealed class WindowsDriverStoreInventoryTests
     {
         var packages = WindowsDriverStoreInventory.ParseRecords(RealSample);
 
-        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicate(packages, activePublishedName: "oem17.inf");
+        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicates(packages, new HashSet<string> { "oem17.inf" })
+            .Single(item => item.Retained.PublishedName == "oem17.inf");
 
         Assert.NotNull(duplicate);
-        Assert.Equal("oem17.inf", duplicate.Active.PublishedName);
+        Assert.Equal("oem17.inf", duplicate.Retained.PublishedName);
         Assert.Equal("oem19.inf", duplicate.Outdated.PublishedName);
-        Assert.NotEqual(duplicate.Active.PublishedName, duplicate.Outdated.PublishedName);
+        Assert.NotEqual(duplicate.Retained.PublishedName, duplicate.Outdated.PublishedName);
     }
 
     [Fact]
@@ -128,7 +129,8 @@ public sealed class WindowsDriverStoreInventoryTests
         // "Attributes" field must not have thrown off the field count.
         var packages = WindowsDriverStoreInventory.ParseRecords(RealSample);
 
-        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicate(packages, activePublishedName: "oem45.inf");
+        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicates(packages, new HashSet<string> { "oem45.inf" })
+            .Single(item => item.Retained.PublishedName == "oem45.inf");
 
         Assert.NotNull(duplicate);
         Assert.Equal("oem14.inf", duplicate.Outdated.PublishedName);
@@ -141,7 +143,8 @@ public sealed class WindowsDriverStoreInventoryTests
         // the device (e.g. after a rollback), the newer oem45.inf must never be named as "to remove".
         var packages = WindowsDriverStoreInventory.ParseRecords(RealSample);
 
-        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicate(packages, activePublishedName: "oem14.inf");
+        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicates(packages, new HashSet<string> { "OEM14.INF" })
+            .SingleOrDefault(item => item.Outdated.OriginalName == "ovpn-dco.inf");
 
         Assert.Null(duplicate);
     }
@@ -151,7 +154,8 @@ public sealed class WindowsDriverStoreInventoryTests
     {
         var packages = WindowsDriverStoreInventory.ParseRecords(RealSample);
 
-        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicate(packages, activePublishedName: "oem35.inf");
+        var duplicate = DriverStoreDuplicateFinder.FindOutdatedDuplicates(packages, new HashSet<string> { "oem35.inf" })
+            .SingleOrDefault(item => item.Retained.PublishedName == "oem35.inf");
 
         Assert.Null(duplicate);
     }

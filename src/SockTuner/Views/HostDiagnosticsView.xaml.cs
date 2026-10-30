@@ -17,6 +17,7 @@ public partial class HostDiagnosticsView : UserControl
     private Action? _modifyAffinity;
     private Func<Task>? _applyUninstall;
     private Func<Task>? _applyDisable;
+    private Func<DriverDuplicate, Task>? _cleanup;
 
     public HostDiagnosticsView() => InitializeComponent();
 
@@ -33,7 +34,6 @@ public partial class HostDiagnosticsView : UserControl
     public void SetDpcIsrResult(
         DpcIsrFinding finding,
         RemediationAction? affinityAction, Func<Task>? applyAffinity, Action? modifyAffinity,
-        HostGuidanceItem? uninstallGuidance, Func<Task>? applyUninstall,
         HostGuidanceItem? disableGuidance, Func<Task>? applyDisable)
     {
         DpcIsrRankingGrid.ItemsSource = finding.Ranking;
@@ -43,20 +43,58 @@ public partial class HostDiagnosticsView : UserControl
 
         _applyAffinity = applyAffinity;
         _modifyAffinity = modifyAffinity;
-        _applyUninstall = applyUninstall;
         _applyDisable = applyDisable;
 
         SetRow(AffinityRow, AffinityTitleText, AffinityDetailText, AffinityStatusText, AffinityModifyButton,
             affinityAction?.Title, affinityAction is null ? null : $"{affinityAction.ExpectedEffect} {affinityAction.TradeOff}",
             showModify: true);
-        SetRow(UninstallRow, UninstallTitleText, UninstallDetailText, UninstallStatusText, null,
-            uninstallGuidance?.Title, uninstallGuidance?.Instructions.FirstOrDefault()?.Summary, showModify: false);
         SetRow(DisableRow, DisableTitleText, DisableDetailText, DisableStatusText, null,
             disableGuidance?.Title, disableGuidance?.Instructions.FirstOrDefault()?.Summary, showModify: false);
 
-        NoActionsText.Visibility = affinityAction is null && uninstallGuidance is null && disableGuidance is null
+        NoActionsText.Visibility = affinityAction is null && disableGuidance is null
             ? Visibility.Visible
             : Visibility.Collapsed;
+    }
+
+    public void ClearResults(string status)
+    {
+        SetProcessConnections([], null);
+        SetDriverCleanup([], status, _ => Task.CompletedTask);
+        SetDpcIsrResult(new(null, 0, [], null, status), null, null, null, null, null);
+    }
+
+    public void SetDriverCleanup(IReadOnlyList<DriverDuplicate> duplicates, string? error,
+        Func<DriverDuplicate, Task> apply)
+    {
+        _cleanup = apply;
+        DriverCleanupStatusText.Text = error ?? Loc.F($"{duplicates.Count} unused older package(s). Newest and in-use versions are protected. Cleanup is not a latency fix.");
+        DriverCleanupComboBox.ItemsSource = duplicates;
+        DriverCleanupComboBox.SelectedIndex = duplicates.Count > 0 ? 0 : -1;
+        UpdateCleanupSelection();
+    }
+
+    private void DriverCleanupSelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateCleanupSelection();
+
+    private void UpdateCleanupSelection()
+    {
+        var duplicate = DriverCleanupComboBox.SelectedItem as DriverDuplicate;
+        var guidance = DpcIsrGuidance.UninstallGuidance(duplicate);
+        _applyUninstall = duplicate is null ? null : () => _cleanup!(duplicate);
+        SetRow(UninstallRow, UninstallTitleText, UninstallDetailText, UninstallStatusText, null,
+            guidance?.Title, guidance?.Instructions.FirstOrDefault()?.Summary, showModify: false);
+    }
+
+    private void OpenRapr_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(
+                "https://github.com/lostindark/DriverStoreExplorer/releases") { UseShellExecute = true });
+        }
+        catch (Exception exception) when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            DriverCleanupStatusText.Text = Loc.T("Could not open the browser. Visit github.com/lostindark/DriverStoreExplorer/releases.");
+        }
     }
 
     private static void SetRow(

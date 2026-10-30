@@ -11,7 +11,14 @@ public sealed record DpcIsrDriverSample(string DriverName, double ElapsedIsrMs, 
 }
 
 /// <summary>The raw capture: every driver seen, ordered by nothing yet — judgement happens downstream.</summary>
-public sealed record DpcIsrCaptureResult(IReadOnlyList<DpcIsrDriverSample> Drivers, TimeSpan Duration, string? Error);
+public sealed record DpcIsrCaptureResult(
+    IReadOnlyList<DpcIsrDriverSample> Drivers, TimeSpan Duration, string? Error,
+    IReadOnlyList<DpcIsrWindow>? Windows = null, ProbeStatistics? Baseline = null);
+
+/// <summary>One second of driver activity and ICMP replies measured inside that same ETW session.</summary>
+public sealed record DpcIsrWindow(
+    DateTimeOffset StartedAt, DateTimeOffset EndedAt,
+    IReadOnlyList<DpcIsrDriverSample> Drivers, ProbeStatistics Latency);
 
 /// <summary>One logical processor's utilisation at the moment it was read.</summary>
 public sealed record CpuCoreUsage(int CoreIndex, double PercentProcessorTime);
@@ -19,14 +26,13 @@ public sealed record CpuCoreUsage(int CoreIndex, double PercentProcessorTime);
 public sealed record CpuCoreUsageResult(IReadOnlyList<CpuCoreUsage> Cores, string? Error);
 
 /// <summary>
-/// The capture judged against what the same diagnostic run actually measured: one named culprit
-/// (the worst combined ISR+DPC share of the window), the full ranking as supporting detail, and
-/// whether it is eligible for the uninstall suggestion specifically — never on the strength of one
-/// instantaneous spike, and never for a driver class SockTuner has decided not to second-guess.
+/// Ranked interrupt activity plus a conservative repeated/coincident latency-evidence flag.
+/// Cleanup eligibility is deliberately independent of this finding.
 /// </summary>
 public sealed record DpcIsrFinding(
     string? CulpritDriver,
     double CulpritSharePercent,
     IReadOnlyList<DpcIsrDriverSample> Ranking,
     double? JitterMsInSameWindow,
-    string Reason);
+    string Reason,
+    bool HasRepeatedEvidence = false);

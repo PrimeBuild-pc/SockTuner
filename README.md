@@ -35,8 +35,9 @@
 > **SockTuner is a community alpha, not production software.** Read-only inventory and diagnostics are
 > the main surface. Tuning is experimental and changes live network settings: applying a NIC property
 > restarts that adapter and briefly drops its link, so never apply a change through the connection
-> being changed. Every write needs consent and elevation, and is snapshotted, verified, audited and
-> reversible.
+> being changed. Tuning writes need consent and elevation and are snapshotted, verified, audited and
+> reversible. Optional driver-store cleanup has a separate confirmation and protects in-use packages,
+> but removed packages cannot be restored automatically. [Host diagnostics and cleanup](docs/HOST-DIAGNOSTICS.md).
 
 ## Gallery
 
@@ -54,7 +55,7 @@
     <td><a href="docs/assets/screenshots/tuning-plan-20261030.png"><img src="docs/assets/screenshots/tuning-plan-20261030.png" alt="Tuning plan listing driver-advertised NIC properties"></a></td>
   </tr>
   <tr>
-    <td align="center"><b>Host diagnostics</b> — which process owns each TCP connection, plus opt-in DPC/ISR culprit detection with one-click fixes</td>
+    <td align="center"><b>Host diagnostics</b> — TCP connection ownership, optional unused-driver cleanup, and opt-in simultaneous DPC/ISR and latency observations</td>
     <td align="center"><b>Tuning plan</b> — only what the driver advertises, with current, default, accepted values and risk</td>
   </tr>
   <tr>
@@ -94,7 +95,7 @@ to you.
 | **Gaming diagnostics** | One check walks the path layer by layer (PC/NIC, LAN or Wi-Fi, router, access link, ISP, route, server) with latency, loss and jitter percentiles, DNS and TCP timing, path MTU, route quality and a playability verdict against the game's tick rate |
 | **Game ports & NAT** | Opt-in IPv4 UDP observations on a chosen local port, game/platform port references, controlled alternate-port checks and security-ranked guidance — no misleading universal Open/Strict grade or automatic router changes. [Method and limits](docs/NAT-DIAGNOSTICS.md) |
 | **Wi-Fi diagnostics** | Passive WLAN data from the Windows cache — signal, rate, band, nearby channel pressure — without triggering a scan |
-| **Host diagnostics** | Rides the same gaming check: which process owns each TCP connection, and (opt-in, needs admin) which driver's ISR/DPC time correlates with the jitter just measured, with topology-aware interrupt-affinity pinning, outdated-driver-duplicate removal and non-NIC device disable as one-click, reversible actions — never a system-wide scanner |
+| **Host diagnostics** | TCP connection ownership; opt-in, simultaneous ETW/latency observations with repeated-evidence gating for affinity or ancillary-device disable. Independent, optional cleanup of unused older driver packages protects all in-use versions. Every Apply needs user approval; package removal has no automatic undo. [Method and safeguards](docs/HOST-DIAGNOSTICS.md) |
 | **Throughput & bufferbloat** | Opt-in loaded-latency and throughput tests graded on the Waveform scale; external Waveform results can be imported and graded by the same code |
 | **DNS resolvers** | Benchmark configured and extra resolvers, apply the fastest one or restore DHCP |
 | **Recommendations** | Ranked, evidence-based suggestions sent to the tuning plan, plus router guidance where the fix is not on the PC |
@@ -113,7 +114,11 @@ to you.
 4. The **elevated worker** re-reads the driver, refuses anything it no longer advertises or that drifted
    since the preview, writes, reads the value back, records an audit entry, then restarts the adapter
    and checks it returns to its previous link state.
-5. **Undo** any audit entry to exactly the values it captured.
+5. **Undo** any tuning audit entry to exactly the values it captured.
+
+Driver-store cleanup and ancillary-device disable are separately confirmed host actions, not tuning
+transactions with automatic undo. Cleanup only removes unused older packages; disabled devices can
+be re-enabled from Device Manager. Neither action runs automatically.
 
 SockTuner never invents a value or a range, and any keyword it has not characterised on real hardware
 is treated as high risk.

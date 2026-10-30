@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- TraceEvent locates KernelTraceControl beside its extracted managed assembly. -->
+    <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <!-- Dev-build default; release.yml overrides it from the tag. -->
     <Version>0.9.0</Version>
     <ApplicationIcon>Assets\SockTuner.ico</ApplicationIcon>

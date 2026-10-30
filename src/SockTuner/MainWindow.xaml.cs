@@ -478,12 +478,12 @@ public partial class MainWindow : Window
 
             StatusText.Text = Loc.T("Reading process connections…");
             report = report with { ProcessConnections = await ShowProcessConnectionsAsync(_diagnosticCancellation.Token) };
+            report = report with { DriverCleanup = await ShowDriverCleanupAsync(_diagnosticCancellation.Token) };
 
             if (CaptureDpcIsrCheckBox.IsChecked == true)
             {
                 StatusText.Text = Loc.T("Capturing driver interrupt activity (DPC/ISR)…");
-                var dpcIsr = await ShowDpcIsrResultAsync(report, _diagnosticCancellation.Token);
-                report = report with { DpcIsr = dpcIsr.Finding, DpcIsrDuplicate = dpcIsr.Duplicate };
+                report = report with { DpcIsr = await ShowDpcIsrResultAsync(report, _diagnosticCancellation.Token) };
             }
 
             _lastReport = report;
@@ -549,6 +549,10 @@ public partial class MainWindow : Window
     {
         _lastGrade = null;
         _lastCheckAt = null;
+        _lastDpcIsrAffinityAction = null;
+        _lastDpcIsrDisableGuidance = null;
+        _lastDpcIsrHostGuidance = [];
+        HostDiagnostics.ClearResults(value);
         GatewayResultText.Text = value;
         ReferenceResultText.Text = value;
         GameResultText.Text = value;

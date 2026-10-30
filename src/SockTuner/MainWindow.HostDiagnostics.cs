@@ -24,6 +24,7 @@ public partial class MainWindow
     // recommendations, not just the one already folded into the report model.
     private IReadOnlyList<HostGuidanceItem> _lastDpcIsrHostGuidance = [];
     private RemediationAction? _lastDpcIsrAffinityAction;
+    private HostGuidanceItem? _lastDpcIsrDisableGuidance;
 
     private async Task<IReadOnlyList<ProcessConnectionSummary>> ShowProcessConnectionsAsync(CancellationToken cancellationToken)
     {
@@ -33,16 +34,19 @@ public partial class MainWindow
         return summaries;
     }
 
-    private async Task<(DpcIsrFinding Finding, DriverDuplicate? Duplicate)> ShowDpcIsrResultAsync(
+    private async Task<DpcIsrFinding> ShowDpcIsrResultAsync(
         GamingDiagnosticReport report, CancellationToken cancellationToken)
     {
         DpcIsrCaptureResult capture;
         try
         {
             var response = await _hostActionClient.ExecuteAsync(
-                new HostActionRequest(Guid.NewGuid(), HostActionKind.CaptureDpcIsr, DurationSeconds: (int)DpcIsrCaptureDuration.TotalSeconds),
+                new HostActionRequest(Guid.NewGuid(), HostActionKind.CaptureDpcIsr,
+                    DurationSeconds: (int)DpcIsrCaptureDuration.TotalSeconds, Target: report.GameTarget.Target),
                 cancellationToken);
-            capture = new DpcIsrCaptureResult(response.Drivers, DpcIsrCaptureDuration, response.Success ? null : response.Error);
+            capture = response.Success && response.Capture is not null
+                ? response.Capture
+                : new([], DpcIsrCaptureDuration, response.Error ?? "No concurrent capture was returned.");
         }
         catch (ElevatedWorkerDeclinedException)
         {
@@ -61,57 +65,49 @@ public partial class MainWindow
             capture = new([], DpcIsrCaptureDuration, exception.Message);
         }
 
-        var finding = DpcIsrDiagnosticEngine.Analyze(capture, report.GameTarget.JitterMs);
+        var baseline = capture.Baseline;
+        var finding = DpcIsrDiagnosticEngine.Analyze(capture,
+            baseline is { Sent: >= 3 } && baseline.Received == baseline.Sent ? baseline.JitterMs : null);
 
-        // Five independent reads (WMI queries and a pnputil process each) — run concurrently rather
-        // than one after another, so this doesn't stack needless wall-clock time on top of the
-        // already-slow, UAC-gated capture above.
+        // Independent inventories run concurrently after the bounded measurement.
         var affinityInventoryTask = Task.Run(() => InterruptAffinityInventory.Read(onlyInteresting: false), cancellationToken);
         var driverImagesTask = Task.Run(WindowsDriverImageInventory.Read, cancellationToken);
         var cpuUsageTask = Task.Run(WindowsPerCoreCpuInventory.Read, cancellationToken);
         var topologyTask = Task.Run(WindowsCpuTopologyInventory.Read, cancellationToken);
-        var driverStoreTask = Task.Run(WindowsDriverStoreInventory.Read, cancellationToken);
-        await Task.WhenAll(affinityInventoryTask, driverImagesTask, cpuUsageTask, topologyTask, driverStoreTask);
+        await Task.WhenAll(affinityInventoryTask, driverImagesTask, cpuUsageTask, topologyTask);
         var affinityInventory = affinityInventoryTask.Result;
         var driverImages = driverImagesTask.Result;
         var cpuUsage = cpuUsageTask.Result;
         var topology = topologyTask.Result;
-        var driverStore = driverStoreTask.Result;
 
-        var device = finding.CulpritDriver is { } driver
-            ? driverImages.Devices.FirstOrDefault(item => string.Equals(item.DriverFileName, driver, StringComparison.OrdinalIgnoreCase))
-            : null;
+        var matches = driverImages.Devices.Where(item =>
+            string.Equals(item.DriverFileName, finding.CulpritDriver, StringComparison.OrdinalIgnoreCase)).ToArray();
+        // A shared image is not evidence against one particular device.
+        var device = matches.Length == 1 ? matches[0] : null;
         var affinityDevice = device is null
             ? null
             : affinityInventory.Devices.FirstOrDefault(item => string.Equals(item.InstanceId, device.DeviceInstanceId, StringComparison.OrdinalIgnoreCase));
-        // Disabling a NIC is already a one-click, automated action elsewhere (InterfacesView); this
-        // recommendation is only for everything else (audio, USB, storage, GPU).
-        var isNonNicDevice = affinityDevice is { IsNetwork: false };
-
-        var duplicate = device?.InfName is { } infName
-            ? DriverStoreDuplicateFinder.FindOutdatedDuplicate(driverStore.Packages, infName)
-            : null;
 
         var presentDevices = affinityInventory.Devices.Select(item => item.InstanceId).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var affinityAction = DpcIsrGuidance.AffinityAction(
             finding, device, cpuUsage.Cores, topology, Math.Max(affinityInventory.LogicalProcessors, 1), presentDevices);
-        var uninstallGuidance = DpcIsrGuidance.UninstallGuidance(finding, duplicate);
-        var disableGuidance = isNonNicDevice ? DpcIsrGuidance.DisableNonNicGuidance(finding, device) : null;
+        var disableGuidance = DpcIsrGuidance.CanDisableDevice(affinityDevice)
+            ? DpcIsrGuidance.DisableNonNicGuidance(finding, device) : null;
 
         _lastDpcIsrAffinityAction = affinityAction;
-        _lastDpcIsrHostGuidance = new[] { uninstallGuidance, disableGuidance }.Where(item => item is not null).ToArray()!;
+        _lastDpcIsrDisableGuidance = disableGuidance;
+        if (disableGuidance is not null)
+            _lastDpcIsrHostGuidance = _lastDpcIsrHostGuidance.Append(disableGuidance).ToArray();
 
         HostDiagnostics.SetDpcIsrResult(
             finding,
             affinityAction,
             affinityAction is null ? null : () => ApplyAffinityAsync(affinityAction),
             device is null ? null : () => OpenInterruptAffinityForModify(device.DeviceInstanceId),
-            uninstallGuidance,
-            uninstallGuidance is null ? null : () => ApplyDriverRemovalAsync(duplicate!),
             disableGuidance,
             disableGuidance is null ? null : () => ApplyDeviceDisableAsync(affinityDevice!));
 
-        return (finding, duplicate);
+        return finding;
     }
 
     private void OpenInterruptAffinityForModify(string instanceId)
@@ -163,8 +159,28 @@ public partial class MainWindow
         }
     }
 
+    private async Task<IReadOnlyList<DriverDuplicate>> ShowDriverCleanupAsync(CancellationToken cancellationToken)
+    {
+        var inventory = await Task.Run(WindowsDriverStoreInventory.Read, cancellationToken);
+        var duplicates = inventory.Error is null
+            ? DriverStoreDuplicateFinder.FindOutdatedDuplicates(inventory.Packages, inventory.InUsePublishedNames)
+            : [];
+        HostDiagnostics.SetDriverCleanup(duplicates, inventory.Error, ApplyDriverRemovalAsync);
+        _lastDpcIsrHostGuidance = duplicates.Select(item => DpcIsrGuidance.UninstallGuidance(item)!)
+            .Concat(_lastDpcIsrDisableGuidance is { } disable ? [disable] : Array.Empty<HostGuidanceItem>()).ToArray();
+        return duplicates;
+    }
+
     private async Task ApplyDriverRemovalAsync(DriverDuplicate duplicate)
     {
+        if (System.Windows.MessageBox.Show(
+                $"Remove {duplicate.Outdated.PublishedName} ({duplicate.Outdated.DriverVersionRaw})?\n\n"
+                + $"Keep {duplicate.Retained.PublishedName} and every package in use. "
+                + "This is optional cleanup, not a latency fix. Removal cannot be undone automatically; "
+                + "keep the vendor installer for recovery.", "SockTuner", System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Warning, System.Windows.MessageBoxResult.No) != System.Windows.MessageBoxResult.Yes)
+            return;
+
         if (!WriteConsentDialog.Ensure(out var problem))
         {
             HostDiagnostics.SetUninstallStatus(problem!);
@@ -180,7 +196,9 @@ public partial class MainWindow
             HostDiagnostics.SetUninstallStatus(response.Success
                 ? Loc.F($"Removed {duplicate.Outdated.PublishedName}.")
                 : response.Error ?? Loc.T("The driver package could not be removed."));
-            AppLog.Write("dpcisr.uninstall_apply", $"Package={duplicate.Outdated.PublishedName}; Success={response.Success}.");
+            AppLog.Write("driver.cleanup_apply", $"Package={duplicate.Outdated.PublishedName}; Success={response.Success}.");
+            if (response.Success)
+                await ShowDriverCleanupAsync(CancellationToken.None);
         }
         catch (ElevatedWorkerDeclinedException exception)
         {
@@ -195,6 +213,13 @@ public partial class MainWindow
 
     private async Task ApplyDeviceDisableAsync(InterruptAffinityDevice device)
     {
+        if (System.Windows.MessageBox.Show(
+                $"Disable {device.FriendlyName}?\n\nThis can stop audio, Bluetooth, camera or printing. "
+                + "Re-enable the device in Device Manager if it does not help. Repeated observations are not proof of causation.",
+                "SockTuner", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning,
+                System.Windows.MessageBoxResult.No) != System.Windows.MessageBoxResult.Yes)
+            return;
+
         if (!WriteConsentDialog.Ensure(out var problem))
         {
             HostDiagnostics.SetDisableStatus(problem!);

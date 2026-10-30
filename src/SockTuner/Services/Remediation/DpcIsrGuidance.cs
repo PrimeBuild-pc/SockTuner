@@ -3,7 +3,7 @@ using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Services.Remediation;
 
-/// <summary>One manual step SockTuner can name exactly but never perform — same shape as <see cref="RouterInstruction"/>.</summary>
+/// <summary>A descriptive checklist step; any optional Apply is separately consented and executed by the UI.</summary>
 public sealed record HostInstruction(string Action, string Reason)
 {
     public string Summary => $"{Action} — {Reason}";
@@ -25,33 +25,36 @@ public sealed record HostGuidanceItem(string Title, IReadOnlyList<HostInstructio
 public static class DpcIsrGuidance
 {
     /// <summary>
-    /// Fires only on a fact, never a guess: a genuinely outdated duplicate of the culprit driver
-    /// sitting in the store, never the package actually bound to the device (guaranteed by
-    /// <see cref="DriverStoreDuplicateFinder"/>'s own construction).
+    /// Describes optional cleanup of an unused older version, independent of the DPC/ISR ranking.
     /// </summary>
-    public static HostGuidanceItem? UninstallGuidance(DpcIsrFinding finding, DriverDuplicate? duplicate)
+    public static HostGuidanceItem? UninstallGuidance(DriverDuplicate? duplicate)
     {
-        if (finding.CulpritDriver is not { } driver || duplicate is null)
+        if (duplicate is null)
         {
             return null;
         }
 
         return new HostGuidanceItem(
-            $"Remove the outdated {driver} package ({duplicate.Outdated.PublishedName})",
+            $"Remove unused older driver package {duplicate.Outdated.PublishedName}",
             [
                 new HostInstruction(
                     $"Delete driver package {duplicate.Outdated.PublishedName} ({duplicate.Outdated.DriverVersionRaw}) "
-                        + $"from the driver store, keeping {duplicate.Active.PublishedName} ({duplicate.Active.DriverVersionRaw}), "
-                        + "the one actually in use.",
-                    finding.Reason)
+                        + $"from the driver store, keeping the newest version {duplicate.Retained.PublishedName} ({duplicate.Retained.DriverVersionRaw}) "
+                        + "and all versions used by any device. You can use Apply or Driver Store Explorer (RAPR) manually.",
+                    "Optional disk cleanup, not a diagnosis or a latency fix. Removal is not automatically reversible; keep the vendor installer if you need an older version for recovery.")
             ],
             "Re-run \"pnputil /enum-drivers\" (or this check). The outdated package should no longer be listed, and the "
                 + "device keeps working on the version that was already active.");
     }
 
+    // Only ancillary classes: never storage, system/chipset, display, NICs, or input devices.
+    public static bool CanDisableDevice(InterruptAffinityDevice? device) => device is { IsNetwork: false }
+        && new[] { "MEDIA", "Bluetooth", "Camera", "Image", "Printer" }
+            .Contains(device.DeviceClass, StringComparer.OrdinalIgnoreCase);
+
     public static HostGuidanceItem? DisableNonNicGuidance(DpcIsrFinding finding, DriverImageDevice? device)
     {
-        if (finding.CulpritDriver is null || device is null)
+        if (!finding.HasRepeatedEvidence || finding.CulpritDriver is null || device is null)
         {
             return null;
         }
@@ -69,7 +72,7 @@ public static class DpcIsrGuidance
     }
 
     /// <summary>
-    /// The one write this diagnosis can make: pin the culprit device's interrupts to a core chosen
+    /// Pin the observed device's interrupts to a core chosen
     /// from this machine's own CPU topology (hybrid P-core/E-core, multi-CCD), through the
     /// interrupt-affinity setting that already exists.
     /// </summary>
@@ -81,7 +84,7 @@ public static class DpcIsrGuidance
         int logicalProcessors,
         IReadOnlySet<string> presentDevices)
     {
-        if (finding.CulpritDriver is null || device is null || !presentDevices.Contains(device.DeviceInstanceId))
+        if (!finding.HasRepeatedEvidence || finding.CulpritDriver is null || device is null || !presentDevices.Contains(device.DeviceInstanceId))
         {
             return null;
         }

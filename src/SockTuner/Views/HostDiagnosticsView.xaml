@@ -4,7 +4,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
         <StackPanel>
             <ContentControl Style="{StaticResource InfoBar}"
-                            Content="Both sections below are read-only captures taken as part of 'Check my connection' / 'Run complete check' in Gaming diagnostics. Neither runs on its own, so SockTuner never scans the whole system independently of a network check."/>
+                            Content="Analysis runs with your network check. Driver cleanup is separate from latency diagnosis; every change requires your choice and administrator approval."/>
 
             <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                 <StackPanel>
@@ -25,9 +25,29 @@
 
             <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                 <StackPanel>
+                    <TextBlock Text="Driver store cleanup" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="DriverCleanupStatusText" Text="No run yet." TextWrapping="Wrap" Margin="0,8,0,8"/>
+                    <ComboBox x:Name="DriverCleanupComboBox" DisplayMemberPath="Summary" SelectionChanged="DriverCleanupSelectionChanged" Margin="0,0,0,8"/>
+                    <Button Content="Open Driver Store Explorer (RAPR)" Click="OpenRapr_Click" HorizontalAlignment="Left" Margin="0,0,0,8"/>
+                    <Border x:Name="UninstallRow" Style="{StaticResource Card}" Visibility="Collapsed" Margin="0,0,0,8">
+                        <StackPanel>
+                            <TextBlock x:Name="UninstallTitleText" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="UninstallDetailText" TextWrapping="Wrap" Margin="0,4,0,8"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Button x:Name="UninstallApplyButton" Content="Apply" Click="UninstallApply_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
+                                <Button x:Name="UninstallDismissButton" Content="Dismiss" Click="UninstallDismiss_Click"/>
+                            </StackPanel>
+                            <TextBlock x:Name="UninstallStatusText" TextWrapping="Wrap" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
                     <TextBlock Text="Driver interrupt activity (DPC/ISR)" FontSize="18" FontWeight="SemiBold"/>
                     <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,12"
-                                    ToolTip="Measures how long each driver's interrupt and deferred-procedure-call handlers ran during the capture window, the same figure LatencyMon reports. Judged against the jitter this same run measured, never against a fixed table. Needs administrator rights; runs in its own elevated process, separate from the rest of the app."/>
+                                    ToolTip="Measures driver activity and latency together in repeated windows after a short baseline. A single spike, missing replies or ambiguous device mapping cannot enable an action. Repeated co-occurrence is not proof of causation. Needs administrator rights."/>
                     <TextBlock x:Name="DpcIsrFindingText" Text="No run yet." TextWrapping="Wrap" FontSize="15" Margin="0,0,0,12"/>
 
                     <TextBlock Text="Recommended actions" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,8"/>
@@ -42,18 +62,6 @@
                                 <Button x:Name="AffinityDismissButton" Content="Dismiss" Click="AffinityDismiss_Click"/>
                             </StackPanel>
                             <TextBlock x:Name="AffinityStatusText" TextWrapping="Wrap" Margin="0,6,0,0"/>
-                        </StackPanel>
-                    </Border>
-
-                    <Border x:Name="UninstallRow" Style="{StaticResource Card}" Visibility="Collapsed" Margin="0,0,0,8">
-                        <StackPanel>
-                            <TextBlock x:Name="UninstallTitleText" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                            <TextBlock x:Name="UninstallDetailText" TextWrapping="Wrap" Margin="0,4,0,8"/>
-                            <StackPanel Orientation="Horizontal">
-                                <Button x:Name="UninstallApplyButton" Content="Apply" Click="UninstallApply_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,0"/>
-                                <Button x:Name="UninstallDismissButton" Content="Dismiss" Click="UninstallDismiss_Click"/>
-                            </StackPanel>
-                            <TextBlock x:Name="UninstallStatusText" TextWrapping="Wrap" Margin="0,6,0,0"/>
                         </StackPanel>
                     </Border>
 
