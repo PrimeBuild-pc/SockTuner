@@ -19,7 +19,7 @@ public static class ResponsibilityAssigner
         // Queue management, SQM and access-link behaviour live on the router, not the endpoint.
         NetworkSegment.RouterOrAccess => RemediationOwner.Router,
 
-        NetworkSegment.LocalNicDriver or NetworkSegment.Lan => control switch
+        NetworkSegment.LocalNicDriver or NetworkSegment.Lan or NetworkSegment.HostDriver => control switch
         {
             LocalControl.AutomaticSafe => RemediationOwner.Automatic,
             LocalControl.RequiresChoice => RemediationOwner.PresetOrManual,
@@ -58,6 +58,7 @@ public static class ResponsibilityAssigner
         RemediationOwner.PresetOrManual => "SockTuner can change this, but the value is your call: pick a preset or set it manually.",
         RemediationOwner.Router => "This has to change on the router. SockTuner names the exact parameter and value, and can apply it over SSH on OpenWrt when you enable that.",
         RemediationOwner.OutOfScope => "This is an ISP or infrastructure limit. Nothing on this machine or your router fixes it; SockTuner documents it so you can escalate.",
+        RemediationOwner.ManualOnly => "This needs a manual action outside Windows' own settings. SockTuner names exactly what to do, but there is nothing here it can apply or revert for you.",
         _ => "Ownership undetermined."
     };
 }

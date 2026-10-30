@@ -396,6 +396,11 @@
                                              Tag="e.g. 7777" ToolTip="Only verifies TCP connection setup"
                                              AutomationProperties.Name="Optional TCP port"/>
                                 </StackPanel>
+                                <StackPanel Width="260" Margin="0,0,12,12" VerticalAlignment="Bottom">
+                                    <CheckBox x:Name="CaptureDpcIsrCheckBox" Content="Also capture driver interrupt activity (DPC/ISR)"
+                                              ToolTip="Measures which driver held the CPU longest during this check, the same figure LatencyMon reports. Needs administrator rights — a UAC prompt appears on this run only."
+                                              AutomationProperties.Name="Capture driver interrupt activity"/>
+                                </StackPanel>
                                     </WrapPanel>
                                 </Expander>
                             </StackPanel>
@@ -655,6 +660,10 @@
 
             <TabItem Header="Wi-Fi diagnostics">
                 <views:WifiDiagnosticsView x:Name="WifiDiagnostics"/>
+            </TabItem>
+
+            <TabItem Header="Host diagnostics">
+                <views:HostDiagnosticsView x:Name="HostDiagnostics"/>
             </TabItem>
 
             <TabItem Header="Throughput &amp; bufferbloat">

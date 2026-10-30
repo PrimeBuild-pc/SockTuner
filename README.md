@@ -88,6 +88,7 @@ to you.
 | **Gaming diagnostics** | One check walks the path layer by layer (PC/NIC, LAN or Wi-Fi, router, access link, ISP, route, server) with latency, loss and jitter percentiles, DNS and TCP timing, path MTU, route quality and a playability verdict against the game's tick rate |
 | **Game ports & NAT** | Opt-in IPv4 UDP observations on a chosen local port, game/platform port references, controlled alternate-port checks and security-ranked guidance — no misleading universal Open/Strict grade or automatic router changes. [Method and limits](docs/NAT-DIAGNOSTICS.md) |
 | **Wi-Fi diagnostics** | Passive WLAN data from the Windows cache — signal, rate, band, nearby channel pressure — without triggering a scan |
+| **Host diagnostics** | Rides the same gaming check: which process owns each TCP connection, and (opt-in, needs admin) which driver's ISR/DPC time correlates with the jitter just measured, with topology-aware interrupt-affinity pinning, outdated-driver-duplicate removal and non-NIC device disable as one-click, reversible actions — never a system-wide scanner |
 | **Throughput & bufferbloat** | Opt-in loaded-latency and throughput tests graded on the Waveform scale; external Waveform results can be imported and graded by the same code |
 | **DNS resolvers** | Benchmark configured and extra resolvers, apply the fastest one or restore DHCP |
 | **Recommendations** | Ranked, evidence-based suggestions sent to the tuning plan, plus router guidance where the fix is not on the PC |

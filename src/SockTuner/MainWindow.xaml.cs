@@ -90,6 +90,8 @@ public partial class MainWindow : Window
             SelectTab("Recommendations");
         };
         Recommendations.LastDiagnosis = () => _lastReport;
+        Recommendations.LastDpcIsrHostGuidance = () => _lastDpcIsrHostGuidance;
+        Recommendations.LastDpcIsrAffinityAction = () => _lastDpcIsrAffinityAction;
         Recommendations.Throughput = Throughput;
         Recommendations.Wifi = WifiDiagnostics;
         Recommendations.Plan = TuningPlan;
@@ -415,15 +417,21 @@ public partial class MainWindow : Window
 
         try
         {
+            StatusText.Text = Loc.T("Reading the network inventory…");
             var beforeSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            StatusText.Text = Loc.T("Resolving the gateway…");
             var gateway = await _routeGatewayResolver.ResolveAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
+            StatusText.Text = Loc.T("Reading adapter counters…");
             var beforeCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            StatusText.Text = Loc.F($"Diagnosing {target}…");
             var report = await _diagnostics.RunAsync(
                 target, gateway, port, profile, loadCondition, progress, _diagnosticCancellation.Token);
+            StatusText.Text = Loc.T("Reading adapter counters again…");
             var afterCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
+            StatusText.Text = Loc.T("Re-reading the network inventory…");
             var afterSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             _snapshot = afterSnapshot;
@@ -433,6 +441,7 @@ public partial class MainWindow : Window
                 CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters),
                 Game = game
             };
+            StatusText.Text = Loc.T("Reading the Wi-Fi radio…");
             var wifiInventory = await Task.Run(WindowsWifiInventory.Read, _diagnosticCancellation.Token);
             var wifiRadio = wifiInventory.Radios.FirstOrDefault(item => item.Connected)
                 ?? wifiInventory.Radios.FirstOrDefault();
@@ -448,9 +457,7 @@ public partial class MainWindow : Window
             };
             WifiDiagnostics.SetGamingContext(report.Gateway, wifiDelta, wifiRadio?.InterfaceId);
             WifiDiagnostics.SetReport(wifiInventory, wifiReport);
-            _lastReport = report;
             ShowDashboardLatency(report.GameTarget, live: false);
-            History.Add(report);
             GatewayResultText.Text = report.Gateway.Summary;
             ReferenceResultText.Text = report.Reference.Summary;
             GameResultText.Text = report.GameTarget.Summary;
@@ -465,8 +472,23 @@ public partial class MainWindow : Window
             DiagnosticSamplesGrid.ItemsSource = statistics.SelectMany(item => item.Samples.Select(sample => new DiagnosticTimelineSample(
                 item.Label, sample.Timestamp, sample.RoundTripTimeMs, item.SpikeSamples.Contains(sample), sample.FailureKind, sample.Error))).ToArray();
             RouteSamplesGrid.ItemsSource = report.RouteSamples ?? [];
+            StatusText.Text = Loc.T("Analyzing the route…");
             await ShowRoutingAnalysisAsync(report, afterSnapshot, _diagnosticCancellation.Token);
             FindingsGrid.ItemsSource = report.Findings;
+
+            StatusText.Text = Loc.T("Reading process connections…");
+            report = report with { ProcessConnections = await ShowProcessConnectionsAsync(_diagnosticCancellation.Token) };
+
+            if (CaptureDpcIsrCheckBox.IsChecked == true)
+            {
+                StatusText.Text = Loc.T("Capturing driver interrupt activity (DPC/ISR)…");
+                var dpcIsr = await ShowDpcIsrResultAsync(report, _diagnosticCancellation.Token);
+                report = report with { DpcIsr = dpcIsr.Finding, DpcIsrDuplicate = dpcIsr.Duplicate };
+            }
+
+            _lastReport = report;
+            History.Add(report);
+
             ShowPlayability(report.GameTarget, game);
             var counterSummary = report.CounterDeltas is { Count: > 0 }
                 ? $" Counter deltas: {string.Join(" · ", report.CounterDeltas.Select(delta => delta.Summary))}"

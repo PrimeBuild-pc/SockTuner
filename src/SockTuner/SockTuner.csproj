@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" Version="3.1.21" />
     <PackageReference Include="Microsoft.Management.Infrastructure" Version="3.0.0" />
     <Resource Include="Assets\SockTuner.ico" />
     <EmbeddedResource Include="Assets\i18n\translations.json" />

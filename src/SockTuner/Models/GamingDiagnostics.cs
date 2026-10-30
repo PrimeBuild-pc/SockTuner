@@ -383,7 +383,10 @@ public sealed record GamingDiagnosticReport(
     IReadOnlyList<AdapterCounterDelta>? CounterDeltas = null,
     ProbeStatistics? FirstPublicBoundaryProbe = null,
     GameProfile? Game = null,
-    WifiDiagnosticReport? Wifi = null);
+    WifiDiagnosticReport? Wifi = null,
+    DpcIsrFinding? DpcIsr = null,
+    IReadOnlyList<ProcessConnectionSummary>? ProcessConnections = null,
+    DriverDuplicate? DpcIsrDuplicate = null);
 
 internal static class DoubleArrayExtensions
 {

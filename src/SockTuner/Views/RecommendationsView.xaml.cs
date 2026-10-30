@@ -36,6 +36,16 @@ public partial class RecommendationsView : UserControl
     // The evidence comes from the other tabs; the window wires them in once.
     public Func<GamingDiagnosticReport?> LastDiagnosis { get; set; } = () => null;
     public ThroughputView? Throughput { get; set; }
+
+    /// <summary>
+    /// The DPC/ISR host guidance from the last capture, so the exported checklist carries the
+    /// device-disable and driver-removal recommendations alongside the uninstall one, not just the
+    /// first — all three ride the same capture, so dropping two of them silently would be a trap.
+    /// </summary>
+    public Func<IReadOnlyList<HostGuidanceItem>> LastDpcIsrHostGuidance { get; set; } = () => [];
+
+    /// <summary>The interrupt-affinity recommendation from the same capture, if any — folded into the "On this machine" section.</summary>
+    public Func<RemediationAction?> LastDpcIsrAffinityAction { get; set; } = () => null;
     public WifiDiagnosticsView? Wifi { get; set; }
     public TuningPlanView? Plan { get; set; }
 
@@ -305,8 +315,12 @@ public partial class RecommendationsView : UserControl
 
             if (LastDiagnosis() is { } report) basis.Add($"Diagnosis of {report.RequestedTarget} at {report.StartedAt:yyyy-MM-dd HH:mm}.");
 
+            // All three DPC/ISR recommendations ride the same capture; dropping any of them here
+            // would silently lose an action the user already saw in Host diagnostics.
+            var allActions = LastDpcIsrAffinityAction() is { } affinity ? actions.Append(affinity) : actions;
             File.WriteAllText(dialog.FileName, ActionChecklistExporter.ToMarkdown(
-                [.. actions], _routerGuidance, string.Join(Environment.NewLine + Environment.NewLine, basis)));
+                [.. allActions], _routerGuidance, string.Join(Environment.NewLine + Environment.NewLine, basis),
+                host: LastDpcIsrHostGuidance()));
             SetStatus(Loc.F($"Checklist exported to {dialog.FileName}."));
             AppLog.Write("checklist.exported", $"Actions={actions.Count()}; Router={_routerGuidance.Count}.");
         }

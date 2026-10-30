@@ -17,7 +17,7 @@ public class LocalizationTests
     /// <summary>Acronyms, product names and units that read the same in every language.</summary>
     private static readonly HashSet<string> Untranslated =
     [
-        "DSCP", "ECN", "Export  ▾", "IPv4", "IPv6", "MSI", "MTU", "NDIS",
+        "DSCP", "ECN", "Export  ▾", "IPv4", "IPv6", "MSI", "MTU", "NDIS", "PID",
         "COMMUNITY ALPHA 0.9", "RTT ms", "SockTuner", "game.exe", "ms"
     ];
 
@@ -43,6 +43,7 @@ public class LocalizationTests
         ["MainWindow.xaml", Path.Combine("Views", "TuningPlanView.xaml"),
          Path.Combine("Views", "CompatibilityReportPreviewWindow.xaml"),
          Path.Combine("Views", "WifiDiagnosticsView.xaml"),
+         Path.Combine("Views", "HostDiagnosticsView.xaml"),
          Path.Combine("Views", "DnsResolversView.xaml"),
          Path.Combine("Views", "NatDiagnosticsView.xaml"),
          Path.Combine("Views", "InterruptAffinityView.xaml"),

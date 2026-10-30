@@ -30,50 +30,64 @@ internal static class WindowsRouteInventory
             errors.Length == 0 ? null : string.Join("; ", errors));
     }
 
+    /// <summary>Attempts to re-size and re-fetch when the table grows between the sizing call and the data call.</summary>
+    private const int MaxAttempts = 3;
+
     private static RouteInventoryResult ReadIpv4(IReadOnlyList<AdapterInfo> adapters)
     {
-        var size = 0;
-        var result = GetIpForwardTable(nint.Zero, ref size, false);
-        if (result is not 0 and not ErrorInsufficientBuffer)
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
         {
-            return new([], $"GetIpForwardTable failed with Windows error {result}.");
-        }
-
-        var buffer = Marshal.AllocHGlobal(size);
-        try
-        {
-            result = GetIpForwardTable(buffer, ref size, false);
-            if (result != 0)
+            var size = 0;
+            var sizingResult = GetIpForwardTable(nint.Zero, ref size, false);
+            if (sizingResult is not 0 and not ErrorInsufficientBuffer)
             {
-                return new([], $"GetIpForwardTable failed with Windows error {result}.");
+                return new([], $"GetIpForwardTable failed with Windows error {sizingResult}.");
             }
 
-            var interfaceNames = InterfaceNames(adapters, adapter => adapter.Ipv4Index);
-            var count = Marshal.ReadInt32(buffer);
-            var rowSize = Marshal.SizeOf<MibIpForwardRow>();
-            var routes = new RouteInfo[count];
-            var rowAddress = IntPtr.Add(buffer, sizeof(int));
-
-            for (var index = 0; index < count; index++)
+            var buffer = Marshal.AllocHGlobal(size);
+            try
             {
-                var row = Marshal.PtrToStructure<MibIpForwardRow>(IntPtr.Add(rowAddress, index * rowSize));
-                routes[index] = new RouteInfo(
-                    "IPv4",
-                    $"{FormatAddress(row.Destination)}/{PrefixLength(row.Mask)}",
-                    row.NextHop == 0 ? "On-link" : FormatAddress(row.NextHop),
-                    checked((int)row.InterfaceIndex),
-                    interfaceNames.GetValueOrDefault(checked((int)row.InterfaceIndex), "Unknown interface"),
-                    row.Metric1,
-                    ProtocolName(row.Protocol),
-                    RouteTypeName(row.Type));
-            }
+                var result = GetIpForwardTable(buffer, ref size, false);
+                if (result == ErrorInsufficientBuffer && attempt < MaxAttempts)
+                {
+                    // The table grew between the sizing call above and this one; ask for a fresh size.
+                    continue;
+                }
 
-            return new(routes, null);
+                if (result != 0)
+                {
+                    return new([], $"GetIpForwardTable failed with Windows error {result}.");
+                }
+
+                var interfaceNames = InterfaceNames(adapters, adapter => adapter.Ipv4Index);
+                var count = Marshal.ReadInt32(buffer);
+                var rowSize = Marshal.SizeOf<MibIpForwardRow>();
+                var routes = new RouteInfo[count];
+                var rowAddress = IntPtr.Add(buffer, sizeof(int));
+
+                for (var index = 0; index < count; index++)
+                {
+                    var row = Marshal.PtrToStructure<MibIpForwardRow>(IntPtr.Add(rowAddress, index * rowSize));
+                    routes[index] = new RouteInfo(
+                        "IPv4",
+                        $"{FormatAddress(row.Destination)}/{PrefixLength(row.Mask)}",
+                        row.NextHop == 0 ? "On-link" : FormatAddress(row.NextHop),
+                        checked((int)row.InterfaceIndex),
+                        interfaceNames.GetValueOrDefault(checked((int)row.InterfaceIndex), "Unknown interface"),
+                        row.Metric1,
+                        ProtocolName(row.Protocol),
+                        RouteTypeName(row.Type));
+                }
+
+                return new(routes, null);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
         }
-        finally
-        {
-            Marshal.FreeHGlobal(buffer);
-        }
+
+        return new([], "GetIpForwardTable: the route table kept growing faster than it could be read.");
     }
 
     private static RouteInventoryResult ReadIpv6(IReadOnlyList<AdapterInfo> adapters)

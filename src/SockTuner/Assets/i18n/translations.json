@@ -4010,5 +4010,175 @@
  "Broadens who can reach active mappings. Not equivalent to DMZ, not guaranteed to improve games or ping.": {"es":"Amplía quién puede acceder a los mapeos activos. No equivale a DMZ ni garantiza mejoras en juegos o ping.","ru":"Расширяет круг источников, достигающих активных отображений. Не равно DMZ и не гарантирует улучшения игр или пинга.","zh-Hans":"扩大可访问活动映射的来源范围。不等同于 DMZ，也不保证改善游戏或 ping。"},
  "Avoid DMZ and disabling firewalls": {"es":"Evitar DMZ y desactivar firewalls","ru":"Избегать DMZ и отключения брандмауэров","zh-Hans":"避免 DMZ 和关闭防火墙"},
  "Not a remedy for an orange NAT badge.": {"es":"No es una solución para una etiqueta NAT naranja.","ru":"Это не средство исправления оранжевого значка NAT.","zh-Hans":"这不是解决橙色 NAT 标记的方法。"},
- "Broad exposure of listening services. Keep router and host firewalls enabled.": {"es":"Amplia exposición de servicios en escucha. Mantén activados los firewalls del router y del equipo.","ru":"Широкая открытость прослушивающих служб. Не отключайте брандмауэры роутера и ПК.","zh-Hans":"会广泛暴露监听服务。请保持路由器和主机防火墙启用。"}
+ "Broad exposure of listening services. Keep router and host firewalls enabled.": {"es":"Amplia exposición de servicios en escucha. Mantén activados los firewalls del router y del equipo.","ru":"Широкая открытость прослушивающих служб. Не отключайте брандмауэры роутера и ПК.","zh-Hans":"会广泛暴露监听服务。请保持路由器和主机防火墙启用。"},
+ "Also capture driver interrupt activity (DPC/ISR)": {
+  "es": "También capturar actividad de interrupciones del controlador (DPC/ISR)",
+  "ru": "Также фиксировать активность прерываний драйвера (DPC/ISR)",
+  "zh-Hans": "同时捕获驱动程序中断活动 (DPC/ISR)"
+ },
+ "Measures which driver held the CPU longest during this check, the same figure LatencyMon reports. Needs administrator rights — a UAC prompt appears on this run only.": {
+  "es": "Mide qué controlador ocupó la CPU durante más tiempo en esta comprobación, la misma cifra que reporta LatencyMon. Requiere derechos de administrador: solo aparecerá un aviso de UAC en esta ejecución.",
+  "ru": "Измеряет, какой драйвер дольше всего занимал ЦП во время этой проверки — тот же показатель, который сообщает LatencyMon. Требуются права администратора: запрос UAC появится только для этого запуска.",
+  "zh-Hans": "测量在本次检查中哪个驱动程序占用 CPU 时间最长，与 LatencyMon 报告的数值相同。需要管理员权限——仅在本次运行时会出现 UAC 提示。"
+ },
+ "Capture driver interrupt activity": {
+  "es": "Capturar actividad de interrupciones del controlador",
+  "ru": "Фиксировать активность прерываний драйвера",
+  "zh-Hans": "捕获驱动程序中断活动"
+ },
+ "Host diagnostics": {
+  "es": "Diagnóstico del equipo",
+  "ru": "Диагностика компьютера",
+  "zh-Hans": "主机诊断"
+ },
+ "Both sections below are read-only captures taken as part of 'Check my connection' / 'Run complete check' in Gaming diagnostics. Neither runs on its own, so SockTuner never scans the whole system independently of a network check.": {
+  "es": "Las dos secciones siguientes son capturas de solo lectura realizadas como parte de 'Comprobar mi conexión' / 'Ejecutar comprobación completa' en Diagnóstico de juegos. Ninguna se ejecuta por sí sola, de modo que SockTuner nunca analiza todo el sistema de forma independiente a una comprobación de red.",
+  "ru": "Оба раздела ниже — это захваты только для чтения, выполняемые в рамках 'Проверить моё соединение' / 'Выполнить полную проверку' в разделе диагностики игр. Ни один из них не запускается самостоятельно, поэтому SockTuner никогда не сканирует всю систему отдельно от проверки сети.",
+  "zh-Hans": "下方两个部分都是在“游戏诊断”中执行“检查我的连接”/“运行完整检查”时随带进行的只读采集。两者都不会单独运行，因此 SockTuner 从不在网络检查以外独立扫描整个系统。"
+ },
+ "Process connections": {
+  "es": "Conexiones por proceso",
+  "ru": "Соединения по процессам",
+  "zh-Hans": "进程连接"
+ },
+ "Read from the same owner-PID TCP table Resource Monitor uses (GetExtendedTcpTable). No packet is captured or inspected; only which process owns each connection and its current state.": {
+  "es": "Se lee de la misma tabla TCP con PID propietario que usa el Monitor de recursos (GetExtendedTcpTable). No se captura ni inspecciona ningún paquete; solo qué proceso posee cada conexión y su estado actual.",
+  "ru": "Считывается из той же TCP-таблицы с PID владельца, которую использует Монитор ресурсов (GetExtendedTcpTable). Пакеты не захватываются и не анализируются — только то, какому процессу принадлежит каждое соединение, и его текущее состояние.",
+  "zh-Hans": "读取自资源监视器所使用的同一个“所有者 PID”TCP 表 (GetExtendedTcpTable)。不捕获或检查任何数据包，只记录每个连接属于哪个进程以及其当前状态。"
+ },
+ "Process": {
+  "es": "Proceso",
+  "ru": "Процесс",
+  "zh-Hans": "进程"
+ },
+ "Connections": {
+  "es": "Conexiones",
+  "ru": "Соединения",
+  "zh-Hans": "连接数"
+ },
+ "Established": {
+  "es": "Establecidas",
+  "ru": "Установлено",
+  "zh-Hans": "已建立"
+ },
+ "Driver interrupt activity (DPC/ISR)": {
+  "es": "Actividad de interrupciones del controlador (DPC/ISR)",
+  "ru": "Активность прерываний драйвера (DPC/ISR)",
+  "zh-Hans": "驱动程序中断活动 (DPC/ISR)"
+ },
+ "Measures how long each driver's interrupt and deferred-procedure-call handlers ran during the capture window, the same figure LatencyMon reports. Judged against the jitter this same run measured, never against a fixed table. Needs administrator rights; runs in its own elevated process, separate from the rest of the app.": {
+  "es": "Mide cuánto tiempo se ejecutaron los controladores de interrupción y de llamada a procedimiento diferido de cada controlador durante la ventana de captura, la misma cifra que reporta LatencyMon. Se evalúa frente al jitter medido en esta misma ejecución, nunca frente a una tabla fija. Requiere derechos de administrador; se ejecuta en su propio proceso elevado, separado del resto de la aplicación.",
+  "ru": "Измеряет, как долго выполнялись обработчики прерываний и отложенных вызовов процедур (DPC) каждого драйвера во время окна захвата — тот же показатель, что сообщает LatencyMon. Оценивается относительно джиттера, измеренного в этом же запуске, а не по фиксированной таблице. Требуются права администратора; выполняется в собственном повышенном процессе, отдельном от остальной части приложения.",
+  "zh-Hans": "测量在采集窗口期间每个驱动程序的中断处理程序和延迟过程调用处理程序运行了多久，与 LatencyMon 报告的数值相同。其判定依据是本次运行实际测得的抖动，而不是固定的表格。需要管理员权限；在独立于应用其余部分的提升权限进程中运行。"
+ },
+ "ISR ms": {
+  "es": "ISR ms",
+  "ru": "ISR мс",
+  "zh-Hans": "ISR 毫秒"
+ },
+ "DPC ms": {
+  "es": "DPC ms",
+  "ru": "DPC мс",
+  "zh-Hans": "DPC 毫秒"
+ },
+ "Total ms": {
+  "es": "Total ms",
+  "ru": "Всего мс",
+  "zh-Hans": "比总毫秒"
+ },
+ "Events": {
+  "es": "Eventos",
+  "ru": "События",
+  "zh-Hans": "事件数"
+ },
+ "Dismiss": {
+  "es": "Descartar",
+  "ru": "Отклонить",
+  "zh-Hans": "忽略"
+ },
+ "Modify…": {
+  "es": "Modificar…",
+  "ru": "Изменить…",
+  "zh-Hans": "修改…"
+ },
+ "Recommended actions": {
+  "es": "Acciones recomendadas",
+  "ru": "Рекомендуемые действия",
+  "zh-Hans": "推荐操作"
+ },
+ "Nothing measured here is worth acting on yet.": {
+  "es": "Nada de lo medido aquí merece todavía una acción.",
+  "ru": "Пока ничего из измеренного здесь не требует действия.",
+  "zh-Hans": "暂无值得采取行动的测量结果。"
+ },
+ "Full ranking": {
+  "es": "Clasificación completa",
+  "ru": "Полный рейтинг",
+  "zh-Hans": "完整排名"
+ },
+ "Reading the network inventory…": {
+  "es": "Leyendo el inventario de red…",
+  "ru": "Чтение сетевой инвентаризации…",
+  "zh-Hans": "正在读取网络清单…"
+ },
+ "Resolving the gateway…": {
+  "es": "Resolviendo la puerta de enlace…",
+  "ru": "Определение шлюза…",
+  "zh-Hans": "正在解析默认网关…"
+ },
+ "Reading adapter counters…": {
+  "es": "Leyendo los contadores del adaptador…",
+  "ru": "Чтение счётчиков адаптера…",
+  "zh-Hans": "正在读取适配器计数器…"
+ },
+ "Reading adapter counters again…": {
+  "es": "Leyendo de nuevo los contadores del adaptador…",
+  "ru": "Повторное считывание счётчиков адаптера…",
+  "zh-Hans": "正在再次读取适配器计数器…"
+ },
+ "Re-reading the network inventory…": {
+  "es": "Volviendo a leer el inventario de red…",
+  "ru": "Повторное считывание сетевого инвентаря…",
+  "zh-Hans": "正在重新读取网络清单…"
+ },
+ "Reading the Wi-Fi radio…": {
+  "es": "Leyendo la radio Wi-Fi…",
+  "ru": "Чтение данных Wi-Fi-радиомодуля…",
+  "zh-Hans": "正在读取 Wi-Fi 无线电模块…"
+ },
+ "Analyzing the route…": {
+  "es": "Analizando la ruta…",
+  "ru": "Анализ маршрута…",
+  "zh-Hans": "正在分析路线…"
+ },
+ "Reading process connections…": {
+  "es": "Leyendo las conexiones por proceso…",
+  "ru": "Чтение соединений процессов…",
+  "zh-Hans": "正在读取进程连接…"
+ },
+ "Capturing driver interrupt activity (DPC/ISR)…": {
+  "es": "Capturando actividad de interrupciones del controlador (DPC/ISR)…",
+  "ru": "Фиксация активности прерываний драйвера (DPC/ISR)…",
+  "zh-Hans": "正在捕获驱动程序中断活动 (DPC/ISR)…"
+ },
+ "That device already has this placement.": {
+  "es": "Ese dispositivo ya tiene esta ubicación.",
+  "ru": "У этого устройства уже такое расположение.",
+  "zh-Hans": "该设备已经是这个布局。"
+ },
+ "The driver package could not be removed.": {
+  "es": "No se pudo quitar el paquete de controlador.",
+  "ru": "Не удалось удалить пакет драйвера.",
+  "zh-Hans": "无法删除该驱动程序包。"
+ },
+ "Windows refused to disable that device — it may be critical to booting.": {
+  "es": "Windows se negó a deshabilitar ese dispositivo; puede ser crítico para el arranque.",
+  "ru": "Windows отказалась отключить это устройство — возможно, оно критично важно для загрузки.",
+  "zh-Hans": "Windows 拒绝禁用该设备——它可能对开机至关重要。"
+ },
+ "No active TCP connections were found.": {
+  "es": "No se encontró ninguna conexión TCP activa.",
+  "ru": "Активные TCP-соединения не найдены.",
+  "zh-Hans": "未发现活动的 TCP 连接。"
+ }
 }

@@ -28,7 +28,8 @@ public static class ActionChecklistExporter
         IReadOnlyList<RemediationAction> actions,
         IReadOnlyList<RouterGuidanceItem> router,
         string? measurementSummary = null,
-        DateTimeOffset? generatedAt = null)
+        DateTimeOffset? generatedAt = null,
+        IReadOnlyList<HostGuidanceItem>? host = null)
     {
         ArgumentNullException.ThrowIfNull(actions);
         ArgumentNullException.ThrowIfNull(router);
@@ -130,6 +131,24 @@ public static class ActionChecklistExporter
 
             builder.AppendLine($"- [ ] Verify: {item.Verification}");
             builder.AppendLine();
+        }
+
+        if (host is { Count: > 0 })
+        {
+            builder.AppendLine("## Manual, on this machine");
+            builder.AppendLine();
+            foreach (var item in host)
+            {
+                builder.AppendLine($"### {item.Title}");
+                builder.AppendLine();
+                foreach (var instruction in item.Instructions)
+                {
+                    builder.AppendLine($"- [ ] {instruction.Summary}");
+                }
+
+                builder.AppendLine($"- [ ] Verify: {item.Verification}");
+                builder.AppendLine();
+            }
         }
 
         return builder.ToString();

@@ -36,6 +36,20 @@ public partial class InterruptAffinityView : UserControl
 
     private void IrqFilter_Changed(object sender, RoutedEventArgs e) => ShowInterruptDevices();
 
+    /// <summary>
+    /// Reloads and selects one device by its PnP instance ID — how the "Modify…" option on a DPC/ISR
+    /// recommendation hands the user to this view's own core picker instead of a second one.
+    /// </summary>
+    public void SelectDevice(string instanceId)
+    {
+        Load();
+        if (IrqDeviceGrid.ItemsSource is IEnumerable<InterruptAffinityDevice> devices)
+        {
+            IrqDeviceGrid.SelectedItem = devices.FirstOrDefault(
+                device => string.Equals(device.InstanceId, instanceId, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
     /// <summary>Reads the devices and their current placement. Read-only.</summary>
     public void Load()
     {

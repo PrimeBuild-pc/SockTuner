@@ -27,7 +27,13 @@ public enum NetworkSegment
     IspAccess,
     IspCore,
     ExternalHop,
-    RemoteEndpoint
+    RemoteEndpoint,
+
+    /// <summary>
+    /// A driver on this machine outside the packet's own path (audio, USB, storage, GPU) that is
+    /// holding a CPU core long enough to delay everything else, the network stack included.
+    /// </summary>
+    HostDriver
 }
 
 /// <summary>Who has to act on a finding. Derived, never written by hand per finding.</summary>
@@ -43,7 +49,15 @@ public enum RemediationOwner
     Router,
 
     /// <summary>ISP or infrastructure limit: diagnose and explain, never attempt a fix.</summary>
-    OutOfScope
+    OutOfScope,
+
+    /// <summary>
+    /// A manual action outside anything Windows advertises as a setting (uninstalling a driver,
+    /// disabling a device in Device Manager). SockTuner names exactly what to do but holds no lever
+    /// for it at all — unlike <see cref="PresetOrManual"/>, there is nothing here it could apply or
+    /// revert even if the user chose a value.
+    /// </summary>
+    ManualOnly
 }
 
 /// <summary>How much of the lever SockTuner actually holds for a given problem.</summary>

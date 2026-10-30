@@ -35,6 +35,15 @@ public partial class App : Application
             return;
         }
 
+        // Host-action mode: one bounded, elevated capture or pnputil action with no setting change
+        // and no audit trail, so it gets its own small pipe protocol rather than the typed change
+        // envelope above.
+        if (e.Args.Length == 2 && string.Equals(e.Args[0], HostActionClient.WorkerArgument, StringComparison.Ordinal))
+        {
+            Shutdown(HostActionHost.RunAsync(e.Args[1], CancellationToken.None).GetAwaiter().GetResult());
+            return;
+        }
+
         if (e.Args.Length == 1 && string.Equals(e.Args[0], VerifyTcpWritesArgument, StringComparison.Ordinal))
         {
             Shutdown(RunTcpWriteVerification());

@@ -92,6 +92,16 @@ public static class UseCaseProfiles
                 new KeywordTarget("*RscIPv6", Off, "Receive segment coalescing adds receive-side delay to raise throughput."),
                 new KeywordTarget("*FlowControl", Off,
                     "Pause frames stop the sender rather than dropping one packet, which stalls everything behind it."),
+                // RoamAggressiveness is an ordinal "how soon to look for a better AP" level, confirmed
+                // 0-indexed ("0" = "1. Lowest") against a real archived Intel AC-3168 capture. The other
+                // cataloged aliases (NicKeywordCatalog, TuningArea.WiFiRadio) do not hold up the same
+                // way: RegRoamLevel is a plain on/off switch on a real archived Realtek 8852BE ("0" =
+                // "1. Disable", not a level), and RoamNeedIndicateTh/RoamIndicateTh are raw signal
+                // thresholds, not a level enum — none of them get a target here.
+                new KeywordTarget("RoamAggressiveness", "0",
+                    "At the lowest setting the radio stays on the access point it already has instead of scanning for a "
+                    + "better one; a scan is a gap in data flow, and mid-match is the worst time for one.",
+                    LinkKind.Wireless, @"^\d*\.?\s*low(est)?$"),
                 ..PowerSaving
             ],
             [

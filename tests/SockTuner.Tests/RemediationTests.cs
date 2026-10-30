@@ -269,6 +269,34 @@ public sealed class RemediationTests
         Assert.Contains("PowerSavingMode: driver labels 0 as \"Maximum\"", action.TradeOff, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("1. Lowest")]
+    [InlineData("Low")]
+    [InlineData("Lowest")]
+    public void RoamAggressivenessIsDrivenToLowestOnlyWhenTheDriverLabelsItThatWay(string label)
+    {
+        // Registry value "0" for the lowest level is the real Intel AC-3168 encoding (0-indexed),
+        // confirmed against the archived capability report in alpha-tester-output/.
+        var capabilities = new[] { Labelled("RoamAggressiveness", "2", ("0", label), ("2", "Medium"), ("4", "5. Highest")) };
+
+        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities, wireless: true);
+
+        var change = Assert.Single(action.Changes, item => item.SettingId == "nic.RoamAggressiveness");
+        Assert.Equal("0", change.ProposedValue);
+    }
+
+    [Fact]
+    public void RoamAggressivenessIsSkippedWhenTheDriverDoesNotLabelItLowest()
+    {
+        // A threshold-style driver whose value "0" means something other than "lowest" must never be
+        // driven to it on the strength of a guessed number alone.
+        var capabilities = new[] { Labelled("RoamAggressiveness", "0", ("0", "Custom"), ("2", "Default")) };
+
+        var action = UseCaseProfiles.PlanFor(UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities, wireless: true);
+
+        Assert.DoesNotContain(action.Changes, item => item.SettingId == "nic.RoamAggressiveness");
+    }
+
     [Fact]
     public void WirelessKeywordsAreOnlyProposedOnAWirelessAdapter()
     {

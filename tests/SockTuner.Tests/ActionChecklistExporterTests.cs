@@ -37,8 +37,31 @@ public sealed class ActionChecklistExporterTests
         ],
         "Re-run the loaded-latency measurement; the grade should move to A or B.");
 
+    private static HostGuidanceItem Host() => new(
+        "Consider removing culprit.sys",
+        [new HostInstruction("Open RAPR and remove the package for culprit.sys.", "It held the CPU longest in the capture.")],
+        "Re-run the check; the driver should no longer appear in the ranking.");
+
     private static string Export() =>
         ActionChecklistExporter.ToMarkdown([Local(), Guidance()], [Router()], "Download: idle 10 ms, loaded 60 ms.");
+
+    [Fact]
+    public void HostGuidanceAppearsAsItsOwnSectionWhenPresent()
+    {
+        var markdown = ActionChecklistExporter.ToMarkdown([Local()], [], host: [Host()]);
+
+        Assert.Contains("## Manual, on this machine", markdown, StringComparison.Ordinal);
+        Assert.Contains("### Consider removing culprit.sys", markdown, StringComparison.Ordinal);
+        Assert.Contains("Open RAPR and remove the package for culprit.sys. — It held the CPU longest in the capture.", markdown, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void HostGuidanceSectionIsOmittedWhenThereIsNone()
+    {
+        var markdown = Export();
+
+        Assert.DoesNotContain("## Manual, on this machine", markdown, StringComparison.Ordinal);
+    }
 
     [Fact]
     public void LocalChangesAppearAsTickableItemsWithTheirSettingAndValue()

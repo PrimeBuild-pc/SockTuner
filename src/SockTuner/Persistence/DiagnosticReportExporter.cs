@@ -41,6 +41,13 @@ public static class DiagnosticReportExporter
         var wifi = safe.Wifi is null
             ? string.Empty
             : $"<h2>Wi-Fi</h2><p><strong>{H(safe.Wifi.VerdictDisplay)}</strong> — {H(safe.Wifi.Summary)}</p>";
+        var dpcIsr = safe.DpcIsr is null
+            ? string.Empty
+            : $"<h2>Driver interrupt activity (DPC/ISR)</h2><p>{H(safe.DpcIsr.Reason)}</p>";
+        var processConnections = safe.ProcessConnections is not { Count: > 0 } connections
+            ? string.Empty
+            : $"<h2>Process connections</h2><table><thead><tr><th>Process</th><th>PID</th><th>Connections</th><th>Established</th></tr></thead><tbody>{string.Join("",
+                connections.Select(item => $"<tr><td>{H(item.ProcessName)}</td><td>{item.ProcessId}</td><td>{item.ConnectionCount}</td><td>{item.EstablishedCount}</td></tr>"))}</tbody></table>";
         var json = H(SerializeJson(report, redact));
         return $$"""
 <!doctype html>
@@ -49,6 +56,8 @@ public static class DiagnosticReportExporter
 <body><h1>{{title}}</h1><p class="muted">Started {{H(safe.StartedAt.ToString("O"))}} · Profile {{H(safe.Profile.DisplayName)}} · Load {{H(safe.LoadCondition.ToString())}} · Duration {{safe.Duration.TotalSeconds:0.0}}s · Redacted {{redact}}</p>
 {{playability}}
 {{wifi}}
+{{dpcIsr}}
+{{processConnections}}
 <h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th><th>Jitter (1s windows)</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>
