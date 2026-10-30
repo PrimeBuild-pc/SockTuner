@@ -17,7 +17,7 @@
     <Resource Include="Assets\SockTuner.ico" />
     <EmbeddedResource Include="Assets\i18n\translations.json" />
     <EmbeddedResource Include="Assets\verified-adapters.json" />
-    <PackageReference Include="System.Management" Version="10.0.12" />
+    <PackageReference Include="System.Management" Version="10.0.14" />
   </ItemGroup>
 
 </Project>
