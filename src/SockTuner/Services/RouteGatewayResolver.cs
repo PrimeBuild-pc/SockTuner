@@ -7,7 +7,10 @@ namespace SockTuner.Services;
 
 public sealed class RouteGatewayResolver
 {
-    public async Task<string?> ResolveAsync(string target, NetworkSnapshot snapshot, CancellationToken cancellationToken)
+    public async Task<string?> ResolveAsync(string target, NetworkSnapshot snapshot, CancellationToken cancellationToken) =>
+        (await SelectAsync(target, snapshot, cancellationToken)).Gateway;
+
+    public async Task<DiagnosticInterface> SelectAsync(string target, NetworkSnapshot snapshot, CancellationToken cancellationToken)
     {
         try
         {
@@ -21,7 +24,7 @@ public sealed class RouteGatewayResolver
                 socket.Connect(new IPEndPoint(remote, 9));
                 if (socket.LocalEndPoint is IPEndPoint local)
                 {
-                    return SelectGateway(snapshot, local.Address);
+                    return SelectInterface(snapshot, local.Address);
                 }
             }
         }
@@ -30,7 +33,23 @@ public sealed class RouteGatewayResolver
             // The diagnostic run will report DNS/connectivity errors; gateway fallback remains useful.
         }
 
-        return SelectOnlyActiveGateway(snapshot);
+        return new(null, null, SelectOnlyActiveGateway(snapshot), null,
+            "The route-selected adapter could not be established. Local changes are unavailable; fallback gateway only.");
+    }
+
+    public static DiagnosticInterface SelectInterface(NetworkSnapshot snapshot, IPAddress localAddress)
+    {
+        var matches = snapshot.Adapters.Where(adapter => adapter.IsUp
+            && adapter.Addresses.Any(value => IPAddress.TryParse(value, out var address) && address.Equals(localAddress))).ToArray();
+        if (matches.Length != 1) return new(null, localAddress.ToString(), null, null,
+            "The local route address does not identify one adapter. No adapter changes will be suggested.");
+        var adapter = matches[0];
+        return new(adapter.Id, localAddress.ToString(),
+            adapter.Gateways.FirstOrDefault(value => IsUsableGateway(value, localAddress.AddressFamily)),
+            adapter.SpeedBitsPerSecond,
+            adapter.Kind != AdapterKind.Physical
+                ? $"Windows routes this target through {adapter.Name} ({adapter.Kind}); the underlying physical link is not identified."
+                : $"Windows selected {adapter.Name} for this target. Probes follow Windows routing; route changes during the run cannot be excluded.");
     }
 
     public static string? SelectGateway(NetworkSnapshot snapshot, IPAddress localAddress)

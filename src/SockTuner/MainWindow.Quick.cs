@@ -8,9 +8,10 @@ namespace SockTuner;
 /// <summary>The dashboard's four quick actions and their one-line status, apart from the rest of the window.</summary>
 public partial class MainWindow
 {
-    private PlayabilityGrade? _lastGrade;
     private DateTimeOffset? _lastCheckAt;
     private bool _restartScheduled;
+
+    private void DiagnosisCompatibility_Click(object sender, RoutedEventArgs e) => Preferences.CreateCompatibilityReport();
 
     /// <summary>The dashboard answers in one line per step; the evidence stays in the sections below it.</summary>
     private void UpdateQuickStatus()
@@ -19,43 +20,36 @@ public partial class MainWindow
             : DiagnosticTargetText.Text.Trim() == "1.1.1.1"
                 ? Loc.F($"Checked at {at:HH:mm} against a public server. Enter your game's server in Gaming diagnostics for a precise check.")
                 : Loc.F($"Checked at {at:HH:mm}.");
-        QuickPlayStatusText.Text = Loc.T(QuickStart.Verdict(_lastGrade));
+        QuickPlayStatusText.Text = _lastReport is null ? Loc.T("Not checked yet.") : Loc.T("Repeat after a change to check its effect.");
     }
 
     private async void QuickCheck_Click(object sender, RoutedEventArgs e)
     {
-        // A first-time user has no game server to type; a public resolver still shows the path to the internet.
-        if (string.IsNullOrWhiteSpace(DiagnosticTargetText.Text)) DiagnosticTargetText.Text = "1.1.1.1";
+        if (!RunDiagnosticButton.IsEnabled) return;
+        // Beginner flow has no dependency on an advanced tab's previous input or profile.
+        DiagnosticTargetText.Text = "1.1.1.1";
+        DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All[1];
+        DiagnosticGameComboBox.SelectedItem = _gameProfiles[0];
+        DiagnosticLoadComboBox.SelectedItem = DiagnosticLoadCondition.Unspecified;
+        DiagnosticPortText.Text = "443";
+        CaptureDpcIsrCheckBox.IsChecked = false;
         await RunDiagnosticAsync();
     }
 
     /// <summary>
-    /// Builds the gaming profile from the last measurement and opens the dry run. It stops there: applying
-    /// is still the tuning plan's own confirmed step, so this button cannot change a setting.
+    /// Opens current evidence-based recommendations; choices, preview and apply remain separate.
     /// </summary>
     private async void QuickPreset_Click(object sender, RoutedEventArgs e)
     {
+        if (!RunDiagnosticButton.IsEnabled) return;
         if (_lastReport is null)
         {
             QuickPresetStatusText.Text = Loc.T("Run the check first: the preset is built from it.");
             return;
         }
 
-        Recommendations.SelectProfile("competitive-gaming");
-        await Recommendations.BuildAsync();
-        var accepted = Recommendations.QueueAll(action => action.Id == "profile.competitive-gaming");
-        if (accepted == 0)
-        {
-            QuickPresetStatusText.Text = Loc.T("Nothing to change: this PC already matches the preset.");
-            return;
-        }
-
-        var unverified = _snapshot?.Adapters.FirstOrDefault(adapter =>
-            adapter.Kind == AdapterKind.Physical && adapter.Status == System.Net.NetworkInformation.OperationalStatus.Up) is { } active
-            && AdapterVerificationCatalog.For(active) == AdapterVerification.Unverified;
-        QuickPresetStatusText.Text = Loc.T(unverified ? "Generic preset: your adapter is not verified yet. Review the plan." : "Review the plan, then press Apply.");
-        WriteLog("quick.preset_queued", $"Accepted={accepted}.");
-        await TuningPlan.PreviewAsync();
+        await Recommendations.BuildAsync(diagnosisOnly: true);
+        SelectTab("Recommendations");
     }
 
     private void QuickRestart_Click(object sender, RoutedEventArgs e)

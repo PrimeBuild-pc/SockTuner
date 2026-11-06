@@ -135,11 +135,13 @@ public sealed class DiagnosticHistoryTests
 
     private static GamingDiagnosticReport Report(string target, double rtt)
     {
-        var probe = ProbeStatistics.Calculate("Game", target, [new ProbeSample(DateTimeOffset.UnixEpoch, rtt)]);
+        var probe = ProbeStatistics.Calculate("Game", target, Enumerable.Range(0, 12)
+            .Select(index => new ProbeSample(DateTimeOffset.UnixEpoch.AddSeconds(index), rtt)).ToArray());
         return new(target, DateTimeOffset.UnixEpoch, TimeSpan.FromSeconds(1),
             new DiagnosticProfile("quick", "Quick", 12, TimeSpan.FromMilliseconds(100), TimeSpan.FromSeconds(1)),
             DiagnosticLoadCondition.Idle,
             probe with { Label = "Gateway" }, probe with { Label = "Reference" }, probe,
-            new DnsMeasurement(target, TimeSpan.Zero, [], null), null, []);
+            new DnsMeasurement(target, TimeSpan.Zero, [], null), null, [],
+            Interface: new("test-adapter", "192.0.2.2", "192.0.2.1", 1_000_000_000, "Test route", ConditionsConfirmed: true));
     }
 }

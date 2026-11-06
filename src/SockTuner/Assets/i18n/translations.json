@@ -4210,5 +4210,70 @@
   "es": "No se encontró ninguna conexión TCP activa.",
   "ru": "Активные TCP-соединения не найдены.",
   "zh-Hans": "未发现活动的 TCP 连接。"
+ },
+ "Diagnose your connection": {
+  "es": "Diagnostica tu conexión",
+  "ru": "Диагностика соединения",
+  "zh-Hans": "诊断连接"
+ },
+ "Start diagnosis": {
+  "es": "Iniciar diagnóstico",
+  "ru": "Начать диагностику",
+  "zh-Hans": "开始诊断"
+ },
+ "Review suggested actions": {
+  "es": "Revisar acciones sugeridas",
+  "ru": "Просмотреть рекомендации",
+  "zh-Hans": "查看建议操作"
+ },
+ "Only when an applied change requires it.": {
+  "es": "Solo si lo requiere un cambio aplicado.",
+  "ru": "Только если этого требует применённое изменение.",
+  "zh-Hans": "仅在已应用的更改需要时。"
+ },
+ "Compare": {
+  "es": "Comparar",
+  "ru": "Сравнить",
+  "zh-Hans": "比较"
+ },
+ "Diagnosis result": {
+  "es": "Resultado del diagnóstico",
+  "ru": "Результат диагностики",
+  "zh-Hans": "诊断结果"
+ },
+ "Windows will select the adapter used to reach the test target.": {
+  "es": "Windows seleccionará el adaptador usado para llegar al destino de prueba.",
+  "ru": "Windows выберет адаптер для доступа к тестовой цели.",
+  "zh-Hans": "Windows 将选择用于访问测试目标的适配器。"
+ },
+ "Start diagnosis to see observations, hypotheses and next steps.": {
+  "es": "Inicia el diagnóstico para ver observaciones, hipótesis y próximos pasos.",
+  "ru": "Начните диагностику, чтобы увидеть наблюдения, гипотезы и дальнейшие действия.",
+  "zh-Hans": "开始诊断以查看观测、假设和后续步骤。"
+ },
+ "Optional manual profile": {
+  "es": "Perfil manual opcional",
+  "ru": "Необязательный ручной профиль",
+  "zh-Hans": "可选手动配置"
+ },
+ "Review chosen changes": {
+  "es": "Revisar cambios elegidos",
+  "ru": "Проверить выбранные изменения",
+  "zh-Hans": "查看所选更改"
+ },
+ "Choose": {
+  "es": "Elegir",
+  "ru": "Выбрать",
+  "zh-Hans": "选择"
+ },
+ "Only checked changes are queued. Review the preview, risks and interruption warning before confirming. Leave every box unchecked to change nothing.": {
+  "es": "Solo se añaden los cambios marcados. Revisa la vista previa, riesgos y aviso de interrupción antes de confirmar. Deja todo sin marcar para no cambiar nada.",
+  "ru": "В план добавляются только отмеченные изменения. Перед подтверждением проверьте предпросмотр, риски и предупреждение о разрыве связи. Не отмечайте ничего, чтобы сохранить настройки.",
+  "zh-Hans": "仅将勾选的更改加入计划。确认前请查看预览、风险和断网提示。不勾选任何项目即可保留当前设置。"
+ },
+ "The diagnosis sends a bounded set of small ICMP probes and a TCP connection to a public reference. It reads system and driver information. Bandwidth tests and privileged captures are separate optional steps. You do not need to identify the problem first.": {
+  "es": "El diagnóstico envía una cantidad limitada de pequeñas sondas ICMP y una conexión TCP a una referencia pública. Lee información del sistema y los controladores. Las pruebas de ancho de banda y capturas con privilegios son pasos opcionales separados. No necesitas identificar el problema antes.",
+  "ru": "Диагностика отправляет ограниченное число небольших ICMP-запросов и создаёт TCP-соединение с общедоступной целью. Она читает сведения о системе и драйверах. Тесты пропускной способности и захват с повышенными правами выполняются отдельно по желанию. Вам не нужно заранее определять проблему.",
+  "zh-Hans": "诊断会向公共参考目标发送有限数量的小型 ICMP 探测并建立 TCP 连接，同时读取系统和驱动信息。带宽测试和需要权限的捕获是独立的可选步骤。您无需先判断问题。"
  }
 }

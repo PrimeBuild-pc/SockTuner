@@ -91,13 +91,13 @@
                     <StackPanel>
                         <Border Style="{StaticResource Card}" Padding="24">
                             <StackPanel>
-                                <TextBlock Text="Get ready to play" FontSize="28" FontWeight="SemiBold"/>
+                                <TextBlock Text="Diagnose your connection" FontSize="28" FontWeight="SemiBold"/>
                                 <TextBlock Text="Four steps. Nothing changes without your OK." FontSize="15"
                                            Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,4,0,18"/>
                                 <UniformGrid Columns="4">
                                     <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Margin="0,0,12,0" Padding="18">
                                         <DockPanel>
-                                            <Button x:Name="QuickCheckButton" DockPanel.Dock="Bottom" Content="Check my connection" ContentTemplate="{StaticResource IconContent}"
+                                            <Button x:Name="QuickCheckButton" DockPanel.Dock="Bottom" Content="Start diagnosis" ContentTemplate="{StaticResource IconContent}"
                                                     Tag="&#xE768;" Click="QuickCheck_Click" Style="{StaticResource PrimaryButton}"
                                                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
                                             <StackPanel>
@@ -118,7 +118,7 @@
                                     </Border>
                                     <Border Style="{StaticResource Card}" Background="{DynamicResource SubtleFillColorSecondaryBrush}" Margin="0,0,12,0" Padding="18">
                                         <DockPanel>
-                                            <Button x:Name="QuickPresetButton" DockPanel.Dock="Bottom" Content="Apply gaming preset" ContentTemplate="{StaticResource IconContent}"
+                                            <Button x:Name="QuickPresetButton" DockPanel.Dock="Bottom" Content="Review suggested actions" ContentTemplate="{StaticResource IconContent}"
                                                     Tag="&#xE945;" Click="QuickPreset_Click" Style="{StaticResource PrimaryButton}"
                                                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" MinHeight="44" Margin="0,16,0,0"/>
                                             <StackPanel>
@@ -149,7 +149,7 @@
                                                     <TextBlock Text="&#xE777;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
                                                 </StackPanel>
                                                 <TextBlock Text="Restart" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                                                <TextBlock x:Name="QuickRestartStatusText" Text="Only if the preset asks for it." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
+                                                <TextBlock x:Name="QuickRestartStatusText" Text="Only when an applied change requires it." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
                                                            AutomationProperties.LiveSetting="Polite"/>
                                             </StackPanel>
                                         </DockPanel>
@@ -167,13 +167,32 @@
                                                     </Border>
                                                     <TextBlock Text="&#xE7FC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="30" Margin="12,0,0,0"/>
                                                 </StackPanel>
-                                                <TextBlock Text="Play" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
+                                                <TextBlock Text="Compare" FontSize="22" FontWeight="SemiBold" Margin="0,10,0,0"/>
                                                 <TextBlock x:Name="QuickPlayStatusText" Text="Not checked yet." FontSize="15" TextWrapping="Wrap" Margin="0,8,0,0"
                                                            AutomationProperties.LiveSetting="Polite"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
                                 </UniformGrid>
+                                <Button Content="Cancel" Click="CancelDiagnostic_Click" HorizontalAlignment="Left" Margin="0,12,0,0"
+                                        IsEnabled="{Binding IsEnabled, ElementName=CancelDiagnosticButton}" MinHeight="44"/>
+                                <TextBlock Text="The diagnosis sends a bounded set of small ICMP probes and a TCP connection to a public reference. It reads system and driver information. Bandwidth tests and privileged captures are separate optional steps. You do not need to identify the problem first."
+                                           TextWrapping="Wrap" Margin="0,16,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Diagnosis result" FontSize="20" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="DiagnosisInterfaceText" Text="Windows will select the adapter used to reach the test target."
+                                           TextWrapping="Wrap" Margin="0,8,0,0" AutomationProperties.LiveSetting="Polite"/>
+                                <TextBlock x:Name="DiagnosisSummaryText" Text="Start diagnosis to see observations, hypotheses and next steps."
+                                           TextWrapping="Wrap" Margin="0,12,0,0" AutomationProperties.LiveSetting="Polite"/>
+                                <WrapPanel Margin="0,12,0,0">
+                                    <Button Content="Review suggested actions" Click="QuickPreset_Click" MinHeight="44" Margin="0,0,8,0"/>
+                                    <Button Content="Create compatibility report" Click="DiagnosisCompatibility_Click" MinHeight="44"/>
+                                    <Button Content="Export full diagnostic report" Click="ExportReportHtml_Click" MinHeight="44" Margin="8,0,0,0"/>
+                                </WrapPanel>
                             </StackPanel>
                         </Border>
 
@@ -648,10 +667,11 @@
                     </StackPanel>
                 </ScrollViewer>
                     </TabItem>
-                    <TabItem Header="Recommendations">
-                        <views:RecommendationsView x:Name="Recommendations"/>
-                    </TabItem>
                 </TabControl>
+            </TabItem>
+
+            <TabItem Header="Recommendations">
+                <views:RecommendationsView x:Name="Recommendations"/>
             </TabItem>
 
             <TabItem Header="Game ports &amp; NAT">
@@ -1070,7 +1090,7 @@
                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                        AutomationProperties.LiveSetting="Polite"/>
             <TextBlock x:Name="LogStatusText" Grid.Column="2" Foreground="{DynamicResource SystemFillColorCautionBrush}" Margin="0,0,18,0"/>
-            <TextBlock Grid.Column="3" Text="COMMUNITY ALPHA 0.9" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
+            <TextBlock x:Name="ReleaseVersionText" Grid.Column="3" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

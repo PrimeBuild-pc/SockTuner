@@ -24,7 +24,7 @@ public partial class RecommendationsView : UserControl
     {
         InitializeComponent();
         UseCaseComboBox.ItemsSource = UseCaseProfiles.All;
-        UseCaseComboBox.SelectedIndex = 0;
+        UseCaseComboBox.SelectedIndex = -1;
     }
 
     /// <summary>A line for the window's status bar.</summary>
@@ -56,18 +56,20 @@ public partial class RecommendationsView : UserControl
     private void RemediationGrid_SelectionChanged(object sender, SelectionChangedEventArgs e) =>
         SendToPlanButton.IsEnabled = RemediationGrid.SelectedItem is RemediationAction { AppliesLocally: true };
 
-    private async void BuildRecommendations_Click(object sender, RoutedEventArgs e) => await BuildAsync();
+    private async void BuildRecommendations_Click(object sender, RoutedEventArgs e) => await BuildAsync(includeChosenProfile: true);
 
     /// <summary>
     /// Turns what the last runs established into actions. Everything here is derived from facts
     /// already collected — nothing is measured, and nothing is written.
     /// </summary>
-    public async Task BuildAsync()
+    public async Task BuildAsync(bool diagnosisOnly = false, bool includeChosenProfile = false)
     {
+        RemediationGrid.ItemsSource = null;
+        SendToPlanButton.IsEnabled = SendAllToPlanButton.IsEnabled = ExportChecklistButton.IsEnabled = false;
         var report = LastDiagnosis();
-        var download = Throughput?.LastDownload;
-        var upload = Throughput?.LastUpload;
-        var wifiReport = Wifi?.LatestReport;
+        var download = diagnosisOnly ? null : Throughput?.LastDownload;
+        var upload = diagnosisOnly ? null : Throughput?.LastUpload;
+        var wifiReport = diagnosisOnly ? report?.Wifi : Wifi?.LatestReport;
         var measured = download is not null || upload is not null;
         var wifiMeasured = wifiReport is { Radio: not null };
         if (report is null && !measured && !wifiMeasured)
@@ -81,9 +83,7 @@ public partial class RecommendationsView : UserControl
         try
         {
             var adapter = _adapters.FirstOrDefault(item =>
-                item.Kind == AdapterKind.Physical
-                && item.Status == System.Net.NetworkInformation.OperationalStatus.Up
-                && Guid.TryParse(item.Id, out _));
+                string.Equals(item.Id, report?.Interface?.AdapterId, StringComparison.OrdinalIgnoreCase));
             var adapterId = adapter is not null && Guid.TryParse(adapter.Id, out var parsed) ? parsed : (Guid?)null;
 
             // WMI and registry reads: slow enough to freeze the window if done on its thread.
@@ -109,7 +109,8 @@ public partial class RecommendationsView : UserControl
                 capabilities,
                 report?.PathMtu is { State: PathMtuState.IcmpBlackHole, Mtu: { } mtu } ? mtu : null,
                 globals,
-                path);
+                path,
+                AdapterWriteAllowed: adapterId is { } selected && capabilities.Any(item => item.AdapterId == selected && item.CanWrite));
 
             var findings = (report?.Findings ?? [])
                 .Concat(wifiReport?.Findings ?? [])
@@ -119,20 +120,32 @@ public partial class RecommendationsView : UserControl
 
             // The use-case profile is a deliberate preset rather than a finding, so it is added
             // explicitly and only when there is an adapter whose advertised keywords can carry it.
-            if (UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
+            if (includeChosenProfile && UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
             {
                 actions.Insert(0, UseCaseProfiles.PlanFor(
                     profile, id, capabilities, globals, wireless: adapter?.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211,
                     devicePowerIsOff: _ => powerManagementOff));
             }
 
-            RemediationGrid.ItemsSource = actions;
+            // Each checkbox corresponds to one change; a group never silently selects other settings.
+            RemediationGrid.ItemsSource = actions.SelectMany(action => action.Changes.Count <= 1 ? new[] { action }
+                : action.Changes.Select(change => action with
+                {
+                    Id = action.Id + "." + change.SettingId,
+                    Title = $"{change.SettingId} → {change.ProposedValue}",
+                    Changes = [change]
+                })).ToArray();
             SendToPlanButton.IsEnabled = false;
             SendAllToPlanButton.IsEnabled = actions.Any(action => action.AppliesLocally);
             ExportChecklistButton.IsEnabled = actions.Count > 0;
 
-            var wifi = ShowWifiRadio();
-            ShowRouterGuidance(wifi);
+            var wifi = diagnosisOnly ? wifiReport?.Radio : ShowWifiRadio();
+            if (diagnosisOnly)
+            {
+                if (wifi is not null) ShowWifiRadio(wifi, wifiReport!.Findings);
+                else WifiRadioText.Text = Loc.T("No Wi-Fi association was measured on the selected interface.");
+            }
+            ShowRouterGuidance(wifi, diagnosisOnly);
 
             var local = actions.Count(action => action.AppliesLocally);
             var basis = report is null
@@ -142,7 +155,9 @@ public partial class RecommendationsView : UserControl
                 : $"{findings.Length} finding(s)";
             RecommendationSummaryText.Text =
                 Loc.F($"{actions.Count} action(s) from {basis}: {local} this machine can make, "
-                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.");
+                + $"{actions.Count - local} belonging elsewhere. Adapter: {adapter?.Name ?? "none selected"}.")
+                + (local == 0 ? " No local change is justified by this run; leaving everything unchanged is a valid result." : string.Empty)
+                + (adapterId is { } current ? " " + capabilities.FirstOrDefault(item => item.AdapterId == current && item.WriteRestriction is not null)?.WriteRestriction : string.Empty);
             AppLog.Write("recommendations.built", $"Actions={actions.Count}; Local={local}; Imported={report is null}.");
         }
         catch (Exception exception)
@@ -192,10 +207,10 @@ public partial class RecommendationsView : UserControl
         WifiRadioText.Text = string.Join(Environment.NewLine, lines);
     }
 
-    private void ShowRouterGuidance(WifiRadioInfo? wifi)
+    private void ShowRouterGuidance(WifiRadioInfo? wifi, bool diagnosisOnly = false)
     {
-        var download = Throughput?.LastDownload;
-        var upload = Throughput?.LastUpload;
+        var download = diagnosisOnly ? null : Throughput?.LastDownload;
+        var upload = diagnosisOnly ? null : Throughput?.LastUpload;
         var items = RouterGuidance.For(new RouterGuidanceInput(download, upload, wifi));
         _routerGuidance = items;
         if (items.Count == 0)
@@ -238,7 +253,17 @@ public partial class RecommendationsView : UserControl
     /// the manual path stops — on the tuning plan — because the preview, the read-back check and
     /// the typed confirmation are what make any of this reversible, and no button skips them.
     /// </summary>
-    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e) => QueueAll();
+    private void SendAllRecommendationsToPlan_Click(object sender, RoutedEventArgs e)
+    {
+        RemediationGrid.CommitEdit();
+        if (RemediationGrid.ItemsSource is not IEnumerable<RemediationAction> actions || !actions.Any(action => action.Selected && action.AppliesLocally))
+        {
+            SetStatus(Loc.T("Nothing selected. No changes were queued."));
+            return;
+        }
+        Plan?.ClearProposals();
+        QueueAll(action => action.Selected);
+    }
 
     /// <summary>Chooses a use-case profile by id, so another surface can ask for one without reaching into the combo box.</summary>
     public void SelectProfile(string id) =>

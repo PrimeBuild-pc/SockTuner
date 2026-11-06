@@ -165,7 +165,8 @@ internal static class ElevatedWorker
             }
 
             var address = definition.ResolveAddress(change.TargetId);
-            if (definition is not NicSettingSpecification)
+            // Dedicated backends validate their own addresses; only catalog DWORDs use this gate.
+            if (definition is SettingDefinition)
             {
                 WindowsRegistrySettingStore.EnsureWritable(address);
             }

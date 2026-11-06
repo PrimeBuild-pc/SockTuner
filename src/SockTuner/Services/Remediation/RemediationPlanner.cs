@@ -14,7 +14,8 @@ public sealed record RemediationContext(
     int? BlackHoledPathMtu = null,
     IReadOnlyList<GlobalSettingCapability>? GlobalCapabilities = null,
     TcpPathMeasurement? Path = null,
-    string TcpTemplate = TcpTuningAdvisor.DefaultTcpTemplate)
+    string TcpTemplate = TcpTuningAdvisor.DefaultTcpTemplate,
+    bool AdapterWriteAllowed = false)
 {
     public IReadOnlyList<AdapterSettingCapability> Advertised => Capabilities ?? [];
     public IReadOnlyList<GlobalSettingCapability> Globals => GlobalCapabilities ?? [];
@@ -60,7 +61,8 @@ public static class RemediationPlanner
             return Guidance(finding, index);
         }
 
-        if (finding.Segment == NetworkSegment.LocalNicDriver
+        if (finding.Code == "path.mtu.blackhole"
+            && finding.Segment == NetworkSegment.LocalNicDriver && context.AdapterWriteAllowed
             && context is { BlackHoledPathMtu: { } mtu, AdapterId: { } adapter })
         {
             return new RemediationAction(
@@ -76,21 +78,17 @@ public static class RemediationPlanner
                     + "transfers that stalled should complete.");
         }
 
-        if (finding.Segment == NetworkSegment.LocalNicDriver && LatencyKeywords(context) is { Count: > 0 } changes)
+        if (finding.Code == "nic.energy-latency-trial" && LatencyKeywords(context) is { Count: > 0 } changes)
         {
             return new RemediationAction(
                 $"remediation.{index}.nic-idle-latency",
-                "Switch off the driver's energy-saving and pause behaviour",
+                "Try disabling Energy Efficient Ethernet on the measured adapter",
                 NetworkSegment.LocalNicDriver,
                 ResponsibilityAssigner.Assign(NetworkSegment.LocalNicDriver, LocalControl.RequiresChoice),
                 changes,
-                "Removes the two driver behaviours that add latency without appearing in any counter: the wake-up delay "
-                    + $"after an idle gap, and pause frames that stall the whole queue. {finding.Evidence}",
-                "Slightly higher idle power draw, and one congested moment now drops a packet instead of pausing the "
-                    + "sender. Neither fixes a cable, a port or a driver fault — if the counters keep rising, the hardware "
-                    + "is the problem.",
-                "Compare the adapter's error and discard counters across an identical run. A change that leaves them "
-                    + "climbing has not addressed the cause.");
+                $"A reversible experiment: may reduce wake-up latency. The cause is not established. {finding.Evidence}",
+                "Higher idle power use; restarting this adapter briefly interrupts connectivity. This cannot fix cabling, Wi-Fi or provider problems.",
+                "Repeat the same target and conditions. Keep only a repeatable benefit; otherwise restore the recorded value.");
         }
 
         return Guidance(finding, index);
@@ -108,8 +106,8 @@ public static class RemediationPlanner
         }
 
         return context.Advertised
-            .Where(capability => capability.AdapterId == adapter && capability.IsStandardKeyword)
-            .Where(capability => capability.Keyword is "*EEE" or "*FlowControl")
+            .Where(capability => capability.AdapterId == adapter && capability.CanWrite && capability.IsStandardKeyword)
+            .Where(capability => capability.Keyword == "*EEE")
             .Where(capability => capability.Choices.Any(choice => choice.RegistryValue == "0"))
             .Where(capability => capability.CurrentValue != "0")
             .Select(capability => new ChangeRequest(capability.SettingId, adapter.ToString(), "0", ChangeSource.Manual))

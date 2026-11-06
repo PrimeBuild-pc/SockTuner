@@ -99,6 +99,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <ComboBox IsEditable="True" ItemsSource="{Binding Options}"
+                                          IsEnabled="{Binding Capability.CanWrite}" ToolTip="{Binding Capability.WriteRestriction}"
                                           Text="{Binding ProposedValue, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                                           AutomationProperties.Name="Proposed value"/>
                             </DataTemplate>

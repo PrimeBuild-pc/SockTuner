@@ -54,12 +54,14 @@ public sealed record AdapterSettingCapability(
     private const int MaximumFreeFormLength = 255;
 
     public string SettingId => $"nic.{Keyword}";
+    public string? WriteRestriction { get; init; }
+    public bool CanWrite => !Rejected && WriteRestriction is null;
 
     // A leading '*' marks a Microsoft-standardised NDIS keyword with documented semantics;
     // anything else is vendor-defined and only as trustworthy as the driver's own metadata.
     public bool IsStandardKeyword => Keyword.StartsWith('*');
 
-    public EvidenceLevel Evidence => Rejected
+    public EvidenceLevel Evidence => !CanWrite
         ? EvidenceLevel.Blocked
         : IsStandardKeyword
             ? EvidenceLevel.DriverAdvertised
@@ -88,13 +90,13 @@ public sealed record AdapterSettingCapability(
         ?? registryValue;
 
     /// <summary>
-    /// Accepts a proposed value only if the driver's own advertised metadata permits it.
-    /// This is what replaces the static allowlist for NIC settings, so it is re-run inside the
-    /// elevated worker against freshly read capabilities rather than trusted from the caller.
+    /// Accepts a value only after hardware provenance and the live driver's metadata allow it.
+    /// The elevated worker reconstructs both restrictions from fresh inventory.
     /// </summary>
     public void Validate(string value)
     {
         ArgumentNullException.ThrowIfNull(value);
+        if (WriteRestriction is { } restriction) throw new InvalidOperationException(restriction);
 
         // Checked before the driver's own constraints: a rejected keyword has no acceptable value,
         // so a plan naming one is refused even if the driver would happily take it. This runs inside

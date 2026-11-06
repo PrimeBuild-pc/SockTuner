@@ -9,7 +9,7 @@
     <!-- TraceEvent locates KernelTraceControl beside its extracted managed assembly. -->
     <IncludeAllContentForSelfExtract Condition="'$(PublishSingleFile)' == 'true'">true</IncludeAllContentForSelfExtract>
     <!-- Dev-build default; release.yml overrides it from the tag. -->
-    <Version>0.9.0</Version>
+    <Version>0.9.0-beta.1</Version>
     <ApplicationIcon>Assets\SockTuner.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -19,6 +19,7 @@
     <Resource Include="Assets\SockTuner.ico" />
     <EmbeddedResource Include="Assets\i18n\translations.json" />
     <EmbeddedResource Include="Assets\verified-adapters.json" />
+    <EmbeddedResource Include="..\..\alpha-tester-output\*.json" LogicalName="Hardware.%(Filename).json" />
     <PackageReference Include="System.Management" Version="10.0.14" />
   </ItemGroup>
 

@@ -103,14 +103,21 @@ public static class ApplyVerificationAnalyzer
             return new(
                 ApplyOutcome.NotComparable,
                 "These two runs cannot be compared",
-                "The target, profile, load condition and optional TCP port must all match. A difference "
+                "The resolved targets, adapter, local address, gateway, link speed, Wi-Fi association, profile, load condition and TCP port must match. A difference "
                 + "between runs with different parameters is a difference in the parameters.",
                 []);
         }
 
         var before = baseline.GameTarget;
         var now = after.GameTarget;
-        var timingFloor = Math.Max(IcmpResolutionMs, before.WindowedJitterMs ?? before.JitterMs ?? IcmpResolutionMs);
+        var adapterId = baseline.Interface?.AdapterId;
+        if (before.Received < 10 || now.Received < 10 || before.MedianMs is null || now.MedianMs is null
+            || string.IsNullOrWhiteSpace(adapterId) || adapterId.StartsWith('[') || after.Interface?.ConditionsConfirmed != true)
+            return new(ApplyOutcome.NotComparable, "Insufficient data to demonstrate a difference",
+                "At least ten endpoint replies in each run, a recorded adapter identity and confirmation of the same external conditions are required. Legacy reports without interface context need a new baseline. ICMP silence is not evidence of either improvement or no change.", []);
+        var timingFloor = Math.Max(IcmpResolutionMs, Math.Max(
+            before.WindowedJitterMs ?? before.JitterMs ?? IcmpResolutionMs,
+            now.WindowedJitterMs ?? now.JitterMs ?? IcmpResolutionMs));
 
         var metrics = new List<VerifiedMetric>
         {

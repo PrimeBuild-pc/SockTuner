@@ -1,3 +1,5 @@
+using SockTuner.Services.Diagnosis;
+
 namespace SockTuner.Models;
 
 /// <param name="PayloadBytes">
@@ -340,7 +342,8 @@ public sealed record DiagnosticFinding(
     string Evidence,
     string Action,
     NetworkSegment Segment = NetworkSegment.Unknown,
-    RemediationOwner Owner = RemediationOwner.PresetOrManual)
+    RemediationOwner Owner = RemediationOwner.PresetOrManual,
+    string? Code = null)
 {
     public string OwnerDisplay => Owner switch
     {
@@ -387,7 +390,16 @@ public sealed record GamingDiagnosticReport(
     DpcIsrFinding? DpcIsr = null,
     IReadOnlyList<ProcessConnectionSummary>? ProcessConnections = null,
     DriverDuplicate? DpcIsrDuplicate = null,
-    IReadOnlyList<DriverDuplicate>? DriverCleanup = null);
+    IReadOnlyList<DriverDuplicate>? DriverCleanup = null,
+    DiagnosticInterface? Interface = null,
+    IReadOnlyList<HealthFinding>? Health = null,
+    string? InterruptSummary = null);
+
+public sealed record DiagnosticInterface(string? AdapterId, string? LocalAddress, string? Gateway,
+    long? LinkSpeed, string Detail, string? WifiBssid = null, bool ConditionsConfirmed = false)
+{
+    public string? DriverDescription { get; init; }
+}
 
 internal static class DoubleArrayExtensions
 {

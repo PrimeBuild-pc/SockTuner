@@ -66,10 +66,11 @@ every failure â€” a declined UAC prompt, a worker that dies without answering â€
 3. Never create a driver parameter the driver does not advertise.
 4. Gate settings by OS build, adapter capability, driver version and current topology.
 5. Never invoke a command shell or inbox utility to read or change state.
-6. Keyword characterisation is advisory, never an allowlist. `NicKeywordCatalog` annotates what a driver
-   already advertises; it never adds or hides one. The one exception runs the other way: a keyword marked
-   `Rejected` resolves to evidence level `Blocked` and is refused, so characterisation can withhold a
-   write but never authorise one.
+6. `NicKeywordCatalog` annotates every advertised keyword without hiding inventory. Writes additionally
+   require `NicHardwareCompatibility`: archived physical model, driver provider/version/component ID,
+   characterised keyword and identical live structured constraints. The live resolver in the elevated
+   worker re-reads those restrictions; neither a UI flag nor an advertised property alone authorises a
+   write. Rejected and unmatched properties remain visible but blocked.
 
 ## 5. Settings and evidence
 

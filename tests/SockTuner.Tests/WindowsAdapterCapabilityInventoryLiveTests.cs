@@ -26,10 +26,13 @@ public sealed class WindowsAdapterCapabilityInventoryLiveTests
 
             // Whatever the driver reports as current must itself satisfy the constraints the
             // driver advertises; if it does not, our parsing of those constraints is wrong.
-            if (capability.IsEnumerated || capability.IsNumericRange)
+            if (!capability.CanWrite)
             {
-                capability.Validate(capability.CurrentValue);
+                Assert.Throws<InvalidOperationException>(() => capability.Validate(capability.CurrentValue));
             }
+            // This pure constraint check grants no write authority; live worker inventory rebuilds restrictions.
+            if (!capability.Rejected && (capability.IsEnumerated || capability.IsNumericRange))
+                (capability with { WriteRestriction = null }).Validate(capability.CurrentValue);
         }
     }
 

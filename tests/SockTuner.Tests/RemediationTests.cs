@@ -134,10 +134,10 @@ public sealed class RemediationTests
     [Fact]
     public void BlackHoledPathMtuBecomesAnExactInterfaceChange()
     {
-        var finding = LocalFinding();
+        var finding = LocalFinding() with { Code = "path.mtu.blackhole" };
 
         var action = Assert.Single(RemediationPlanner.Plan(
-            [finding], new RemediationContext(AdapterId, [], BlackHoledPathMtu: 1420)));
+            [finding], new RemediationContext(AdapterId, [], BlackHoledPathMtu: 1420, AdapterWriteAllowed: true)));
 
         var change = Assert.Single(action.Changes);
         Assert.Equal(("tcp.interface.mtu", "1420"), (change.SettingId, change.ProposedValue));
@@ -154,7 +154,7 @@ public sealed class RemediationTests
     }
 
     [Fact]
-    public void LocalFaultProposesTheAdvertisedEnergyAndPauseKeywordsOnly()
+    public void GenericLocalFaultDoesNotJustifyEnergyOrFlowControlChanges()
     {
         var capabilities = new[]
         {
@@ -166,8 +166,7 @@ public sealed class RemediationTests
         var action = Assert.Single(RemediationPlanner.Plan(
             [LocalFinding()], new RemediationContext(AdapterId, capabilities)));
 
-        Assert.Equal(["nic.*EEE", "nic.*FlowControl"], action.Changes.Select(change => change.SettingId));
-        Assert.Contains("if the counters keep rising, the hardware", action.TradeOff, StringComparison.Ordinal);
+        Assert.Empty(action.Changes);
     }
 
     [Theory]

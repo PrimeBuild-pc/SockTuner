@@ -12,7 +12,7 @@ public sealed class DiagnosticReportExporterTests
     {
         using var document = JsonDocument.Parse(DiagnosticReportExporter.SerializeJson(Report()));
 
-        Assert.Equal(4, document.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.Equal(5, document.RootElement.GetProperty("schemaVersion").GetInt32());
         Assert.False(document.RootElement.GetProperty("redacted").GetBoolean());
         Assert.Equal(10, document.RootElement.GetProperty("report").GetProperty("gameTarget").GetProperty("samples")[0].GetProperty("roundTripTimeMs").GetDouble());
     }

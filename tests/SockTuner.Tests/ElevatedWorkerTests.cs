@@ -203,6 +203,55 @@ public sealed class ElevatedWorkerTests
         Assert.Equal(2, exitCode);
     }
 
+    [Theory]
+    [InlineData("qos")]
+    [InlineData("dns")]
+    [InlineData("cim")]
+    public async Task DedicatedBackendsDoNotPassThroughTheDwordCatalog(string backend)
+    {
+        var adapterId = Guid.NewGuid().ToString();
+        var global = new GlobalSettingCapability(CimGlobalPropertyCatalog.TcpSettingClass, "InternetCustom",
+            "AutoTuningLevelLocal", "Receive window", "TCP", "Normal",
+            [new("Normal", "Normal"), new("Disabled", "Disabled")], null, null,
+            EvidenceLevel.Documented, ChangeRisk.Medium, "None", "Test");
+        var settingId = backend switch { "qos" => QosPolicySpecification.SettingId, "dns" => DnsServerSpecification.SettingId, _ => global.SettingId };
+        var target = backend switch { "qos" => QosPolicySpecification.NameFor("worker-canary.exe"), "dns" => adapterId, _ => global.InstanceKey };
+        var desired = backend switch { "qos" => new QosPolicyValue(46, "worker-canary.exe", "UDP", "50000-50001").Canonical, "dns" => "1.1.1.1", _ => "Disabled" };
+        var before = backend == "cim" ? new StoredSettingValue(true, "Normal") : StoredSettingValue.Missing;
+        var resolve = SettingSpecifications.From([], [global]);
+        var address = resolve(settingId, target).ResolveAddress(target);
+        var store = new MemorySettingStore();
+        if (before.Exists) store.Values[address] = before;
+        var directory = Path.Combine(Path.GetTempPath(), $"SockTuner-worker-backend-{Guid.NewGuid():N}");
+        try
+        {
+            async Task<ElevatedWorkerResponse> Run(WorkerOperationKind operation, WorkerStoredValue expected, WorkerStoredValue value)
+            {
+                var request = new ElevatedWorkerRequest(ElevatedWorker.SchemaVersion, Guid.NewGuid(), operation,
+                    [new(settingId, target, expected, value, ChangeSource.Manual)]);
+                using var output = new StringWriter();
+                var code = await ElevatedWorker.RunAsync(new StringReader(JsonSerializer.Serialize(request, Options)), output,
+                    CancellationToken.None, store, new TransactionAuditStore(directory), resolve);
+                var response = JsonSerializer.Deserialize<ElevatedWorkerResponse>(output.ToString(), Options)!;
+                Assert.True(response.Success, response.Status);
+                Assert.Equal(0, code);
+                return response;
+            }
+            await Run(WorkerOperationKind.Apply, new(before.Exists, before.Value), new(true, desired));
+            Assert.Equal(new StoredSettingValue(true, desired), await store.ReadAsync(address, CancellationToken.None));
+            await Run(WorkerOperationKind.Rollback, new(true, desired), new(before.Exists, before.Value));
+            Assert.Equal(before, await store.ReadAsync(address, CancellationToken.None));
+            var audit = new TransactionAuditStore(directory).Load();
+            Assert.Contains(audit, item => item.Outcome == TransactionAuditOutcome.ApplySucceeded);
+            Assert.Contains(audit, item => item.Outcome == TransactionAuditOutcome.RollbackSucceeded);
+        }
+        finally
+        {
+            Assert.StartsWith(Path.GetFullPath(Path.GetTempPath()), Path.GetFullPath(directory), StringComparison.OrdinalIgnoreCase);
+            if (Directory.Exists(directory)) Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private sealed class MemorySettingStore : ISettingStore
     {
         private int _writeCount;

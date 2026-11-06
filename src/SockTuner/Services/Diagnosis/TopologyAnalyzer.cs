@@ -59,10 +59,10 @@ public static class TopologyAnalyzer
                 : $"Hop {cgnatHop.TimeToLive} is {cgnatHop.Address}, inside the ISP shared range 100.64.0.0/10 (RFC 6598).";
             findings.Add(new DiagnosticFinding(
                 DiagnosticScope.IspOrRouting,
-                DiagnosticConfidence.High,
-                "The connection is behind carrier-grade NAT",
-                evidence + " Inbound connections, port forwarding and peer-to-peer NAT traversal cannot work reliably through it, "
-                    + "and no router setting changes that. It does not by itself add latency or loss.",
+                cgnatHop is not null && routerWanKind != HopAddressKind.CarrierGrade ? DiagnosticConfidence.Medium : DiagnosticConfidence.High,
+                "Carrier-grade NAT is possible on this connection",
+                evidence + " A shared-range transit hop alone does not prove translation; confirm the router WAN address. "
+                    + "If confirmed, CGNAT can restrict inbound connections and port forwarding. It does not by itself demonstrate latency or loss.",
                 "Ask the ISP for a public IPv4 address — many offer one on request or as a paid option — or use IPv6 where the "
                     + "application supports it. Nothing on this machine or on the router can work around it.",
                 NetworkSegment.IspAccess,
@@ -136,13 +136,14 @@ public static class TopologyAnalyzer
             $"Set the interface MTU to {discovered} bytes so the machine stops emitting packets the path discards silently. "
                 + "The value comes from the measurement, but the change interrupts the link briefly, so confirm it first.",
             NetworkSegment.LocalNicDriver,
-            RemediationOwner.PresetOrManual);
+            RemediationOwner.PresetOrManual,
+            "path.mtu.blackhole");
     }
 
     private static DiagnosticFinding DoubleNat(string evidence, DiagnosticConfidence confidence, string? caveat = null) =>
         new(DiagnosticScope.RouterOrAccess,
             confidence,
-            "The connection crosses two NAT layers",
+            confidence == DiagnosticConfidence.High ? "The connection crosses two NAT layers" : "Possible multiple NAT layers; confirm the router WAN address",
             evidence + " Two devices translating in series break inbound connections and NAT traversal, and each adds its own "
                 + "connection table to exhaust." + (caveat is null ? string.Empty : " " + caveat),
             "Exactly one device should perform NAT. Put the upstream modem or ONT into bridge mode, or disable NAT and DHCP on "

@@ -240,7 +240,8 @@ public partial class TuningPlanView : UserControl
         {
             if (change.ProposedValue is not { } value) continue;
             var row = _rows.FirstOrDefault(item =>
-                string.Equals(item.Capability.SettingId, change.SettingId, StringComparison.OrdinalIgnoreCase));
+                string.Equals(item.Capability.SettingId, change.SettingId, StringComparison.OrdinalIgnoreCase)
+                && Guid.TryParse(change.TargetId, out var target) && item.Capability.AdapterId == target);
             if (row is null)
             {
                 // Not a row of the selected adapter: a Windows setting (multimedia scheduler, a global
@@ -333,7 +334,7 @@ public partial class TuningPlanView : UserControl
         VerificationBadgeText.Foreground = VerificationBadge.BorderBrush = brush;
         VerificationHintText.Text = Loc.T(verified
             ? "This adapter model is in SockTuner's hardware list."
-            : "SockTuner has no hardware report for this adapter yet, so presets are generic: they change only what its driver advertises. Sending a report helps verify it.");
+            : "Read-only: this adapter has no characterised hardware report. Create a compatibility report in Preferences.");
     }
 
     private void Preset_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -360,7 +361,8 @@ public partial class TuningPlanView : UserControl
         CapabilityDetailHeadingText.Text =
             Loc.F($"{capability.DisplayName}  ·  {capability.Keyword}  ·  {capability.Risk} risk  ·  {capability.AreasDisplay}");
         CapabilityDetailText.Text =
-            Loc.F($"Accepted: {capability.ConstraintDisplay}{Environment.NewLine}Trade-off: {capability.TradeOff}");
+            Loc.F($"Accepted: {capability.ConstraintDisplay}{Environment.NewLine}Trade-off: {capability.TradeOff}")
+            + (capability.WriteRestriction is { } restriction ? Environment.NewLine + restriction : string.Empty);
     }
 
     private void LoadCapabilities()
@@ -397,6 +399,9 @@ public partial class TuningPlanView : UserControl
     }
 
     private void Discard_Click(object sender, RoutedEventArgs e)
+        => ClearProposals();
+
+    public void ClearProposals()
     {
         foreach (var row in _rows) row.Reset();
         var devices = _deviceChanges.Count;
@@ -552,7 +557,7 @@ public partial class TuningPlanView : UserControl
         ConfirmationText.IsEnabled = false;
         RefreshAuditHistory();
         LoadCapabilities();
-        Applied?.Invoke(this, EventArgs.Empty);
+        if (response?.Success == true) Applied?.Invoke(this, EventArgs.Empty);
         return response?.Success == true;
     }
 

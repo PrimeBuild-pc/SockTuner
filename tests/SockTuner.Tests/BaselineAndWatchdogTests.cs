@@ -252,14 +252,14 @@ public sealed class BaselineAndWatchdogTests
 
     private static GamingDiagnosticReport Report(DateTimeOffset startedAt, double milliseconds)
     {
-        var stats = ProbeStatistics.Calculate("Game endpoint", "198.51.100.10", Enumerable.Range(0, 5)
+        var stats = ProbeStatistics.Calculate("Game endpoint", "198.51.100.10", Enumerable.Range(0, 12)
             .Select(index => new ProbeSample(startedAt.AddSeconds(index), milliseconds))
             .ToArray());
         return new GamingDiagnosticReport(
             "game.example", startedAt, TimeSpan.FromSeconds(10), DiagnosticProfiles.All[1],
             DiagnosticLoadCondition.Idle, stats, stats, stats,
             new DnsMeasurement("game.example", TimeSpan.FromMilliseconds(5), ["198.51.100.10"], null),
-            null, []);
+            null, [], Interface: new("test-adapter", "192.0.2.2", "192.0.2.1", 1_000_000_000, "Test route", ConditionsConfirmed: true));
     }
 
     private static MonitorSample Reply(int second, double milliseconds) =>

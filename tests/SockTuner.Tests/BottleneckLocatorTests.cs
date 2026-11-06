@@ -66,7 +66,7 @@ public sealed class BottleneckLocatorTests
     }
 
     [Fact]
-    public void CleanGatewayWithDegradedReference_PointsPastTheRouterAndIsUnfixable()
+    public void CleanGatewayWithDegradedReference_DoesNotRuleOutRouterQueues()
     {
         var result = _locator.Locate(Input(
             local: LocalLinkEvidence.Healthy,
@@ -74,8 +74,8 @@ public sealed class BottleneckLocatorTests
             reference: Degraded("Reference", loss: 6, p95: 90, jitter: 20),
             target: Degraded("Target", loss: 6, p95: 95, jitter: 21)));
 
-        Assert.Equal(NetworkSegment.IspAccess, result.Segment);
-        Assert.Equal(RemediationOwner.OutOfScope, result.Owner);
+        Assert.Equal(NetworkSegment.RouterOrAccess, result.Segment);
+        Assert.Equal(RemediationOwner.Router, result.Owner);
         Assert.NotEmpty(result.Contradicting);
     }
 

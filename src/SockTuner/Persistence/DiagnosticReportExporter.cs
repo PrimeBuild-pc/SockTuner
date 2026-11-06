@@ -20,7 +20,7 @@ public static class DiagnosticReportExporter
 
     public static string SerializeJson(GamingDiagnosticReport report, bool redact = false) => JsonSerializer.Serialize(new
     {
-        schemaVersion = 4,
+        schemaVersion = 5,
         toolVersion = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
             ?? Assembly.GetExecutingAssembly().GetName().Version?.ToString()
             ?? "unknown",
@@ -58,6 +58,7 @@ public static class DiagnosticReportExporter
 {{wifi}}
 {{dpcIsr}}
 {{processConnections}}
+<h2>Automatic diagnosis</h2><p>{{H(safe.Interface?.Detail ?? "Interface identity not retained in this legacy report.")}}</p><pre>{{H(AutomaticDiagnosisSummary.Build(safe))}}</pre>
 <h2>Probe statistics</h2><table><thead><tr><th>Target</th><th>Sent</th><th>Received</th><th>Lost</th><th>Min</th><th>Median</th><th>Average</th><th>P95</th><th>P99</th><th>Max</th><th>Jitter</th><th>Jitter (1s windows)</th></tr></thead><tbody>{{string.Join("", rows)}}</tbody></table>
 <h2>Findings</h2><table><thead><tr><th>Scope</th><th>Confidence</th><th>Finding</th><th>Evidence</th><th>Action</th></tr></thead><tbody>{{string.Join("", findings)}}</tbody></table>
 <h2>Raw report</h2><pre>{{json}}</pre></body></html>
@@ -136,6 +137,15 @@ public static class DiagnosticReportExporter
         }
         return report with
         {
+            Interface = report.Interface is null ? null : report.Interface with
+            {
+                AdapterId = "[redacted]",
+                LocalAddress = "[redacted]",
+                Gateway = "[redacted]",
+                WifiBssid = report.Interface.WifiBssid is null ? null : "[redacted]",
+                Detail = "[interface detail redacted]"
+            },
+            Health = report.Health?.Select(item => item with { Title = "[health finding]", Evidence = "[detail redacted]" }).ToArray(),
             RequestedTarget = "[redacted]",
             Gateway = Probe(report.Gateway),
             Reference = Probe(report.Reference),

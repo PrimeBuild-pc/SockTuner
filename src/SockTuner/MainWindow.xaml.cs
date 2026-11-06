@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
@@ -50,6 +51,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         UiTranslator.Apply(this);
+        var releaseVersion = typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion.Split('+')[0] ?? "development";
+        ReleaseVersionText.Text = $"COMMUNITY {releaseVersion}";
         _preferences = AppPreferences.Load();
         WifiDiagnostics.PreferredInterfaceId = _preferences.WifiInterfaceId;
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
@@ -240,7 +244,7 @@ public partial class MainWindow : Window
     /// <summary>What a first-time user needs: look, improve, undo. Everything else is behind Advanced mode.</summary>
     private static readonly HashSet<string> BasicSections = new(StringComparer.Ordinal)
     {
-        "Dashboard", "Gaming diagnostics", "Game ports & NAT", "Wi-Fi diagnostics", "Tuning plan"
+        "Dashboard", "Gaming diagnostics", "Recommendations", "Game ports & NAT", "Wi-Fi diagnostics", "Tuning plan"
     };
 
     /// <summary>
@@ -357,8 +361,9 @@ public partial class MainWindow : Window
     /// The diagnosis itself, awaitable so the verify-after-apply loop can run it and then read the
     /// result rather than racing the handler that fired it.
     /// </summary>
-    private async Task RunDiagnosticAsync()
+    private async Task RunDiagnosticAsync(bool conditionsConfirmed = false)
     {
+        if (_diagnosticCancellation is not null && !RunDiagnosticButton.IsEnabled) return;
         var target = DiagnosticTargetText.Text.Trim();
         if (string.IsNullOrWhiteSpace(target))
         {
@@ -421,7 +426,12 @@ public partial class MainWindow : Window
             var beforeSnapshot = await Task.Run(_inventory.Capture, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
             StatusText.Text = Loc.T("Resolving the gateway…");
-            var gateway = await _routeGatewayResolver.ResolveAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
+            var selectedInterface = await _routeGatewayResolver.SelectAsync(target, beforeSnapshot, _diagnosticCancellation.Token);
+            var gateway = selectedInterface.Gateway;
+            var selectedAdapter = beforeSnapshot.Adapters.FirstOrDefault(item => item.Id == selectedInterface.AdapterId);
+            selectedInterface = selectedInterface with { DriverDescription = selectedAdapter?.DriverDisplay };
+            DiagnosisInterfaceText.Text = $"{selectedInterface.Detail}\nDriver: {selectedAdapter?.DriverDisplay ?? "unavailable"}. "
+                + "NIC changes require characterised hardware, driver version and matching property constraints.";
             StatusText.Text = Loc.T("Reading adapter counters…");
             var beforeCounters = await Task.Run(_inventory.CaptureCounters, _diagnosticCancellation.Token);
             _diagnosticCancellation.Token.ThrowIfCancellationRequested();
@@ -439,18 +449,22 @@ public partial class MainWindow : Window
             report = report with
             {
                 CounterDeltas = AdapterCounterDeltaCalculator.Calculate(beforeCounters, afterCounters),
-                Game = game
+                Game = game,
+                Interface = selectedInterface with { ConditionsConfirmed = conditionsConfirmed },
+                Health = NetworkHealthAnalyzer.Analyze(afterSnapshot, DateTimeOffset.Now)
             };
             StatusText.Text = Loc.T("Reading the Wi-Fi radio…");
             var wifiInventory = await Task.Run(WindowsWifiInventory.Read, _diagnosticCancellation.Token);
-            var wifiRadio = wifiInventory.Radios.FirstOrDefault(item => item.Connected)
-                ?? wifiInventory.Radios.FirstOrDefault();
+            var wifiRadio = wifiInventory.Radios.FirstOrDefault(item => item.Connected
+                && Guid.TryParse(item.InterfaceId, out var radioId)
+                && Guid.TryParse(selectedInterface.AdapterId, out var selectedId) && radioId == selectedId);
             var wifiDelta = FindWifiCounterDelta(report.CounterDeltas, wifiRadio);
             var wifiReport = GamingWifiDiagnosticEngine.Analyze(new(
                 wifiRadio, Gateway: report.Gateway, CounterDelta: wifiDelta, CapturedAt: wifiInventory.CapturedAt));
             report = report with
             {
                 Wifi = wifiReport,
+                Interface = report.Interface! with { WifiBssid = wifiRadio?.Bssid },
                 Findings = report.Findings.Concat(wifiReport.Findings)
                     .DistinctBy(finding => (finding.Title, finding.Evidence))
                     .ToArray()
@@ -473,12 +487,37 @@ public partial class MainWindow : Window
                 item.Label, sample.Timestamp, sample.RoundTripTimeMs, item.SpikeSamples.Contains(sample), sample.FailureKind, sample.Error))).ToArray();
             RouteSamplesGrid.ItemsSource = report.RouteSamples ?? [];
             StatusText.Text = Loc.T("Analyzing the route…");
-            await ShowRoutingAnalysisAsync(report, afterSnapshot, _diagnosticCancellation.Token);
-            FindingsGrid.ItemsSource = report.Findings;
+            report = await ShowRoutingAnalysisAsync(report, afterSnapshot, _diagnosticCancellation.Token);
 
             StatusText.Text = Loc.T("Reading process connections…");
             report = report with { ProcessConnections = await ShowProcessConnectionsAsync(_diagnosticCancellation.Token) };
             report = report with { DriverCleanup = await ShowDriverCleanupAsync(_diagnosticCancellation.Token) };
+            var interrupts = await Task.Run(() => InterruptAffinityInventory.Read(), _diagnosticCancellation.Token);
+            var interrupt = interrupts.Devices.FirstOrDefault(item => string.Equals(item.InstanceId,
+                selectedAdapter?.Driver?.PnpInstanceId, StringComparison.OrdinalIgnoreCase));
+            interrupt ??= await Task.Run(() => InterruptAffinityInventory.ReadNetworkDevice(selectedAdapter?.Id, interrupts.Devices),
+                _diagnosticCancellation.Token);
+            report = report with
+            {
+                InterruptSummary = interrupt is null
+                ? "MSI/CPU interrupt affinity: no matching device data available. No interrupt changes are proposed."
+                : $"MSI registry configuration: {interrupt.MsiDisplay}; affinity: {interrupt.StateDisplay}; cores: {interrupt.CoresDisplay}. "
+                    + "This describes configuration, not measured interrupt delivery. DPC/ISR evidence and a compatible device are required before considering a change."
+            };
+            var capabilities = await Task.Run(() => WindowsAdapterCapabilityInventory.Read().Capabilities, _diagnosticCancellation.Token);
+            var trial = AutomaticDiagnosisSummary.EnergyTrial(report, selectedAdapter, capabilities);
+            if (trial is not null) report = report with { Findings = report.Findings.Append(trial).ToArray() };
+
+            var finalInterface = await _routeGatewayResolver.SelectAsync(target, afterSnapshot, _diagnosticCancellation.Token);
+            if (finalInterface.AdapterId != selectedInterface.AdapterId || finalInterface.LocalAddress != selectedInterface.LocalAddress)
+                report = report with
+                {
+                    Interface = report.Interface! with
+                    {
+                        AdapterId = null,
+                        Detail = "Route changed during diagnosis. Local changes and before/after conclusions are unavailable."
+                    }
+                };
 
             if (CaptureDpcIsrCheckBox.IsChecked == true)
             {
@@ -487,6 +526,11 @@ public partial class MainWindow : Window
             }
 
             _lastReport = report;
+            FindingsGrid.ItemsSource = report.Findings;
+            DiagnosisSummaryText.Text = AutomaticDiagnosisSummary.Build(report);
+            if (report.Interface!.AdapterId is null) DiagnosisInterfaceText.Text = report.Interface.Detail;
+            await Recommendations.BuildAsync(diagnosisOnly: true);
+            QuickPresetStatusText.Text = Loc.T("Choose relevant actions; leaving all unchecked changes nothing.");
             History.Add(report);
 
             ShowPlayability(report.GameTarget, game);
@@ -496,6 +540,7 @@ public partial class MainWindow : Window
             DiagnosticRunSummaryText.Text = Loc.F($"{report.Findings.Count} finding(s) for {report.RequestedTarget} from the {profile.DisplayName} profile ({report.Duration.TotalSeconds:0.0}s).{counterSummary}");
             StatusText.Text = Loc.F($"Diagnosis completed at {DateTimeOffset.Now:HH:mm:ss}");
             WriteLog("diagnostic.completed", $"Target={report.RequestedTarget}; Duration={report.Duration.TotalSeconds:0.0}s; Findings={report.Findings.Count}.");
+            _lastCheckAt = report.StartedAt;
         }
         catch (OperationCanceledException)
         {
@@ -535,7 +580,14 @@ public partial class MainWindow : Window
         SetBusy(isBusy);
         QuickCheckSpinner.Visibility = isBusy ? Visibility.Visible : Visibility.Collapsed;
         QuickCheckButton.IsEnabled = !isBusy;
-        if (isBusy) QuickCheckStatusText.Text = Loc.T("Checking… about 15 seconds.");
+        QuickPresetButton.IsEnabled = !isBusy;
+        TuningPlan.IsEnabled = Recommendations.IsEnabled = DnsResolvers.IsEnabled = Interfaces.IsEnabled
+            = InterruptAffinity.IsEnabled = HostDiagnostics.IsEnabled = !isBusy;
+        QuickRestartButton.IsEnabled = !isBusy;
+        UndoLastChangeButton.IsEnabled = !isBusy && TuningPlan.CanUndoLastChange;
+        ReRunDiagnosticButton.IsEnabled = !isBusy && _baselineBeforeApply is not null;
+        CaptureDpcIsrCheckBox.IsEnabled = !isBusy;
+        if (isBusy) QuickCheckStatusText.Text = Loc.T("Reading this PC and measuring the connection… You can cancel from Gaming diagnostics.");
         RunDiagnosticButton.IsEnabled = !isBusy;
         CancelDiagnosticButton.IsEnabled = isBusy;
         DiagnosticTargetText.IsEnabled = !isBusy;
@@ -547,7 +599,8 @@ public partial class MainWindow : Window
 
     private void ClearDiagnosticResults(string value)
     {
-        _lastGrade = null;
+        DiagnosisSummaryText.Text = value;
+        DiagnosisInterfaceText.Text = value;
         _lastCheckAt = null;
         _lastDpcIsrAffinityAction = null;
         _lastDpcIsrDisableGuidance = null;
@@ -570,7 +623,6 @@ public partial class MainWindow : Window
     private void ShowPlayability(ProbeStatistics gameEndpoint, GameProfile game)
     {
         var verdict = PlayabilityAnalyzer.Judge(gameEndpoint, game);
-        _lastGrade = verdict.Grade;
         _lastCheckAt = DateTimeOffset.Now;
         PlayabilityHeadlineText.Text = Loc.F($"{verdict.Headline} — decided by {verdict.DecidedBy}");
         PlayabilityDetailText.Text = verdict.Detail;
@@ -590,7 +642,7 @@ public partial class MainWindow : Window
     /// Locates the first degrading segment and describes the shape of the path. Both are diagnosis
     /// over facts already collected plus one traceroute-quality pass; neither changes anything.
     /// </summary>
-    private async Task ShowRoutingAnalysisAsync(
+    private async Task<GamingDiagnosticReport> ShowRoutingAnalysisAsync(
         GamingDiagnosticReport report, NetworkSnapshot snapshot, CancellationToken cancellationToken)
     {
         RoutePathDiagnostic? route = null;
@@ -611,7 +663,7 @@ public partial class MainWindow : Window
         }
 
         var assessment = _bottleneck.Locate(new BottleneckInput(
-            BuildLocalLinkEvidence(snapshot),
+            BuildLocalLinkEvidence(snapshot, report),
             report.Gateway,
             report.Reference,
             report.GameTarget,
@@ -628,26 +680,27 @@ public partial class MainWindow : Window
         BottleneckResultText.Text = string.Join(Environment.NewLine, lines);
 
         var topology = TopologyAnalyzer.Analyze(new TopologyInput(
-            route,
-            route?.Hops.FirstOrDefault(hop => hop.AddressKind == HopAddressKind.Private)?.Address,
-            report.FirstPublicBoundary,
-            report.PathMtu,
-            snapshot.Adapters.FirstOrDefault(adapter => adapter.Ipv4Mtu > 0)?.Ipv4Mtu));
+            Route: route,
+            // A traceroute hop is neither the router-reported WAN nor our observed public address.
+            PathMtu: report.PathMtu,
+            LocalInterfaceMtu: snapshot.Adapters.FirstOrDefault(adapter => adapter.Id == report.Interface?.AdapterId)?.Ipv4Mtu));
 
         var topologyLines = new List<string> { $"NAT topology: {topology.Topology}." };
         topologyLines.AddRange(topology.Findings.Select(finding => $"• {finding.Title} — {finding.Evidence} {finding.Action}".TrimEnd()));
         if (topology.Findings.Count == 0) topologyLines.Add("No NAT or path-MTU problem stood out in this run.");
         TopologyResultText.Text = string.Join(Environment.NewLine, topologyLines);
+        return report with
+        {
+            Findings = report.Findings.Concat(topology.Findings)
+            .DistinctBy(finding => (finding.Title, finding.Evidence)).ToArray()
+        };
     }
 
-    private static LocalLinkEvidence BuildLocalLinkEvidence(NetworkSnapshot snapshot)
+    private static LocalLinkEvidence BuildLocalLinkEvidence(NetworkSnapshot snapshot, GamingDiagnosticReport report)
     {
-        var adapter = snapshot.Adapters
-            .Where(item => item.Kind == AdapterKind.Physical && item.Counters is not null)
-            .OrderByDescending(item => item.Status == System.Net.NetworkInformation.OperationalStatus.Up)
-            .ThenByDescending(item => item.Counters!.BytesReceived)
-            .FirstOrDefault();
-        if (adapter?.Counters is not { } counters)
+        var adapter = snapshot.Adapters.FirstOrDefault(item => item.Id == report.Interface?.AdapterId);
+        var counters = report.CounterDeltas?.FirstOrDefault(item => item.AdapterId == adapter?.Id);
+        if (adapter is null || counters is null)
         {
             return LocalLinkEvidence.Healthy;
         }
@@ -655,10 +708,10 @@ public partial class MainWindow : Window
         return new LocalLinkEvidence(
             adapter.Status == System.Net.NetworkInformation.OperationalStatus.Up,
             adapter.SpeedBitsPerSecond,
-            counters.IncomingPacketsWithErrors,
-            counters.IncomingPacketsDiscarded,
-            counters.OutgoingPacketsWithErrors,
-            counters.OutgoingPacketsDiscarded,
+            counters.ReceiveErrors ?? 0,
+            counters.ReceiveDiscards ?? 0,
+            counters.SendErrors ?? 0,
+            counters.SendDiscards ?? 0,
             adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
     }
 
@@ -764,21 +817,24 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (MessageBox.Show(Loc.T("Keep the same network, target, Wi-Fi position and background traffic as the baseline. Have you restored those conditions? The next run sends the same probes and does not change settings."),
+                Loc.T("Repeat under the same conditions"), MessageBoxButton.YesNo, MessageBoxImage.Information) != MessageBoxResult.Yes) return;
+
         DiagnosticTargetText.Text = baseline.RequestedTarget;
-        DiagnosticProfileComboBox.SelectedItem = DiagnosticProfiles.All
-            .FirstOrDefault(profile => profile == baseline.Profile) ?? DiagnosticProfileComboBox.SelectedItem;
+        DiagnosticProfileComboBox.ItemsSource = DiagnosticProfiles.All.Append(baseline.Profile).Distinct().ToArray();
+        DiagnosticProfileComboBox.SelectedItem = baseline.Profile;
         DiagnosticLoadComboBox.SelectedItem = baseline.LoadCondition;
         DiagnosticPortText.Text = baseline.Connection?.Port is { } port ? port.ToString() : string.Empty;
         if (baseline.Game is { } game)
         {
-            DiagnosticGameComboBox.SelectedItem = _gameProfiles.FirstOrDefault(item => item == game)
-                ?? DiagnosticGameComboBox.SelectedItem;
+            if (!_gameProfiles.Contains(game)) _gameProfiles.Add(game);
+            DiagnosticGameComboBox.SelectedItem = game;
         }
 
         VerificationHeadlineText.Text = Loc.T("Re-running the baseline diagnosis…");
         VerificationDetailText.Text = Loc.T("Same target, same profile, same load condition, same port.");
 
-        await RunDiagnosticAsync();
+        await RunDiagnosticAsync(conditionsConfirmed: true);
 
         if (_lastReport is not { } after || ReferenceEquals(after, baseline))
         {

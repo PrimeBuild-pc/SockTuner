@@ -1,5 +1,6 @@
 using SockTuner.Models;
 using SockTuner.Persistence;
+using SockTuner.Services.Diagnosis;
 
 namespace SockTuner.Services;
 
@@ -8,7 +9,10 @@ public sealed record MetricDelta(string Metric, double? Baseline, double? After,
     public string Summary => Baseline is null || After is null ? $"{Metric}: unavailable" : $"{Metric}: {Baseline:0.0} → {After:0.0} ({Delta:+0.0;-0.0;0.0})";
 }
 
-public sealed record DiagnosticComparisonResult(bool Comparable, string Reason, IReadOnlyList<MetricDelta> Metrics);
+public sealed record DiagnosticComparisonResult(bool Comparable, string Reason, IReadOnlyList<MetricDelta> Metrics)
+{
+    public ApplyOutcome? Outcome { get; init; }
+}
 
 public sealed record DiagnosticTrendPoint(DateTimeOffset SavedAt, double? AverageMs, double? P95Ms, double? JitterMs, double LossPercent)
 {
@@ -22,9 +26,13 @@ public static class DiagnosticComparisonService
     public static DiagnosticComparisonResult Compare(GamingDiagnosticReport baseline, GamingDiagnosticReport after)
     {
         if (!SameParameters(baseline, after))
-            return new(false, "Targets and every diagnostic profile parameter must match.", []);
+            return new(false, "Resolved targets, recorded interface conditions and every diagnostic profile parameter must match.", [])
+            { Outcome = ApplyOutcome.NotComparable };
 
-        return new(true, "Comparable runs with identical target and profile parameters.",
+        var verification = ApplyVerificationAnalyzer.Verify(baseline, after);
+        if (verification.Outcome == ApplyOutcome.NotComparable)
+            return new(false, verification.Detail, []) { Outcome = verification.Outcome };
+        return new(true, verification.Headline + ". " + verification.Detail,
         [
             Delta("Game average ms", baseline.GameTarget.AverageMs, after.GameTarget.AverageMs),
             Delta("Game P95 ms", baseline.GameTarget.P95Ms, after.GameTarget.P95Ms),
@@ -33,7 +41,8 @@ public static class DiagnosticComparisonService
             Delta("Game no-reply %", baseline.GameTarget.LossPercent, after.GameTarget.LossPercent),
             Delta("Reference P95 ms", baseline.Reference.P95Ms, after.Reference.P95Ms),
             Delta("Gateway P95 ms", baseline.Gateway.P95Ms, after.Gateway.P95Ms)
-        ]);
+        ])
+        { Outcome = verification.Outcome };
     }
 
     public static DiagnosticTrendResult Trend(IReadOnlyList<DiagnosticHistoryEntry> entries)
@@ -53,7 +62,18 @@ public static class DiagnosticComparisonService
         string.Equals(baseline.RequestedTarget, after.RequestedTarget, StringComparison.OrdinalIgnoreCase)
         && baseline.Profile == after.Profile
         && baseline.LoadCondition == after.LoadCondition
-        && baseline.Connection?.Port == after.Connection?.Port;
+        && baseline.Connection?.Port == after.Connection?.Port
+        && string.Equals(baseline.GameTarget.Target, after.GameTarget.Target, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(baseline.Reference.Target, after.Reference.Target, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(baseline.Gateway.Target, after.Gateway.Target, StringComparison.OrdinalIgnoreCase)
+        && SameEnvironment(baseline.Interface, after.Interface);
+
+    private static bool SameEnvironment(DiagnosticInterface? before, DiagnosticInterface? after) =>
+        before is null && after is null // Legacy reports retain parameter comparison, without a hardware claim.
+        || before?.AdapterId is { } adapter && after is not null
+            && string.Equals(adapter, after.AdapterId, StringComparison.OrdinalIgnoreCase)
+            && before.LocalAddress == after.LocalAddress && before.Gateway == after.Gateway
+            && before.LinkSpeed == after.LinkSpeed && before.WifiBssid == after.WifiBssid;
 
     private static MetricDelta Delta(string metric, double? baseline, double? after) =>
         new(metric, baseline, after, baseline is null || after is null ? null : after - baseline);

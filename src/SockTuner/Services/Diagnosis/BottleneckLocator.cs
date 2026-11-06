@@ -123,11 +123,11 @@ public sealed class BottleneckLocator
         }
 
         return new BottleneckAssessment(
-            NetworkSegment.IspAccess, DiagnosticConfidence.High, RemediationOwner.OutOfScope,
-            "The connection is behind carrier-grade NAT",
+            NetworkSegment.IspAccess, DiagnosticConfidence.Medium, RemediationOwner.OutOfScope,
+            "Shared address space observed; carrier-grade NAT is possible",
             [
                 $"Hop {hop.TimeToLive} is {hop.Address}, inside the ISP shared range 100.64.0.0/10.",
-                "Inbound connections, port forwarding and peer-to-peer NAT traversal cannot work reliably through it."
+                "Confirm the router WAN address and provider NAT policy before concluding that inbound connectivity is restricted."
             ],
             ["This does not by itself add latency or loss; it affects reachability, not speed."]);
     }
@@ -168,7 +168,7 @@ public sealed class BottleneckLocator
             $"Loss begins at hop {first.TimeToLive} and continues to every hop beyond it",
             [
                 $"Hop {first.TimeToLive} ({first.Address}) loses {first.LossPercent:0.#}% across {first.RoundsObserved} round(s).",
-                "Every later hop loses at least as much, so this is the path rather than one router deprioritising ICMP."
+                "Later hops also missed ICMP replies. Correlated ICMP filtering remains possible; confirm with endpoint/application evidence before assigning responsibility."
             ],
             contradicting.ToArray());
     }
@@ -191,14 +191,14 @@ public sealed class BottleneckLocator
         }
 
         supporting.Add($"Gateway is clean ({input.Gateway.Summary}) while the neutral reference is {input.Reference.Summary}.");
-        supporting.Add("The step appears after the router, so the local network and the router queue are not the cause.");
+        supporting.Add("The remote reference is worse than the gateway. Router egress queues, access congestion and ICMP policy remain possible causes.");
         contradicting.Add("A single short run cannot separate a congested access link from transient ISP load; repeat under idle and loaded conditions.");
 
         return new BottleneckAssessment(
-            NetworkSegment.IspAccess,
+            NetworkSegment.RouterOrAccess,
             DiagnosticConfidence.Medium,
-            RemediationOwner.OutOfScope,
-            "Quality degrades on the access link, past the router",
+            RemediationOwner.Router,
+            "Possible degradation beyond the gateway; cause not isolated",
             supporting.ToArray(),
             contradicting.ToArray());
     }
