@@ -16,7 +16,7 @@
                                         ToolTip="Recommendations are derived from a measurement: the last diagnosis, the last bufferbloat run, or an online bufferbloat result imported on the Throughput tab. Run or import one first; nothing here measures anything by itself."/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Margin="0,0,12,0">
-                        <TextBlock Text="USE-CASE PROFILE" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
+                        <TextBlock Text="Optional manual profile" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
                         <ComboBox x:Name="UseCaseComboBox" Margin="0,6,0,0" AutomationProperties.Name="Use-case profile">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate><TextBlock Text="{Binding DisplayName}"/></DataTemplate>
@@ -39,10 +39,10 @@
                             <ContentControl Style="{StaticResource InfoTip}" Content="How this works" Margin="0,5,0,12"
                                             ToolTip="Only settings the driver or Windows currently advertises. Sending them to the tuning plan does not apply anything: the plan still previews, snapshots, verifies and can roll back."/>
                         </StackPanel>
-                        <Button x:Name="SendAllToPlanButton" Grid.Column="1" Content="Send all to tuning plan" ContentTemplate="{StaticResource IconContent}" Tag="&#xE724;"
+                        <Button x:Name="SendAllToPlanButton" Grid.Column="1" Content="Review chosen changes" ContentTemplate="{StaticResource IconContent}" Tag="&#xE724;"
                                 Click="SendAllRecommendationsToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
                                 Margin="0,0,8,0" Style="{StaticResource PrimaryButton}"
-                                ToolTip="Queues every action this machine can make. The plan still previews, verifies and records them, and applying is still a separate confirmed step."/>
+                                ToolTip="Only checked changes are queued. Review the preview, risks and interruption warning before confirming. Leave every box unchecked to change nothing."/>
                         <Button x:Name="SendToPlanButton" Grid.Column="2" Content="Send selected" ContentTemplate="{StaticResource IconContent}" Tag="&#xE724;"
                                 Click="SendRecommendationToPlan_Click" VerticalAlignment="Top" IsEnabled="False"
                                 Margin="0,0,8,0" ToolTip="Queues only the selected action"/>
@@ -54,6 +54,13 @@
                               Style="{StaticResource ResultGrid}"
                               SelectionChanged="RemediationGrid_SelectionChanged">
                         <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="Choose" Width="75">
+                                <DataGridTemplateColumn.CellTemplate><DataTemplate>
+                                    <CheckBox IsChecked="{Binding Selected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding AppliesLocally}" MinWidth="44" MinHeight="44"
+                                              AutomationProperties.Name="{Binding Title}"/>
+                                </DataTemplate></DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
                             <DataGridTextColumn Header="Action" Binding="{Binding Title}" Width="2*" MinWidth="130" ElementStyle="{StaticResource WrapCellText}"/>
                             <DataGridTextColumn Header="Segment" Binding="{Binding Segment}" Width="130" ElementStyle="{StaticResource WrapCellText}"/>
                             <DataGridTextColumn Header="Owner" Binding="{Binding Owner}" Width="140" ElementStyle="{StaticResource WrapCellText}"/>

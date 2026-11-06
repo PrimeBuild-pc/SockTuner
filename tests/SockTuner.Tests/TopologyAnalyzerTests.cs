@@ -18,7 +18,9 @@ public sealed class TopologyAnalyzerTests
         Assert.Equal(RemediationOwner.OutOfScope, finding.Owner);
         Assert.Equal(NetworkSegment.IspAccess, finding.Segment);
         Assert.Contains("100.64.0.0/10", finding.Evidence, StringComparison.Ordinal);
-        Assert.Contains("does not by itself add latency", finding.Evidence, StringComparison.Ordinal);
+        Assert.Equal(DiagnosticConfidence.Medium, finding.Confidence);
+        Assert.Contains("alone does not prove translation", finding.Evidence, StringComparison.Ordinal);
+        Assert.Contains("does not by itself demonstrate latency", finding.Evidence, StringComparison.Ordinal);
     }
 
     [Fact]

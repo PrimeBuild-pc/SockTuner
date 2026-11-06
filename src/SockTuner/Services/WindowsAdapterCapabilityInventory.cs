@@ -37,6 +37,7 @@ internal static class WindowsAdapterCapabilityInventory
                 new ObjectQuery(Query));
             using var results = searcher.Get();
             var capabilities = new List<AdapterSettingCapability>(results.Count);
+            var drivers = new Dictionary<Guid, DriverInfo?>();
             var errors = new List<string>();
             foreach (ManagementObject item in results)
             {
@@ -51,7 +52,12 @@ internal static class WindowsAdapterCapabilityInventory
                             continue;
                         }
 
-                        capabilities.Add(capability);
+                        if (!drivers.TryGetValue(capability.AdapterId, out var driver))
+                        {
+                            driver = WindowsNdisInventory.Read(capability.AdapterId.ToString()).Driver;
+                            drivers[capability.AdapterId] = driver;
+                        }
+                        capabilities.Add(capability with { WriteRestriction = NicHardwareCompatibility.Restriction(capability, driver) });
                     }
                     catch (Exception exception) when (exception is InvalidCastException
                         or FormatException or OverflowException)

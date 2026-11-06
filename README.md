@@ -101,8 +101,15 @@ to you.
 
 ## How a change is applied
 
-1. **Pick** an adapter and a focus preset. Only driver-advertised properties are listed, each with its
-   current value, driver default, accepted values, risk level and trade-off.
+Start with **Dashboard → Start diagnosis**. No symptom questionnaire or server address is required.
+Windows selects the interface used to reach the public reference; SockTuner shows that choice, driver,
+observations, uncertainty and suggested next steps. Optional traffic tests and privileged captures stay
+separate. **Review suggested actions** offers individual unchecked changes derived from that run;
+leaving all unchecked is a valid result. A manual use-case profile remains an explicit advanced choice.
+
+1. **Choose** the relevant measured actions. NIC properties remain visible in read-only mode on
+   unverified hardware or drivers. A write requires an archived physical model, driver provider/version
+   and hardware identity, a characterised keyword, and matching live choices/ranges/default/type.
 2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would
    restore, and the restart requirement.
 3. **Apply** asks for the one-time alpha consent, then elevates. High-risk or experimental changes need
@@ -116,8 +123,14 @@ Driver-store cleanup and ancillary-device disable are separately confirmed host 
 transactions with automatic undo. Cleanup only removes unused older packages; disabled devices can
 be re-enabled from Device Manager. Neither action runs automatically.
 
-SockTuner never invents a value or a range, and any keyword it has not characterised on real hardware
-is treated as high risk.
+SockTuner never invents a value or a range. Uncharacterised NIC properties are read-only.
+
+**Did it help?** repeats the exact baseline profile and resolved target, checks adapter, address,
+gateway, link speed and Wi-Fi association, and asks you to restore the same external conditions.
+Fewer than ten endpoint replies, changed conditions, or legacy reports without interface context yield
+insufficient data. Changes below the measurement's noise floor show no demonstrated difference;
+mixed results remain a trade-off. The audit history offers exact-value rollback for reversible actions.
+See [diagnosis method and verification](docs/AUTOMATIC-DIAGNOSIS.md).
 
 ## Getting started
 
@@ -155,9 +168,11 @@ read-only. The [capability archive](alpha-tester-output/INDEX.md) lists the hard
 ### Hardware covered so far
 
 SockTuner shows **Verified adapter** next to an adapter whose model is in this list, and **Adapter not verified**
-for any other physical adapter; for those, presets are generic and only touch what the driver advertises.
+for any other physical adapter; those remain diagnostic targets with read-only NIC properties.
 Verified means the driver's properties were captured on real hardware and characterised — not that every
-setting helps. The list is regenerated from the [capability archive](alpha-tester-output/INDEX.md).
+setting helps. Even a verified model needs the exact characterised driver and matching structured
+property constraints before a write is allowed. Older reports with only keyword names cannot authorise
+writes. The list is regenerated from the [capability archive](alpha-tester-output/INDEX.md).
 
 | Vendor | Adapter | Driver versions seen |
 | --- | --- | --- |

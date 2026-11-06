@@ -5,8 +5,8 @@ namespace SockTuner.Services;
 
 /// <summary>
 /// A driver-advertised NIC advanced property presented to the transaction engine. The driver
-/// is the allowlist: the specification only exists because the CIM provider reported this
-/// keyword for this adapter, and every value is checked against the constraints it reported.
+/// and the characterised hardware archive constrain writes: each value and its provenance are
+/// revalidated against the installed driver.
 /// </summary>
 public sealed class NicSettingSpecification : ISettingSpecification
 {
@@ -95,6 +95,14 @@ public static class SettingSpecifications
             {
                 adapters ??= WindowsAdapterCapabilityInventory.Read().Capabilities;
                 return NicSettingSpecification.Resolve(settingId, targetId, adapters);
+            }
+
+            if (settingId == AdapterPowerSavingSpecification.SettingId
+                || settingId.StartsWith("tcp.interface.", StringComparison.Ordinal))
+            {
+                adapters ??= WindowsAdapterCapabilityInventory.Read().Capabilities;
+                if (!Guid.TryParse(targetId, out var id) || !adapters.Any(item => item.AdapterId == id && item.CanWrite))
+                    throw new InvalidOperationException("Adapter properties are read-only until this hardware and installed driver have matching characterised constraints.");
             }
 
             if (settingId.StartsWith(CimPrefix, StringComparison.Ordinal))

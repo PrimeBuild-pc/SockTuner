@@ -184,7 +184,7 @@ public static class UseCaseProfiles
                 continue;
             }
 
-            if (NicKeywordCatalog.IsRejected(capability.Keyword)) continue;
+            if (!capability.CanWrite || NicKeywordCatalog.IsRejected(capability.Keyword)) continue;
 
             var choice = capability.Choices.FirstOrDefault(item => string.Equals(item.RegistryValue, target.Value, StringComparison.Ordinal));
             if (choice is null)
@@ -223,7 +223,8 @@ public static class UseCaseProfiles
             applied.Add($"{global.DisplayName} → {global.DisplayFor(target.Value)}: {target.Reason}");
         }
 
-        if (profile.DevicePowerManagementOff && !(devicePowerIsOff?.Invoke(adapterId) ?? false))
+        if (profile.DevicePowerManagementOff && capabilities.Any(item => item.AdapterId == adapterId && item.CanWrite)
+            && !(devicePowerIsOff?.Invoke(adapterId) ?? false))
         {
             changes.Add(new ChangeRequest(
                 AdapterPowerSavingSpecification.SettingId, adapterId.ToString(),

@@ -118,6 +118,38 @@ public static class InterruptAffinityInventory
             string.Equals(deviceClass, "Net", StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>Read-only GUID-to-PnP mapping when the driver class key omits its instance ID.</summary>
+    public static InterruptAffinityDevice? ReadNetworkDevice(string? adapterId, IReadOnlyList<InterruptAffinityDevice> devices)
+    {
+        if (!OperatingSystem.IsWindows() || !Guid.TryParse(adapterId, out var id)) return null;
+        try
+        {
+            using var searcher = new ManagementObjectSearcher(new ManagementScope(WindowsAdapterCapabilityInventory.NamespacePath),
+                new ObjectQuery("SELECT InterfaceGuid, PnPDeviceID FROM MSFT_NetAdapter"));
+            using var results = searcher.Get();
+            var mappings = new List<(string?, string?)>();
+            foreach (ManagementBaseObject item in results)
+            {
+                using (item) mappings.Add((item["InterfaceGuid"] as string, item["PnPDeviceID"] as string));
+            }
+            return SelectNetworkDevice(id, mappings, devices);
+        }
+        catch (Exception exception) when (exception is ManagementException or UnauthorizedAccessException or COMException)
+        {
+            return null;
+        }
+    }
+
+    internal static InterruptAffinityDevice? SelectNetworkDevice(Guid adapterId,
+        IEnumerable<(string? InterfaceGuid, string? PnpId)> mappings, IReadOnlyList<InterruptAffinityDevice> devices)
+    {
+        var ids = mappings.Where(item => Guid.TryParse(item.InterfaceGuid, out var id) && id == adapterId)
+            .Select(item => item.PnpId).Where(item => !string.IsNullOrWhiteSpace(item)).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (ids.Length != 1) return null;
+        var matches = devices.Where(item => item.IsNetwork && string.Equals(item.InstanceId, ids[0], StringComparison.OrdinalIgnoreCase)).ToArray();
+        return matches.Length == 1 ? matches[0] : null;
+    }
+
     /// <summary>The mask is a little-endian KAFFINITY; anything past 64 bits is not representable here.</summary>
     internal static ulong ToMask(byte[] raw)
     {

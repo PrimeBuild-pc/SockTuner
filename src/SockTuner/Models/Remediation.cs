@@ -21,6 +21,7 @@ public sealed record RemediationAction(
     string Verification)
 {
     public bool AppliesLocally => Changes.Count > 0;
+    public bool Selected { get; set; }
 
     public string ChangesDisplay => Changes.Count == 0
         ? "No local change"

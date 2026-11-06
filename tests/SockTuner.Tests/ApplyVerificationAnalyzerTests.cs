@@ -27,7 +27,7 @@ public sealed class ApplyVerificationAnalyzerTests
             neutral, neutral, game,
             new DnsMeasurement("game.example", TimeSpan.Zero, [], null),
             Connection: null,
-            Findings: []);
+            Findings: [], Interface: new("test-adapter", "192.0.2.2", "192.0.2.1", 1_000_000_000, "Test route", ConditionsConfirmed: true));
     }
 
     [Fact]

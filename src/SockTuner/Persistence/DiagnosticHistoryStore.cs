@@ -113,6 +113,11 @@ public sealed class DiagnosticHistoryStore
 
         return report with
         {
+            Interface = report.Interface is null ? null : report.Interface with
+            {
+                WifiBssid = null,
+                ConditionsConfirmed = report.Interface.WifiBssid is null && report.Interface.ConditionsConfirmed
+            },
             Wifi = wifi,
             Findings = report.Findings.Select(finding => wifiFindingKeys.Contains((finding.Title, finding.Evidence))
                 ? finding with { Evidence = "[Wi-Fi detail not retained in history]" }

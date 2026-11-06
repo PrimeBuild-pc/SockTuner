@@ -145,6 +145,21 @@ public sealed class ElevatedWorkerNicTests : IDisposable
         Assert.Equal(new StoredSettingValue(true, "0"), store.Values.Values.Single());
     }
 
+    [Fact]
+    public async Task AdvertisedPropertyOnUnverifiedHardwareCannotReachTheStore()
+    {
+        var capability = Capability("*EEE", "1", "0", "1");
+        capability = capability with { WriteRestriction = NicHardwareCompatibility.Restriction(capability, null) };
+        var store = StoreWith(capability);
+        var output = new StringWriter();
+        var exitCode = await ElevatedWorker.RunAsync(Request(capability.SettingId, "1", "0"), output,
+            CancellationToken.None, store, new TransactionAuditStore(_auditDirectory), SettingSpecifications.From([capability]));
+        Assert.Equal(2, exitCode);
+        Assert.False(Deserialize(output).Success);
+        Assert.Equal(new StoredSettingValue(true, "1"), store.Values.Values.Single());
+        Assert.Empty(new TransactionAuditStore(_auditDirectory).Load());
+    }
+
     private static StringReader Request(string settingId, string expected, string? desired) =>
         new(JsonSerializer.Serialize(RequestObject(settingId, expected, desired), Options) + "\n");
 
