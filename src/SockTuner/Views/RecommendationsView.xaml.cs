@@ -132,7 +132,8 @@ public partial class RecommendationsView : UserControl
                 : action.Changes.Select(change => action with
                 {
                     Id = action.Id + "." + change.SettingId,
-                    Title = $"{change.SettingId} → {change.ProposedValue}", Changes = [change]
+                    Title = $"{change.SettingId} → {change.ProposedValue}",
+                    Changes = [change]
                 })).ToArray();
             SendToPlanButton.IsEnabled = false;
             SendAllToPlanButton.IsEnabled = actions.Any(action => action.AppliesLocally);

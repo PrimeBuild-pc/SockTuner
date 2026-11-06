@@ -18,12 +18,16 @@ public sealed class AutomaticDiagnosisTests
         var assembly = typeof(NicHardwareCompatibility).Assembly;
         using var stream = assembly.GetManifestResourceStream("Hardware.Intel-Ethernet-I226-V-2.1.5.7.json")!;
         using var doc = JsonDocument.Parse(stream);
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() } };
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
         var root = doc.RootElement;
         var adapter = root.GetProperty("adapter").Deserialize<AdapterInfo>(options)!;
         var capability = root.GetProperty("capabilities").Deserialize<AdapterSettingCapability[]>(options)!
-            .Single(item => item.Keyword == "*EEE") with { CurrentValue = "1" };
+            .Single(item => item.Keyword == "*EEE") with
+        { CurrentValue = "1" };
         return (adapter, capability);
     }
 

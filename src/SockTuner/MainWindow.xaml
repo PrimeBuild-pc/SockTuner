@@ -1090,7 +1090,7 @@
                        TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
                        AutomationProperties.LiveSetting="Polite"/>
             <TextBlock x:Name="LogStatusText" Grid.Column="2" Foreground="{DynamicResource SystemFillColorCautionBrush}" Margin="0,0,18,0"/>
-            <TextBlock Grid.Column="3" Text="COMMUNITY ALPHA 0.9" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
+            <TextBlock x:Name="ReleaseVersionText" Grid.Column="3" Foreground="{DynamicResource TextFillColorSecondaryBrush}" FontSize="11"/>
         </Grid>
     </Grid>
 </Window>

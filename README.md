@@ -32,7 +32,7 @@
 </p>
 
 > [!WARNING]
-> **SockTuner is a community alpha, not production software.** Read-only inventory and diagnostics are
+> **SockTuner is a community beta, not production software.** Read-only inventory and diagnostics are
 > the main surface. Tuning is experimental and changes live network settings: applying a NIC property
 > restarts that adapter and briefly drops its link, so never apply a change through the connection
 > being changed. Tuning writes need consent and elevation and are snapshotted, verified, audited and
@@ -112,7 +112,7 @@ leaving all unchecked is a valid result. A manual use-case profile remains an ex
    and hardware identity, a characterised keyword, and matching live choices/ranges/default/type.
 2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would
    restore, and the restart requirement.
-3. **Apply** asks for the one-time alpha consent, then elevates. High-risk or experimental changes need
+3. **Apply** asks for the one-time preview consent, then elevates. High-risk or experimental changes need
    `APPLY` typed to confirm, and so does any change made over a remote session.
 4. The **elevated worker** re-reads the driver, refuses anything it no longer advertises or that drifted
    since the preview, writes, reads the value back, records an audit entry, then restarts the adapter
@@ -139,7 +139,7 @@ self-contained executable: nothing to install, no .NET runtime needed.
 
 1. Download the latest `SockTuner-<version>-win-x64.zip` from
    [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases) and extract it.
-2. Alpha builds are not code-signed yet, so SmartScreen will warn on first launch. Check the archive
+2. Preview builds are not code-signed yet, so SmartScreen will warn on first launch. Check the archive
    against the `.sha256` file published next to it before running it.
 3. Start `SockTuner.exe` as a normal user. It only reads until you accept the live-changes notice
    (shown at the first write, or from **Preferences → Live network changes**); each write then asks

@@ -27,7 +27,7 @@ public static class DiagnosticComparisonService
     {
         if (!SameParameters(baseline, after))
             return new(false, "Resolved targets, recorded interface conditions and every diagnostic profile parameter must match.", [])
-                { Outcome = ApplyOutcome.NotComparable };
+            { Outcome = ApplyOutcome.NotComparable };
 
         var verification = ApplyVerificationAnalyzer.Verify(baseline, after);
         if (verification.Outcome == ApplyOutcome.NotComparable)
@@ -41,7 +41,8 @@ public static class DiagnosticComparisonService
             Delta("Game no-reply %", baseline.GameTarget.LossPercent, after.GameTarget.LossPercent),
             Delta("Reference P95 ms", baseline.Reference.P95Ms, after.Reference.P95Ms),
             Delta("Gateway P95 ms", baseline.Gateway.P95Ms, after.Gateway.P95Ms)
-        ]) { Outcome = verification.Outcome };
+        ])
+        { Outcome = verification.Outcome };
     }
 
     public static DiagnosticTrendResult Trend(IReadOnlyList<DiagnosticHistoryEntry> entries)

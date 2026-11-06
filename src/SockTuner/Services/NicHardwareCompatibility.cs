@@ -43,8 +43,11 @@ public static class NicHardwareCompatibility
     private static Hardware[] Load()
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() } };
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
         return assembly.GetManifestResourceNames().Where(name => name.StartsWith("Hardware.", StringComparison.Ordinal))
             .Select(name =>
             {

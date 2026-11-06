@@ -139,7 +139,9 @@ public static class DiagnosticReportExporter
         {
             Interface = report.Interface is null ? null : report.Interface with
             {
-                AdapterId = "[redacted]", LocalAddress = "[redacted]", Gateway = "[redacted]",
+                AdapterId = "[redacted]",
+                LocalAddress = "[redacted]",
+                Gateway = "[redacted]",
                 WifiBssid = report.Interface.WifiBssid is null ? null : "[redacted]",
                 Detail = "[interface detail redacted]"
             },

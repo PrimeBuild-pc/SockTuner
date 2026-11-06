@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Windows;
@@ -50,6 +51,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         UiTranslator.Apply(this);
+        var releaseVersion = typeof(App).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion.Split('+')[0] ?? "development";
+        ReleaseVersionText.Text = $"COMMUNITY {releaseVersion}";
         _preferences = AppPreferences.Load();
         WifiDiagnostics.PreferredInterfaceId = _preferences.WifiInterfaceId;
         AppLog.ConfigureRetention(_preferences.LogFileMegabytes);
@@ -493,18 +497,27 @@ public partial class MainWindow : Window
                 selectedAdapter?.Driver?.PnpInstanceId, StringComparison.OrdinalIgnoreCase));
             interrupt ??= await Task.Run(() => InterruptAffinityInventory.ReadNetworkDevice(selectedAdapter?.Id, interrupts.Devices),
                 _diagnosticCancellation.Token);
-            report = report with { InterruptSummary = interrupt is null
+            report = report with
+            {
+                InterruptSummary = interrupt is null
                 ? "MSI/CPU interrupt affinity: no matching device data available. No interrupt changes are proposed."
                 : $"MSI registry configuration: {interrupt.MsiDisplay}; affinity: {interrupt.StateDisplay}; cores: {interrupt.CoresDisplay}. "
-                    + "This describes configuration, not measured interrupt delivery. DPC/ISR evidence and a compatible device are required before considering a change." };
+                    + "This describes configuration, not measured interrupt delivery. DPC/ISR evidence and a compatible device are required before considering a change."
+            };
             var capabilities = await Task.Run(() => WindowsAdapterCapabilityInventory.Read().Capabilities, _diagnosticCancellation.Token);
             var trial = AutomaticDiagnosisSummary.EnergyTrial(report, selectedAdapter, capabilities);
             if (trial is not null) report = report with { Findings = report.Findings.Append(trial).ToArray() };
 
             var finalInterface = await _routeGatewayResolver.SelectAsync(target, afterSnapshot, _diagnosticCancellation.Token);
             if (finalInterface.AdapterId != selectedInterface.AdapterId || finalInterface.LocalAddress != selectedInterface.LocalAddress)
-                report = report with { Interface = report.Interface! with { AdapterId = null,
-                    Detail = "Route changed during diagnosis. Local changes and before/after conclusions are unavailable." } };
+                report = report with
+                {
+                    Interface = report.Interface! with
+                    {
+                        AdapterId = null,
+                        Detail = "Route changed during diagnosis. Local changes and before/after conclusions are unavailable."
+                    }
+                };
 
             if (CaptureDpcIsrCheckBox.IsChecked == true)
             {
@@ -676,8 +689,11 @@ public partial class MainWindow : Window
         topologyLines.AddRange(topology.Findings.Select(finding => $"• {finding.Title} — {finding.Evidence} {finding.Action}".TrimEnd()));
         if (topology.Findings.Count == 0) topologyLines.Add("No NAT or path-MTU problem stood out in this run.");
         TopologyResultText.Text = string.Join(Environment.NewLine, topologyLines);
-        return report with { Findings = report.Findings.Concat(topology.Findings)
-            .DistinctBy(finding => (finding.Title, finding.Evidence)).ToArray() };
+        return report with
+        {
+            Findings = report.Findings.Concat(topology.Findings)
+            .DistinctBy(finding => (finding.Title, finding.Evidence)).ToArray()
+        };
     }
 
     private static LocalLinkEvidence BuildLocalLinkEvidence(NetworkSnapshot snapshot, GamingDiagnosticReport report)
