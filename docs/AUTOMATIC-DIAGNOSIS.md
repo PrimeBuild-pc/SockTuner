@@ -72,3 +72,37 @@ route selection, DNS/MTU separation, comparison sufficiency, mixed results and e
 The separately gated live tests do not establish apply/restart/rollback behavior on real hardware.
 Do not run a tweak or driver cleanup on a development PC to test this path. Hardware qualification
 still needs an explicitly reserved lab session and its own recovery checks.
+
+### VM validation — 2026-11-06
+
+Validated on the shared `NeuroTune-W11` Hyper-V guest (Windows 11 Pro, build 26200), with Secure Boot,
+TPM and VBS enabled. The VM was checked for active users/workloads and reserved before testing.
+The self-contained Release build was run with a guest administrator token. The harness exchanged
+typed requests over a named pipe with the actual `SockTuner.exe --elevated-worker` process, using
+its production resolver, backend stores and audit path.
+
+Observed results:
+
+- The uncharacterised Hyper-V NIC exposed 25 advanced properties, all blocked for writes. A real
+  worker request to change one was rejected and its current value remained unchanged; adapter
+  power management was also refused by the hardware gate.
+- A temporary QoS policy for a nonexistent canary application was created and read back. A
+  request with a stale expected value was rejected without changing it. Rollback restored the
+  original absent policy, and both successful operations appeared in the real audit trail.
+- Two real 30-sample runs used the same public target, profile, route-selected interface and
+  conditions, before the canary and after its restoration. Median RTT was 9 ms in both; P95 was
+  10.0 vs 10.55 ms. The analyzer returned **NoMeasurableChange**. This is validation of the
+  comparison path, not evidence that the canary changes network performance.
+- The test found an existing worker dispatch bug: dedicated QoS/DNS/CIM settings were incorrectly
+  checked against the static DWORD catalog. The catalog gate now applies only to `SettingDefinition`;
+  dedicated specifications retain their own address/value checks and live compatibility gates.
+  New regression tests reproduce the original refusal and verify apply/rollback for those backends.
+- The complete suite passed **981/981**, including the explicitly enabled read-only Windows inventory
+  tests. Administrative rights were needed for this system's TCP connection/template query. Driver
+  cleanup correctly remains unavailable when Windows returns incomplete device-to-driver bindings.
+
+Local raw evidence and the VM-only harness are in `.codex/vm-validation-20261106/`. The tested
+`SockTuner.dll` SHA-256 is `1979F97E492580D6305054796DA6CDC2B06AACED2FB96C8B56274E3E86A0C240`.
+The VM is restored to its sole `Clean-NeuroTune-Alpha2` checkpoint after the run; no permanent
+checkpoint is added. No host tuning, driver cleanup, physical-NIC write/restart, or desktop UAC
+interaction is exercised by this validation. Those remain separate hardware/UI qualification work.

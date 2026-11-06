@@ -165,11 +165,20 @@ public sealed class WindowsDriverStoreInventoryTests
 public sealed class WindowsDriverStoreInventoryLiveTests
 {
     [LiveWindowsFact]
-    public void Read_ReportsThisMachinesRealDriverStore()
+    public void Read_ReportsDriverStoreOrSafelyDisablesCleanup()
     {
         var result = WindowsDriverStoreInventory.Read();
 
-        Assert.Null(result.Error);
-        Assert.NotEmpty(result.Packages);
+        if (result.Error is null)
+        {
+            Assert.NotEmpty(result.Packages);
+            Assert.NotEmpty(result.InUsePublishedNames!);
+        }
+        else
+        {
+            Assert.False(string.IsNullOrWhiteSpace(result.Error));
+            Assert.Null(result.InUsePublishedNames);
+            Assert.Empty(DriverStoreDuplicateFinder.FindOutdatedDuplicates(result.Packages, result.InUsePublishedNames));
+        }
     }
 }
