@@ -1,4 +1,274 @@
 {
+ "UDP quality": {
+  "es": "Calidad UDP",
+  "ru": "Качество UDP",
+  "zh-Hans": "UDP 质量"
+ },
+ "UDP packet quality": {
+  "es": "Calidad de paquetes UDP",
+  "ru": "Качество пакетов UDP",
+  "zh-Hans": "UDP 数据包质量"
+ },
+ "RESPONDER ADDRESS": {
+  "es": "DIRECCIÓN DEL RESPONDEDOR",
+  "ru": "АДРЕС ОТВЕТЧИКА",
+  "zh-Hans": "响应端地址"
+ },
+ "RESPONDER KEY": {
+  "es": "CLAVE DEL RESPONDEDOR",
+  "ru": "КЛЮЧ ОТВЕТЧИКА",
+  "zh-Hans": "响应端密钥"
+ },
+ "UDP PORT": {
+  "es": "PUERTO UDP",
+  "ru": "ПОРТ UDP",
+  "zh-Hans": "UDP 端口"
+ },
+ "SECONDS": {
+  "es": "SEGUNDOS",
+  "ru": "СЕКУНДЫ",
+  "zh-Hans": "秒"
+ },
+ "PACKET BYTES": {
+  "es": "BYTES POR PAQUETE",
+  "ru": "БАЙТ В ПАКЕТЕ",
+  "zh-Hans": "数据包字节数"
+ },
+ "LATE AFTER (MS)": {
+  "es": "RETRASO MÁXIMO (MS)",
+  "ru": "ПОРОГ ОПОЗДАНИЯ (МС)",
+  "zh-Hans": "迟到阈值（毫秒）"
+ },
+ "UDP responder address": {
+  "es": "Dirección del respondedor UDP",
+  "ru": "Адрес ответчика UDP",
+  "zh-Hans": "UDP 响应端地址"
+ },
+ "UDP responder port": {
+  "es": "Puerto del respondedor UDP",
+  "ru": "Порт ответчика UDP",
+  "zh-Hans": "UDP 响应端端口"
+ },
+ "UDP responder key": {
+  "es": "Clave del respondedor UDP",
+  "ru": "Ключ ответчика UDP",
+  "zh-Hans": "UDP 响应端密钥"
+ },
+ "UDP test duration": {
+  "es": "Duración de la prueba UDP",
+  "ru": "Длительность теста UDP",
+  "zh-Hans": "UDP 测试时长"
+ },
+ "UDP packet size": {
+  "es": "Tamaño del paquete UDP",
+  "ru": "Размер пакета UDP",
+  "zh-Hans": "UDP 数据包大小"
+ },
+ "UDP test progress": {
+  "es": "Progreso de la prueba UDP",
+  "ru": "Ход теста UDP",
+  "zh-Hans": "UDP 测试进度"
+ },
+ "Late echo threshold in milliseconds": {
+  "es": "Umbral de eco tardío en milisegundos",
+  "ru": "Порог опоздания эхо-ответа в миллисекундах",
+  "zh-Hans": "回显迟到阈值（毫秒）"
+ },
+ "Measure UDP": {
+  "es": "Medir UDP",
+  "ru": "Измерить UDP",
+  "zh-Hans": "测量 UDP"
+ },
+ "Measured result": {
+  "es": "Resultado medido",
+  "ru": "Результат измерения",
+  "zh-Hans": "测量结果"
+ },
+ "Observed": {
+  "es": "Observado",
+  "ru": "Наблюдение",
+  "zh-Hans": "观测值"
+ },
+ "Use as baseline": {
+  "es": "Usar como referencia",
+  "ru": "Сохранить как исходный замер",
+  "zh-Hans": "用作基线"
+ },
+ "Repeat and compare": {
+  "es": "Repetir y comparar",
+  "ru": "Повторить и сравнить",
+  "zh-Hans": "重测并比较"
+ },
+ "Export UDP result…": {
+  "es": "Exportar resultado UDP…",
+  "ru": "Экспортировать результат UDP…",
+  "zh-Hans": "导出 UDP 结果…"
+ },
+ "Set up a responder": {
+  "es": "Configurar un respondedor",
+  "ru": "Настройка ответчика",
+  "zh-Hans": "设置响应端"
+ },
+ "Enter your responder address and key to begin.": {
+  "es": "Introduce la dirección y la clave del respondedor para comenzar.",
+  "ru": "Для начала введите адрес и ключ ответчика.",
+  "zh-Hans": "输入响应端地址和密钥以开始。"
+ },
+ "No completed UDP measurement.": {
+  "es": "No hay una medición UDP completada.",
+  "ru": "Завершённых измерений UDP нет.",
+  "zh-Hans": "尚无已完成的 UDP 测量。"
+ },
+ "Measure upload and download loss to a SockTuner responder on another computer. RTT and jitter describe that path; they are not one-way latency or a game-server verdict.": {
+  "es": "Mide las pérdidas de subida y bajada hasta un respondedor SockTuner en otro equipo. El RTT y la variación describen esa ruta; no son latencia unidireccional ni un diagnóstico del servidor del juego.",
+  "ru": "Измеряет потери при отправке и получении до ответчика SockTuner на другом компьютере. RTT и джиттер характеризуют этот путь, а не одностороннюю задержку или сервер игры.",
+  "zh-Hans": "测量到另一台计算机上 SockTuner 响应端的上行和下行丢包。RTT 和抖动描述的是这条路径，并非单向延迟，也不能据此判断游戏服务器。"
+ },
+ "Paste the 64-character hexadecimal key shared with your responder. It is not saved or exported.": {
+  "es": "Pega la clave hexadecimal de 64 caracteres compartida con el respondedor. No se guarda ni se exporta.",
+  "ru": "Вставьте общий с ответчиком шестнадцатеричный ключ из 64 символов. Он не сохраняется и не экспортируется.",
+  "zh-Hans": "粘贴与响应端共享的 64 位十六进制密钥。密钥不会被保存或导出。"
+ },
+ "20 packets/second. Replies arriving over 2 seconds after sending ends may count as missing. No network settings are changed.": {
+  "es": "20 paquetes por segundo. Las respuestas que lleguen más de 2 segundos después del fin del envío pueden contarse como ausentes. No se modifica la configuración de red.",
+  "ru": "20 пакетов в секунду. Ответы, пришедшие позднее чем через 2 секунды после окончания отправки, могут считаться потерянными. Настройки сети не меняются.",
+  "zh-Hans": "每秒 20 个数据包。发送结束超过 2 秒后到达的响应可能计为丢失。不会更改网络设置。"
+ },
+ "Save a baseline before applying a preset, then repeat under the same conditions.": {
+  "es": "Guarda una referencia antes de aplicar un perfil y repite en las mismas condiciones.",
+  "ru": "Сохраните исходный замер перед применением профиля, затем повторите тест в тех же условиях.",
+  "zh-Hans": "应用预设前保存基线，然后在相同条件下重测。"
+ },
+ "Run the included SockTuner.UdpResponder on a second computer with a shared random key file. Allow its UDP port only from the testing computer. Enter that computer's address, port and key above. A responder on your LAN tests the local path; use a responder outside your home network to test the Internet path. The app does not change firewall or router rules.": {
+  "es": "Ejecuta SockTuner.UdpResponder en otro equipo con un archivo de clave aleatoria compartida. Permite su puerto UDP solo desde el equipo de prueba. Introduce arriba su dirección, puerto y clave. Un respondedor en la LAN mide la ruta local; para medir Internet, usa uno fuera de tu red doméstica. La aplicación no cambia reglas del cortafuegos ni del router.",
+  "ru": "Запустите SockTuner.UdpResponder на другом компьютере с файлом общего случайного ключа. Разрешите доступ к его UDP-порту только с тестирующего компьютера. Введите адрес, порт и ключ выше. Ответчик в LAN проверяет локальный путь; для проверки Интернета нужен ответчик за пределами домашней сети. Приложение не меняет правила брандмауэра или роутера.",
+  "zh-Hans": "在第二台计算机上运行附带的 SockTuner.UdpResponder，并使用共享的随机密钥文件。仅允许测试计算机访问其 UDP 端口。在上方输入该计算机的地址、端口和密钥。局域网响应端测试本地路径；要测试互联网路径，请使用家庭网络外部的响应端。应用不会更改防火墙或路由器规则。"
+ },
+ "Queue: supported power controls": {
+  "es": "Preparar controles de energía compatibles",
+  "ru": "Добавить доступные настройки питания",
+  "zh-Hans": "加入计划：支持的电源控制"
+ },
+ "Queue: remove legacy power override": {
+  "es": "Preparar retirada del ajuste de energía heredado",
+  "ru": "Удалить старое переопределение питания",
+  "zh-Hans": "加入计划：移除旧版电源覆盖"
+ },
+ "Proposes only power controls advertised by this driver. Preserves wake-on-LAN and legacy power bits.": {
+  "es": "Propone solo controles de energía anunciados por este controlador. Conserva Wake-on-LAN y los bits de energía heredados.",
+  "ru": "Предлагает только настройки питания, заявленные драйвером. Сохраняет Wake-on-LAN и старые флаги питания.",
+  "zh-Hans": "仅建议驱动程序公布的电源控制。保留网络唤醒和旧版电源位。"
+ },
+ "Removes the legacy PnPCapabilities override. Does not reset individual driver properties.": {
+  "es": "Retira el ajuste heredado PnPCapabilities. No restablece propiedades individuales del controlador.",
+  "ru": "Удаляет старое переопределение PnPCapabilities. Не сбрасывает отдельные свойства драйвера.",
+  "zh-Hans": "移除旧版 PnPCapabilities 覆盖值，不重置驱动程序的各项属性。"
+ },
+ "Upload loss": {
+  "es": "Pérdida de subida",
+  "ru": "Потери при отправке",
+  "zh-Hans": "上行丢包"
+ },
+ "Download loss": {
+  "es": "Pérdida de bajada",
+  "ru": "Потери при получении",
+  "zh-Hans": "下行丢包"
+ },
+ "Median / P95 RTT": {
+  "es": "Mediana / P95 de RTT",
+  "ru": "Медиана / P95 RTT",
+  "zh-Hans": "RTT 中位数 / P95"
+ },
+ "RTT jitter": {
+  "es": "Variación de RTT",
+  "ru": "Джиттер RTT",
+  "zh-Hans": "RTT 抖动"
+ },
+ "Late / duplicate / reordered": {
+  "es": "Tardíos / duplicados / reordenados",
+  "ru": "Опоздавшие / дубликаты / вне порядка",
+  "zh-Hans": "迟到 / 重复 / 乱序"
+ },
+ "Locally delayed sends": {
+  "es": "Envíos retrasados localmente",
+  "ru": "Задержки отправки на этом ПК",
+  "zh-Hans": "本地延迟发送"
+ },
+ "Waiting for an authenticated responder; no loss verdict yet.": {
+  "es": "Esperando un respondedor autenticado; aún no hay un resultado de pérdidas.",
+  "ru": "Ожидание аутентифицированного ответчика; выводов о потерях пока нет.",
+  "zh-Hans": "正在等待通过验证的响应端；尚无丢包结论。"
+ },
+ "No completed comparison for this run.": {
+  "es": "No hay una comparación completada para esta medición.",
+  "ru": "Сравнение для этого замера ещё не выполнено.",
+  "zh-Hans": "本次测量尚无已完成的比较。"
+ },
+ "Connecting to the UDP responder…": {
+  "es": "Conectando con el respondedor UDP…",
+  "ru": "Подключение к ответчику UDP…",
+  "zh-Hans": "正在连接 UDP 响应端…"
+ },
+ "Waiting for late echoes and the receiver summary…": {
+  "es": "Esperando ecos tardíos y el resumen del receptor…",
+  "ru": "Ожидание поздних эхо-ответов и отчёта получателя…",
+  "zh-Hans": "正在等待迟到回显和接收端汇总…"
+ },
+ "Not measured: the responder received no probes": {
+  "es": "No medido: el respondedor no recibió sondas",
+  "ru": "Не измерено: ответчик не получил пробных пакетов",
+  "zh-Hans": "未测量：响应端未收到探测包"
+ },
+ "No loss observed in this sample. This does not guarantee a loss-free connection.": {
+  "es": "No se observaron pérdidas en esta muestra. No garantiza una conexión sin pérdidas.",
+  "ru": "В этой выборке потерь не обнаружено. Это не гарантирует соединение без потерь.",
+  "zh-Hans": "本次采样未发现丢包，但不保证连接始终无丢包。"
+ },
+ "Packet loss observed on the selected responder path. Repeat before attributing it to a device or preset.": {
+  "es": "Se observaron pérdidas en la ruta al respondedor. Repite antes de atribuirlas a un dispositivo o perfil.",
+  "ru": "На пути к ответчику обнаружены потери. Повторите тест, прежде чем связывать их с устройством или профилем.",
+  "zh-Hans": "在所选响应端路径上发现丢包。请重测后再判断是否与设备或预设有关。"
+ },
+ "UDP measurement cancelled. No loss verdict.": {
+  "es": "Medición UDP cancelada. Sin conclusión sobre pérdidas.",
+  "ru": "Измерение UDP отменено. Выводов о потерях нет.",
+  "zh-Hans": "UDP 测量已取消。无丢包结论。"
+ },
+ "UDP measurement unavailable: check responder address, key, port and firewall, then repeat. No loss verdict.": {
+  "es": "Medición UDP no disponible: comprueba la dirección, clave, puerto y cortafuegos y repite. Sin conclusión sobre pérdidas.",
+  "ru": "Измерение UDP недоступно: проверьте адрес, ключ, порт и брандмауэр и повторите. Выводов о потерях нет.",
+  "zh-Hans": "UDP 测量不可用：请检查响应端地址、密钥、端口和防火墙，然后重试。无丢包结论。"
+ },
+ "UDP report saved. The responder key is excluded.": {
+  "es": "Informe UDP guardado. No incluye la clave del respondedor.",
+  "ru": "Отчёт UDP сохранён. Ключ ответчика не включён.",
+  "zh-Hans": "UDP 报告已保存，不包含响应端密钥。"
+ },
+ "Could not save the UDP report.": {
+  "es": "No se pudo guardar el informe UDP.",
+  "ru": "Не удалось сохранить отчёт UDP.",
+  "zh-Hans": "无法保存 UDP 报告。"
+ },
+ "Gaming: balanced": {
+  "es": "Juego: equilibrado",
+  "ru": "Игры: сбалансированный",
+  "zh-Hans": "游戏：均衡"
+ },
+ "Gaming: aggressive (experimental)": {
+  "es": "Juego: agresivo (experimental)",
+  "ru": "Игры: агрессивный (экспериментальный)",
+  "zh-Hans": "游戏：激进（实验性）"
+ },
+ "Experimental settings": {
+  "es": "Ajustes experimentales",
+  "ru": "Экспериментальные настройки",
+  "zh-Hans": "实验性设置"
+ },
+ "This plan includes experimental settings or templates not fully tested on this hardware/driver. Supported values do not guarantee better performance. Record a baseline, repeat the same test after applying, and roll back if worse. Continue?": {
+  "es": "Este plan incluye ajustes o plantillas experimentales no probados por completo en este hardware/controlador. Los valores compatibles no garantizan un mejor rendimiento. Guarda una referencia, repite la prueba después y revierte si empeora. ¿Continuar?",
+  "ru": "План содержит экспериментальные настройки или шаблоны, не полностью проверенные на этом оборудовании и драйвере. Допустимые значения не гарантируют улучшения. Сохраните исходный замер, повторите тест после применения и откатите при ухудшении. Продолжить?",
+  "zh-Hans": "此计划包含尚未在当前硬件或驱动程序上充分测试的实验性设置或模板。支持的值并不保证性能更好。请记录基线，应用后重测，如有退步则回滚。是否继续？"
+ },
  "Driver store cleanup": {
   "es": "Limpieza del almacén de controladores",
   "ru": "Очистка хранилища драйверов",

@@ -29,7 +29,8 @@ public enum ChangeSource
     Unknown,
     Manual,
     Profile,
-    Recovery
+    Recovery,
+    ExperimentalProfile
 }
 
 /// <summary>
@@ -167,7 +168,8 @@ public sealed record PlannedChange(
     /// single click: they can sever connectivity or rest on undocumented behaviour.
     /// </summary>
     public bool RequiresExplicitConfirmation =>
-        Definition.Risk == ChangeRisk.High || Definition.Evidence == EvidenceLevel.Experimental;
+        Definition.Risk == ChangeRisk.High || Definition.Evidence == EvidenceLevel.Experimental
+        || Source == ChangeSource.ExperimentalProfile;
 }
 
 public sealed record ChangePlan(DateTimeOffset CreatedAt, IReadOnlyList<PlannedChange> Changes);

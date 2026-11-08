@@ -95,6 +95,12 @@ public static class NicKeywordCatalog
             "Selective suspend saves idle power but waking the adapter can add first-packet latency; "
             + "shorter idle timeouts increase how often that transition happens.",
             "*SelectiveSuspend", "*SSIdleTimeout");
+        Add(TuningArea.Latency | TuningArea.Power, ChangeRisk.Medium,
+            "Experimental Synez template. The live driver must advertise the exact value and its meaning; performance is not verified on this hardware.",
+            "AutoDisableGigabit", "ULPMode", "SipsEnabled");
+        Add(TuningArea.Wake | TuningArea.Power, ChangeRisk.High,
+            "Experimental Synez template. Disabling power-management events may disable wake-on-LAN; deliberately excluded from the gaming presets.",
+            "EnablePME");
 
         // ---- Offloads ----------------------------------------------------------------------
         Add(TuningArea.Throughput, ChangeRisk.Medium,

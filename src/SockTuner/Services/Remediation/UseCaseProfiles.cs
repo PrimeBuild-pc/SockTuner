@@ -38,7 +38,7 @@ public sealed record UseCaseProfile(
     IReadOnlyList<KeywordTarget> Nic,
     IReadOnlyList<ChangeRequest> System,
     IReadOnlyList<GlobalTarget>? Global = null,
-    bool DevicePowerManagementOff = false)
+    bool Experimental = false)
 {
     public IReadOnlyList<GlobalTarget> GlobalTargets => Global ?? [];
 }
@@ -60,6 +60,7 @@ public static class UseCaseProfiles
     [
         new("*EEE", Off, "Energy-efficient Ethernet adds wake-up latency to the first packet after idle and destabilises the link on some switches.", LinkKind.Wired),
         new("*SelectiveSuspend", Off, "A suspended adapter must wake before it can send, which shows up as a spike on the first packet after a pause.", LinkKind.Any),
+        new("*IdleRestriction", "1", "On NetAdapterCx, restrict idle power-down to when the user is absent. Wake settings are preserved."),
         new("EnableGreenEthernet", Off, "Green Ethernet powers the PHY down on short or idle links and re-negotiates when traffic returns.", LinkKind.Wired, OffWording),
         new("GreenEthernet", Off, "Green Ethernet powers the PHY down on short or idle links and re-negotiates when traffic returns.", LinkKind.Wired, OffWording),
         new("PowerSavingMode", Off, "The driver's idle power-saving mode adds latency when traffic resumes.", LinkKind.Wired, OffWording),
@@ -78,11 +79,14 @@ public static class UseCaseProfiles
 
     public static IReadOnlyList<UseCaseProfile> All { get; } =
     [
-        new("competitive-gaming", "Competitive gaming",
-            "Latency and jitter first. Costs CPU, some peak throughput and idle power, and none of it moves the base RTT "
+        new("gaming-balanced", "Gaming: balanced",
+            "Driver-advertised power controls, preserving wake-on-LAN. Interrupt moderation and offloads are left as they are; measure first and use the aggressive preset for an explicit experiment.",
+            PowerSaving, []),
+        new("competitive-gaming", "Gaming: aggressive (experimental)",
+            "Experimental latency trial: not fully tested on this hardware. Costs CPU, some peak throughput and idle power; measure before and after and roll back a regression. None of it moves the base RTT "
             + "set by distance and route. Changes only things Windows or the driver reads: interrupt batching, receive "
             + "coalescing, every adapter power-saving feature the driver advertises, the multimedia scheduler's network "
-            + "throttle, and the device's own power management. Deliberately untouched, because they do nothing useful on "
+            + "throttle. Wake-on-LAN is preserved. Deliberately untouched, because they do nothing useful on "
             + "current Windows: TCP auto-tuning, timestamps, ECN, the 'reservable bandwidth' limit, Tcp1323Opts and "
             + "GlobalMaxTcpWindowSize.",
             [
@@ -90,6 +94,11 @@ public static class UseCaseProfiles
                     "Coalescing interrupts holds received packets back to batch them; off, each arrives as it lands."),
                 new KeywordTarget("*RscIPv4", Off, "Receive segment coalescing adds receive-side delay to raise throughput."),
                 new KeywordTarget("*RscIPv6", Off, "Receive segment coalescing adds receive-side delay to raise throughput."),
+                new KeywordTarget("*LsoV2IPv4", Off, "Experimental: disable large-send offload and measure CPU, throughput and latency before keeping it."),
+                new KeywordTarget("*LsoV2IPv6", Off, "Experimental: disable large-send offload and measure CPU, throughput and latency before keeping it."),
+                new KeywordTarget("AutoDisableGigabit", Off, "Synez template, not validated on this hardware: prevent vendor automatic gigabit power saving.", LinkKind.Wired, OffWording),
+                new KeywordTarget("ULPMode", Off, "Synez template, not validated on this hardware: disable the vendor ultra-low-power mode.", LinkKind.Wired, OffWording),
+                new KeywordTarget("SipsEnabled", Off, "Synez template, not validated on this hardware: disable the vendor idle power-saving mode.", LinkKind.Wired, OffWording),
                 new KeywordTarget("*FlowControl", Off,
                     "Pause frames stop the sender rather than dropping one packet, which stalls everything behind it."),
                 // RoamAggressiveness is an ordinal "how soon to look for a better AP" level, confirmed
@@ -114,8 +123,7 @@ public static class UseCaseProfiles
             [
                 new GlobalTarget(CimGlobalPropertyCatalog.OffloadGlobalClass, "ReceiveSegmentCoalescing", Off,
                     "The Windows-level switch for receive coalescing, so it holds even when the driver exposes no keyword.")
-            ],
-            DevicePowerManagementOff: true),
+            ], Experimental: true),
 
         new("streaming-and-upload", "Streaming and upload",
             "Sustained upload capacity first. Ping matters less than a queue that does not collapse, so the offloads that "
@@ -135,9 +143,14 @@ public static class UseCaseProfiles
                 new KeywordTarget("*FlowControl", Off, "Pause frames turn one congested moment into a stall for every stream."),
                 ..PowerSaving
             ],
-            [],
-            DevicePowerManagementOff: true)
+            [])
     ];
+
+    public static RemediationAction PowerSavingFor(Guid adapterId,
+        IReadOnlyList<AdapterSettingCapability> capabilities, bool wireless) =>
+        PlanFor(new("power-saving", "Driver-advertised power controls",
+            "Only supported power controls are proposed. Wake-on-LAN and legacy PnPCapabilities are preserved.", PowerSaving, []),
+            adapterId, capabilities, wireless: wireless);
 
     public static UseCaseProfile Get(string id) =>
         All.FirstOrDefault(profile => string.Equals(profile.Id, id, StringComparison.Ordinal))
@@ -155,10 +168,10 @@ public static class UseCaseProfiles
         Guid adapterId,
         IReadOnlyList<AdapterSettingCapability> capabilities,
         IReadOnlyList<GlobalSettingCapability>? globals = null,
-        bool wireless = false,
-        Func<Guid, bool>? devicePowerIsOff = null)
+        bool wireless = false)
     {
         var changes = new List<ChangeRequest>();
+        var source = profile.Experimental ? ChangeSource.ExperimentalProfile : ChangeSource.Profile;
         var applied = new List<string>();
         var skipped = new List<string>();
         var link = wireless ? LinkKind.Wireless : LinkKind.Wired;
@@ -203,7 +216,7 @@ public static class UseCaseProfiles
             if (string.Equals(capability.CurrentValue, target.Value, StringComparison.Ordinal)) continue;
             if (!already.Add(capability.Keyword)) continue;
 
-            changes.Add(new ChangeRequest(capability.SettingId, adapterId.ToString(), target.Value, ChangeSource.Profile));
+            changes.Add(new ChangeRequest(capability.SettingId, adapterId.ToString(), target.Value, source));
             applied.Add($"{capability.DisplayName} → {choice.DisplayValue}: {target.Reason}");
         }
 
@@ -219,22 +232,12 @@ public static class UseCaseProfiles
             }
 
             if (string.Equals(global.CurrentValue, target.Value, StringComparison.Ordinal)) continue;
-            changes.Add(new ChangeRequest(global.SettingId, global.InstanceKey, target.Value, ChangeSource.Profile));
+            changes.Add(new ChangeRequest(global.SettingId, global.InstanceKey, target.Value, source));
             applied.Add($"{global.DisplayName} → {global.DisplayFor(target.Value)}: {target.Reason}");
         }
 
-        if (profile.DevicePowerManagementOff && capabilities.Any(item => item.AdapterId == adapterId && item.CanWrite)
-            && !(devicePowerIsOff?.Invoke(adapterId) ?? false))
-        {
-            changes.Add(new ChangeRequest(
-                AdapterPowerSavingSpecification.SettingId, adapterId.ToString(),
-                AdapterPowerSavingSpecification.PowerManagementOff.ToString(), ChangeSource.Profile));
-            applied.Add("Device power management → off: Windows no longer powers this adapter down to save energy "
-                + "(this also stops it waking the PC, so wake-on-LAN for this adapter ends).");
-        }
-
         foreach (var change in profile.System) applied.Add($"{change.SettingId} → {change.ProposedValue}");
-        changes.AddRange(profile.System);
+        changes.AddRange(profile.System.Select(change => change with { Source = source }));
 
         return new RemediationAction(
             $"profile.{profile.Id}",

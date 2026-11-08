@@ -43,6 +43,7 @@ public sealed class CapabilityRow : INotifyPropertyChanged
 
     public AdapterSettingCapability Capability { get; }
     public IReadOnlyList<string> Options { get; }
+    public ChangeSource Source { get; set; } = ChangeSource.Manual;
 
     public string ProposedValue
     {
@@ -51,6 +52,7 @@ public sealed class CapabilityRow : INotifyPropertyChanged
         {
             if (string.Equals(_proposedValue, value, StringComparison.Ordinal)) return;
             _proposedValue = value ?? string.Empty;
+            Source = ChangeSource.Manual;
             Notify();
             Notify(nameof(HasChange));
         }
@@ -207,10 +209,9 @@ public partial class TuningPlanView : UserControl
         try
         {
             // WMI and registry reads: off the window's thread.
-            var (globals, powerOff) = await Task.Run(() => (
-                WindowsGlobalSettingInventory.Read().Capabilities, AdapterPowerSavingSpecification.IsPowerManagementOff(adapterId)));
+            var globals = await Task.Run(() => WindowsGlobalSettingInventory.Read().Capabilities);
             var action = UseCaseProfiles.PlanFor(profile, adapterId, _capabilities, globals,
-                adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211, _ => powerOff);
+                adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
             if (!action.AppliesLocally)
             {
                 SetStatus(Loc.T("Nothing to change: this adapter already matches the preset."));
@@ -262,6 +263,7 @@ public partial class TuningPlanView : UserControl
             }
 
             row.ProposedValue = text;
+            row.Source = change.Source;
             accepted++;
         }
 
@@ -334,7 +336,7 @@ public partial class TuningPlanView : UserControl
         VerificationBadgeText.Foreground = VerificationBadge.BorderBrush = brush;
         VerificationHintText.Text = Loc.T(verified
             ? "This adapter model is in SockTuner's hardware list."
-            : "Read-only: this adapter has no characterised hardware report. Create a compatibility report in Preferences.");
+            : "This adapter is not verified. Selected experimental templates may be offered when the live driver advertises valid values; other properties remain read-only. Create a compatibility report in Preferences.");
     }
 
     private void Preset_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -417,7 +419,7 @@ public partial class TuningPlanView : UserControl
     public async Task PreviewAsync()
     {
         var requests = _rows.Where(row => row.HasChange)
-            .Select(row => new ChangeRequest(row.Capability.SettingId, row.Capability.AdapterId.ToString(), row.ProposedValue))
+            .Select(row => new ChangeRequest(row.Capability.SettingId, row.Capability.AdapterId.ToString(), row.ProposedValue, row.Source))
             .Concat(_deviceChanges)
             .ToArray();
         if (requests.Length == 0)
@@ -475,6 +477,11 @@ public partial class TuningPlanView : UserControl
         }
 
         if (!EnsureWriteConsent()) return;
+
+        if (plan.Changes.Any(change => change.Definition.Evidence == EvidenceLevel.Experimental || change.Source == ChangeSource.ExperimentalProfile)
+            && MessageBox.Show(Loc.T("This plan includes experimental settings or templates not fully tested on this hardware/driver. Supported values do not guarantee better performance. Record a baseline, repeat the same test after applying, and roll back if worse. Continue?"),
+                Loc.T("Experimental settings"), MessageBoxButton.YesNo, MessageBoxImage.Warning,
+                MessageBoxResult.No) != MessageBoxResult.Yes) return;
 
         var request = ElevatedChange.Request(WorkerOperationKind.Apply, plan.Changes.Select(change =>
             ElevatedChange.Operation(change.Address.SettingId, change.Address.TargetId, change.Before, change.After, change.Source)));

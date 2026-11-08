@@ -51,7 +51,7 @@ public sealed class RemediationTests
         var capabilities = new[] { Capability("*EEE", "0", "0", "1"), Capability("*FlowControl", "0", "0", "3") };
 
         var action = UseCaseProfiles.PlanFor(
-            UseCaseProfiles.Get("calls-and-remote-work"), AdapterId, capabilities, devicePowerIsOff: _ => true);
+            UseCaseProfiles.Get("calls-and-remote-work"), AdapterId, capabilities);
 
         Assert.Empty(action.Changes);
         Assert.Contains("already matches the profile", action.ExpectedEffect, StringComparison.Ordinal);
@@ -75,7 +75,7 @@ public sealed class RemediationTests
         var action = UseCaseProfiles.PlanFor(
             UseCaseProfiles.Get("competitive-gaming"), AdapterId, [Capability("*EEE", "1", "0", "1")]);
 
-        Assert.All(action.Changes, change => Assert.Equal(ChangeSource.Profile, change.Source));
+        Assert.All(action.Changes, change => Assert.Equal(ChangeSource.ExperimentalProfile, change.Source));
         Assert.Equal(RemediationOwner.PresetOrManual, action.Owner);
     }
 
@@ -86,7 +86,7 @@ public sealed class RemediationTests
         // worse than a profile that proposes nothing.
         var capabilities = new[] { Capability("*EEE", "1", "0", "1"), Capability("*InterruptModeration", "1", "0", "1") };
         var action = UseCaseProfiles.PlanFor(
-            UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities, devicePowerIsOff: _ => true);
+            UseCaseProfiles.Get("competitive-gaming"), AdapterId, capabilities);
         var transactions = new SettingTransactionService(SettingSpecifications.From(capabilities));
         var store = new MemoryStore();
         foreach (var capability in capabilities)
@@ -98,7 +98,7 @@ public sealed class RemediationTests
         var plan = await transactions.PrepareAsync(action.Changes, store, CancellationToken.None);
 
         Assert.Equal(action.Changes.Count, plan.Changes.Count);
-        Assert.All(plan.Changes, change => Assert.Equal(ChangeSource.Profile, change.Source));
+        Assert.All(plan.Changes, change => Assert.Equal(ChangeSource.ExperimentalProfile, change.Source));
     }
 
     [Fact]
@@ -328,9 +328,9 @@ public sealed class RemediationTests
 
         Assert.Equal(
             ["nic.*InterruptModeration", "cim.MSFT_NetOffloadGlobalSetting.ReceiveSegmentCoalescing",
-             "adapter.power-saving", "mmcss.network-throttling-index", "mmcss.system-responsiveness"],
+             "mmcss.network-throttling-index", "mmcss.system-responsiveness"],
             action.Changes.Select(change => change.SettingId));
-        Assert.Equal("24", action.Changes.Single(change => change.SettingId == "adapter.power-saving").ProposedValue);
+        Assert.DoesNotContain(action.Changes, change => change.SettingId == "adapter.power-saving");
     }
 
     [Fact]

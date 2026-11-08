@@ -690,6 +690,10 @@
                 <views:ThroughputView x:Name="Throughput"/>
             </TabItem>
 
+            <TabItem Header="UDP quality">
+                <views:UdpQualityView x:Name="UdpQuality"/>
+            </TabItem>
+
             <TabItem Header="DNS resolvers">
                 <views:DnsResolversView x:Name="DnsResolvers"/>
             </TabItem>

@@ -57,7 +57,15 @@ internal static class WindowsAdapterCapabilityInventory
                             driver = WindowsNdisInventory.Read(capability.AdapterId.ToString()).Driver;
                             drivers[capability.AdapterId] = driver;
                         }
-                        capabilities.Add(capability with { WriteRestriction = NicHardwareCompatibility.Restriction(capability, driver) });
+                        var experimental = NicHardwareCompatibility.IsUnverifiedTemplate(capability, driver);
+                        capabilities.Add(capability with
+                        {
+                            WriteRestriction = NicHardwareCompatibility.Restriction(capability, driver),
+                            UnverifiedHardwareTemplate = experimental,
+                            TradeOff = capability.TradeOff + (experimental
+                                ? " Experimental template: not fully tested on this hardware/driver. Live values are validated; measure before/after and use rollback if worse."
+                                : string.Empty)
+                        });
                     }
                     catch (Exception exception) when (exception is InvalidCastException
                         or FormatException or OverflowException)

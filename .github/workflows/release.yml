@@ -64,11 +64,15 @@ jobs:
       - name: Require tag commit to belong to main
         id: source
         shell: pwsh
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
         run: |
           git fetch origin main
           if ($LASTEXITCODE -ne 0) { throw "Failed to refresh origin/main" }
           git merge-base --is-ancestor HEAD origin/main
           if ($LASTEXITCODE -ne 0) { throw "Release tag is not on main" }
+          $sourceVersion = ([xml](Get-Content Directory.Build.props -Raw)).Project.PropertyGroup.Version
+          if ($sourceVersion -cne $env:VERSION) { throw "Source version does not match the release tag" }
           "commit=$((git rev-parse HEAD).Trim())" >> $env:GITHUB_OUTPUT
 
       - name: Setup .NET
@@ -82,16 +86,18 @@ jobs:
         run: |
           dotnet restore SockTuner.sln
           dotnet restore src/SockTuner/SockTuner.csproj -r win-x64
+          dotnet restore src/SockTuner.UdpResponder/SockTuner.UdpResponder.csproj -r win-x64
 
       - name: Build and test
         run: |
           dotnet build SockTuner.sln -c Release --no-restore -p:ContinuousIntegrationBuild=true
           dotnet test SockTuner.sln -c Release --no-build
 
-      - name: Publish self-contained x64 build
+      - name: Publish self-contained x64 app and UDP responder
         shell: pwsh
         env:
           VERSION: ${{ steps.version.outputs.value }}
+          TAG_NAME: ${{ steps.version.outputs.tag }}
         run: |
           dotnet publish src/SockTuner/SockTuner.csproj `
             -c Release `
@@ -104,6 +110,23 @@ jobs:
             -p:DebugSymbols=false `
             -p:Version=$env:VERSION `
             -o artifacts/SockTuner
+          if ($LASTEXITCODE -ne 0) { throw "App publish failed" }
+          dotnet publish src/SockTuner.UdpResponder/SockTuner.UdpResponder.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            --no-restore `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None `
+            -p:DebugSymbols=false `
+            -p:Version=$env:VERSION `
+            -o artifacts/SockTuner/UdpResponder
+          if ($LASTEXITCODE -ne 0) { throw "UDP responder publish failed" }
+          Copy-Item src/SockTuner.UdpResponder/README.md artifacts/SockTuner/UdpResponder/README.md
+          Copy-Item CHANGELOG.md artifacts/SockTuner/CHANGELOG.md
+          Copy-Item LICENSE artifacts/SockTuner/LICENSE
+          Copy-Item ".github/release-notes/$env:TAG_NAME.md" artifacts/SockTuner/RELEASE-NOTES.md
 
       - name: Upload unsigned build for release job
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -164,10 +187,17 @@ jobs:
             Select-Object -First 1
           if (-not $signTool) { throw "signtool.exe not found" }
 
-          & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com `
-            /f $certificatePath /p $env:WINDOWS_CERTIFICATE_PASSWORD artifacts/SockTuner/SockTuner.exe
-          if ($LASTEXITCODE -ne 0) { throw "Code signing failed" }
-          Remove-Item $certificatePath -Force
+          try {
+            foreach ($executable in @('artifacts/SockTuner/SockTuner.exe', 'artifacts/SockTuner/UdpResponder/SockTuner.UdpResponder.exe')) {
+              & $signTool.FullName sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com `
+                /f $certificatePath /p $env:WINDOWS_CERTIFICATE_PASSWORD $executable
+              if ($LASTEXITCODE -ne 0) { throw "Code signing failed" }
+              & $signTool.FullName verify /pa $executable
+              if ($LASTEXITCODE -ne 0) { throw "Signature verification failed" }
+            }
+          } finally {
+            Remove-Item $certificatePath -Force
+          }
 
       - name: Package and checksum
         id: package
@@ -176,6 +206,9 @@ jobs:
           VERSION: ${{ needs.build-release.outputs.version }}
         run: |
           $archive = "SockTuner-$env:VERSION-win-x64.zip"
+          foreach ($required in @('SockTuner.exe', 'UdpResponder/SockTuner.UdpResponder.exe', 'UdpResponder/README.md', 'RELEASE-NOTES.md', 'CHANGELOG.md', 'LICENSE')) {
+            if (-not (Test-Path -LiteralPath (Join-Path artifacts/SockTuner $required))) { throw "Missing release file: $required" }
+          }
           Compress-Archive -Path artifacts/SockTuner/* -DestinationPath "artifacts/$archive"
           $hash = (Get-FileHash "artifacts/$archive" -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $archive" | Set-Content "artifacts/$archive.sha256"
@@ -208,6 +241,6 @@ jobs:
             "artifacts/$env:ARCHIVE.sha256" `
             --repo "$env:REPOSITORY" `
             --title "$env:RELEASE_TITLE" `
-            --generate-notes `
+            --notes-file artifacts/SockTuner/RELEASE-NOTES.md `
             $releaseKind `
             --verify-tag

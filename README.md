@@ -93,6 +93,7 @@ to you.
 | **Wi-Fi diagnostics** | Passive WLAN data from the Windows cache — signal, rate, band, nearby channel pressure — without triggering a scan |
 | **Host diagnostics** | TCP connection ownership; opt-in, simultaneous ETW/latency observations with repeated-evidence gating for affinity or ancillary-device disable. Independent, optional cleanup of unused older driver packages protects all in-use versions. Every Apply needs user approval; package removal has no automatic undo. [Method and safeguards](docs/HOST-DIAGNOSTICS.md) |
 | **Throughput & bufferbloat** | Opt-in loaded-latency and throughput tests graded on the Waveform scale; external Waveform results can be imported and graded by the same code |
+| **UDP quality** | Authenticated UDP measurements to a responder you choose, separate upload/download loss, RTT/jitter and baseline comparison. The portable package includes the responder and [setup instructions](src/SockTuner.UdpResponder/README.md) |
 | **DNS resolvers** | Benchmark configured and extra resolvers, apply the fastest one or restore DHCP |
 | **Recommendations** | Ranked, evidence-based suggestions sent to the tuning plan, plus router guidance where the fix is not on the PC |
 | **Tuning** | Driver-advertised NIC properties, interface state and power, QoS policies and interrupt affinity, all through one allowlisted, reversible write path |
@@ -107,9 +108,12 @@ observations, uncertainty and suggested next steps. Optional traffic tests and p
 separate. **Review suggested actions** offers individual unchecked changes derived from that run;
 leaving all unchecked is a valid result. A manual use-case profile remains an explicit advanced choice.
 
-1. **Choose** the relevant measured actions. NIC properties remain visible in read-only mode on
-   unverified hardware or drivers. A write requires an archived physical model, driver provider/version
-   and hardware identity, a characterised keyword, and matching live choices/ranges/default/type.
+1. **Choose** the relevant measured actions. Ordinary NIC writes require an archived physical model,
+   driver identity and matching live constraints. Selected unarchived power/offload and Intel/Realtek
+   templates are available as explicitly experimental choices when the installed driver advertises
+   valid values. They require confirmation and do not mark the hardware as verified. The balanced
+   gaming preset preserves wake-on-LAN and leaves offloads unchanged; the aggressive preset is an
+   opt-in trial with before/after measurement and rollback.
 2. **Preview** builds a dry run through a read-only store: current versus proposed, what rollback would
    restore, and the restart requirement.
 3. **Apply** asks for the one-time preview consent, then elevates. High-risk or experimental changes need
@@ -134,8 +138,8 @@ See [diagnosis method and verification](docs/AUTOMATIC-DIAGNOSIS.md).
 
 ## Getting started
 
-**Requirements:** Windows 10 22H2 or a supported Windows 11 release, x64. The release is a single
-self-contained executable: nothing to install, no .NET runtime needed.
+**Requirements:** Windows 10 22H2 or a supported Windows 11 release, x64. The app and the optional
+UDP responder are self-contained executables: no separate .NET runtime installation is needed.
 
 1. Download the latest `SockTuner-<version>-win-x64.zip` from
    [Releases](https://github.com/PrimeBuild-pc/SockTuner/releases) and extract it.
@@ -144,6 +148,8 @@ self-contained executable: nothing to install, no .NET runtime needed.
 3. Start `SockTuner.exe` as a normal user. It only reads until you accept the live-changes notice
    (shown at the first write, or from **Preferences → Live network changes**); each write then asks
    for elevation on its own.
+4. For UDP quality, enable Advanced mode and run `UdpResponder/SockTuner.UdpResponder.exe` on a
+   second computer using the included README. The app does not create firewall rules or install a service.
 
 **Updates:** **Dashboard → Updates** checks the stable or preview channel on GitHub Releases. Automatic
 installation verifies the SHA-256 checksum and requires both the installed app and the update to be
@@ -168,7 +174,8 @@ read-only. The [capability archive](alpha-tester-output/INDEX.md) lists the hard
 ### Hardware covered so far
 
 SockTuner shows **Verified adapter** next to an adapter whose model is in this list, and **Adapter not verified**
-for any other physical adapter; those remain diagnostic targets with read-only NIC properties.
+for any other physical adapter. Those remain diagnostic targets; only the explicitly experimental
+template allowlist can offer unarchived writes, always bounded by the live driver and user confirmation.
 Verified means the driver's properties were captured on real hardware and characterised — not that every
 setting helps. Even a verified model needs the exact characterised driver and matching structured
 property constraints before a write is allowed. Older reports with only keyword names cannot authorise

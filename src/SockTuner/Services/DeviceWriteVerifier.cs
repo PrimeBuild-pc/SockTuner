@@ -84,8 +84,8 @@ public sealed class DeviceWriteVerifier
             + "inert, and this app cannot tell a container it created from one that was already there, so "
             + "it is deliberately not deleted.");
 
-        // 2. Power management on a real adapter. It does not drop the link when written; the driver
-        //    picks it up at its next restart, which this run deliberately does not trigger.
+        // 2. Legacy power DWORD storage only. Read-back is not proof of an operational effect on
+        //    the driver; this run does not restart the adapter or certify power management.
         var keys = AdapterPowerSavingSpecification.ReadAdapterKeys();
         // Any adapter with a class key, not only a physical one: the setting is the key, and a VM
         // has no physical NIC at all, which is where this is validated.

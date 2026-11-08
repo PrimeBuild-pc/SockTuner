@@ -259,15 +259,14 @@ public sealed class AdapterStateStore : ISettingStore
 }
 
 /// <summary>
-/// The two power-management checkboxes on a network adapter's device properties, as one typed
-/// setting.
+/// Legacy power override retained for audit recovery. Registry read-back does not establish that
+/// a current NDIS or NetAdapterCx driver implements these legacy checkbox semantics.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Windows stores both checkboxes in a single <c>PnPCapabilities</c> DWORD on the adapter's own key
-/// under the network class, so they are one setting here as well: writing half of it is not a state
-/// the Device Manager UI can produce. Bit 0x08 removes "allow the computer to turn off this device
-/// to save power"; bit 0x10 removes "allow this device to wake the computer". 24 is both.
+/// The legacy layout stores power and wake flags in <c>PnPCapabilities</c> under the network
+/// class. It is retained to restore old audit entries, not used as a capability signal for new
+/// driver-specific plans. A stored 24 does not establish that Windows can no longer idle the NIC.
 /// </para>
 /// <para>
 /// Absent is the real Windows default — no value at all, meaning the driver's INF decides — so
@@ -286,12 +285,11 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
     /// <summary>Power management allowed: the value Windows writes when both boxes are ticked.</summary>
     public const uint PowerManagementAllowed = 0;
 
-    /// <summary>Both boxes cleared: no selective suspend, no wake.</summary>
+    /// <summary>Legacy power/wake override, retained for audit round-tripping; not a support check.</summary>
     public const uint PowerManagementOff = 24;
 
     /// <summary>
-    /// The documented bits. Anything outside this mask is refused: an arbitrary DWORD here is a
-    /// driver-defined capability flag, not a checkbox.
+    /// The legacy layout this backend can round-trip. It is not an operational driver capability mask.
     /// </summary>
     private const uint KnownBits = 0x18 | 0x100;
 
@@ -301,12 +299,11 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
         _adapterKeys = adapterKeys ?? throw new ArgumentNullException(nameof(adapterKeys));
 
     public string Id => SettingId;
-    public string Title => "Adapter power management";
+    public string Title => "Legacy adapter power override (experimental)";
     public string Category => "Network devices";
 
-    // Documented by Microsoft as an INF-set NDIS power-management capability, and it is the value
-    // the Device Manager power-management tab reads and writes.
-    public EvidenceLevel Evidence => EvidenceLevel.Documented;
+    // The registry format can round-trip; operational support has not been established per driver.
+    public EvidenceLevel Evidence => EvidenceLevel.Experimental;
 
     // Reversible and non-destructive, but it only takes effect when the adapter restarts, and the
     // restart itself drops the link.
@@ -315,9 +312,8 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
     public string RestartRequirement => Diagnosis.RemoteSessionGuard.AdapterRestart;
 
     public string TradeOff =>
-        "Stopping Windows from powering the adapter down removes the wake-up delay on the first packet after an idle "
-        + "period, and stops a suspend landing in the middle of a session. It costs power on a laptop, and it disables "
-        + "wake-on-LAN for this adapter, so a machine you wake remotely should keep it.";
+        "Legacy PnPCapabilities override: stored bits do not prove an operational power-management effect on a modern driver. "
+        + "It may disable wake-on-LAN and costs idle power. Kept for legacy audit recovery; use advertised power controls for new plans.";
 
     /// <summary>No value is the Windows default, and rolling back to it has to remove the value.</summary>
     public bool SupportsAbsentValue => true;
@@ -367,14 +363,6 @@ public sealed class AdapterPowerSavingSpecification : ISettingSpecification
             $@"{NetClassKey}\{subkey}",
             "PnPCapabilities",
             RegistryValueKind.DWord);
-    }
-
-    /// <summary>Whether both power-management boxes are already cleared for this adapter. Read-only.</summary>
-    public static bool IsPowerManagementOff(Guid adapterId)
-    {
-        if (!ReadAdapterKeys().TryGetValue(adapterId, out var subkey)) return false;
-        using var key = Registry.LocalMachine.OpenSubKey($@"{NetClassKey}\{subkey}", writable: false);
-        return key?.GetValue("PnPCapabilities") is int raw && (unchecked((uint)raw) & PowerManagementOff) == PowerManagementOff;
     }
 
     /// <summary>

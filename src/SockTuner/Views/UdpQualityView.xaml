@@ -1,0 +1,73 @@
+<UserControl x:Class="SockTuner.Views.UdpQualityView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,20,0,0">
+        <StackPanel>
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="UDP packet quality" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock Text="Measure upload and download loss to a SockTuner responder on another computer. RTT and jitter describe that path; they are not one-way latency or a game-server verdict."
+                               TextWrapping="Wrap" Margin="0,8,0,16" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    <WrapPanel x:Name="InputsPanel">
+                        <StackPanel Width="230" Margin="0,0,12,12">
+                            <TextBlock Text="RESPONDER ADDRESS" Style="{StaticResource FieldLabelText}"/>
+                            <TextBox x:Name="EndpointText" Margin="0,6,0,0" AutomationProperties.Name="UDP responder address"/>
+                        </StackPanel>
+                        <StackPanel Width="90" Margin="0,0,12,12">
+                            <TextBlock Text="UDP PORT" Style="{StaticResource FieldLabelText}"/>
+                            <TextBox x:Name="PortText" Text="52345" Margin="0,6,0,0" AutomationProperties.Name="UDP responder port"/>
+                        </StackPanel>
+                        <StackPanel Width="310" Margin="0,0,12,12">
+                            <TextBlock Text="RESPONDER KEY" Style="{StaticResource FieldLabelText}"/>
+                            <PasswordBox x:Name="KeyInput" Margin="0,6,0,0" AutomationProperties.Name="UDP responder key"
+                                         ToolTip="Paste the 64-character hexadecimal key shared with your responder. It is not saved or exported."/>
+                        </StackPanel>
+                        <StackPanel Width="100" Margin="0,0,12,12">
+                            <TextBlock Text="SECONDS" Style="{StaticResource FieldLabelText}"/>
+                            <ComboBox x:Name="DurationCombo" Margin="0,6,0,0" AutomationProperties.Name="UDP test duration"/>
+                        </StackPanel>
+                        <StackPanel Width="110" Margin="0,0,12,12">
+                            <TextBlock Text="PACKET BYTES" Style="{StaticResource FieldLabelText}"/>
+                            <ComboBox x:Name="SizeCombo" Margin="0,6,0,0" AutomationProperties.Name="UDP packet size"/>
+                        </StackPanel>
+                        <StackPanel Width="110" Margin="0,0,12,12">
+                            <TextBlock Text="LATE AFTER (MS)" Style="{StaticResource FieldLabelText}"/>
+                            <TextBox x:Name="LateText" Text="100" Margin="0,6,0,0" AutomationProperties.Name="Late echo threshold in milliseconds"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <WrapPanel>
+                        <Button x:Name="RunButton" Content="Measure UDP" Click="Run_Click" Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
+                        <Button x:Name="CancelButton" Content="Cancel" Click="Cancel_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                    </WrapPanel>
+                    <TextBlock Text="20 packets/second. Replies arriving over 2 seconds after sending ends may count as missing. No network settings are changed."
+                               TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                    <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Height="5" Margin="0,14,0,10" AutomationProperties.Name="UDP test progress"/>
+                    <TextBlock x:Name="StatusText" Text="Enter your responder address and key to begin." TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Measured result" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="ResultContextText" Text="No completed UDP measurement." TextWrapping="Wrap" Margin="0,8,0,10"/>
+                    <DataGrid x:Name="ResultsGrid" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" MinHeight="150">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Metric" Binding="{Binding Metric}" Width="230"/>
+                            <DataGridTextColumn Header="Observed" Binding="{Binding Value}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button x:Name="BaselineButton" Content="Use as baseline" Click="Baseline_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="RepeatButton" Content="Repeat and compare" Click="Repeat_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                        <Button x:Name="ExportButton" Content="Export UDP result…" Click="Export_Click" IsEnabled="False" Margin="0,0,8,8"/>
+                    </WrapPanel>
+                    <TextBlock x:Name="ComparisonText" Text="Save a baseline before applying a preset, then repeat under the same conditions." TextWrapping="Wrap"/>
+                    <TextBlock x:Name="MetricsText" Margin="0,8,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+            <Expander Header="Set up a responder" Margin="0,12,0,16">
+                <TextBlock Margin="12" TextWrapping="Wrap"
+                           Text="Run the included SockTuner.UdpResponder on a second computer with a shared random key file. Allow its UDP port only from the testing computer. Enter that computer's address, port and key above. A responder on your LAN tests the local path; use a responder outside your home network to test the Internet path. The app does not change firewall or router rules."/>
+            </Expander>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

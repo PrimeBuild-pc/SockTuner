@@ -87,10 +87,9 @@ public partial class RecommendationsView : UserControl
             var adapterId = adapter is not null && Guid.TryParse(adapter.Id, out var parsed) ? parsed : (Guid?)null;
 
             // WMI and registry reads: slow enough to freeze the window if done on its thread.
-            var (capabilities, globals, powerManagementOff) = await Task.Run(() => (
+            var (capabilities, globals) = await Task.Run(() => (
                 WindowsAdapterCapabilityInventory.Read().Capabilities,
-                WindowsGlobalSettingInventory.Read().Capabilities,
-                adapterId is { } id && AdapterPowerSavingSpecification.IsPowerManagementOff(id)));
+                WindowsGlobalSettingInventory.Read().Capabilities));
 
             // The receive-window advice is computed from this path, so it is only offered when a
             // throughput run actually measured one.
@@ -123,8 +122,7 @@ public partial class RecommendationsView : UserControl
             if (includeChosenProfile && UseCaseComboBox.SelectedItem is UseCaseProfile profile && adapterId is { } id)
             {
                 actions.Insert(0, UseCaseProfiles.PlanFor(
-                    profile, id, capabilities, globals, wireless: adapter?.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211,
-                    devicePowerIsOff: _ => powerManagementOff));
+                    profile, id, capabilities, globals, wireless: adapter?.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211));
             }
 
             // Each checkbox corresponds to one change; a group never silently selects other settings.
