@@ -127,6 +127,11 @@ public static class ApplyVerificationAnalyzer
             new("No reply", before.LossPercent, now.LossPercent, LossFloor(before), "%")
         };
 
+        return FromMetrics(metrics);
+    }
+
+    internal static ApplyVerification FromMetrics(IReadOnlyList<VerifiedMetric> metrics)
+    {
         var improved = metrics.Where(metric => metric.Improved).ToArray();
         var worsened = metrics.Where(metric => metric.Worsened).ToArray();
 

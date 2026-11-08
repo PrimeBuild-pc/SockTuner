@@ -74,12 +74,12 @@
                                 ToolTip="Only offered for a device this profile flags, and never for the adapter carrying the default route"/>
                         <Button x:Name="EnableInterfaceButton" Content="Queue: enable adapter" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
                                 Click="QueueEnableInterface_Click" IsEnabled="False" Margin="0,0,8,8"/>
-                        <Button x:Name="PowerOffInterfaceButton" Content="Queue: no power saving" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                        <Button x:Name="PowerOffInterfaceButton" Content="Queue: supported power controls" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
                                 Click="QueuePowerOff_Click" IsEnabled="False" Margin="0,0,8,8"
-                                ToolTip="Clears both power-management checkboxes on this adapter. Takes effect when the adapter next restarts."/>
-                        <Button x:Name="PowerDefaultInterfaceButton" Content="Queue: restore power default" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
+                                ToolTip="Proposes only power controls advertised by this driver. Preserves wake-on-LAN and legacy power bits."/>
+                        <Button x:Name="PowerDefaultInterfaceButton" Content="Queue: remove legacy power override" ContentTemplate="{StaticResource IconContent}" Tag="&#xE710;"
                                 Click="QueuePowerDefault_Click" IsEnabled="False" Margin="0,0,8,8"
-                                ToolTip="Removes the override so the driver own INF decides again"/>
+                                ToolTip="Removes the legacy PnPCapabilities override. Does not reset individual driver properties."/>
                         <Button x:Name="OpenPlanButton" Content="Go to tuning plan" ContentTemplate="{StaticResource IconContent}" Tag="&#xE72A;" Click="OpenTuningPlan_Click"
                                 Style="{StaticResource PrimaryButton}" Margin="0,0,8,8"/>
                     </WrapPanel>

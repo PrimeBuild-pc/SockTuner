@@ -5,7 +5,7 @@ using SockTuner.Models;
 
 namespace SockTuner.Services;
 
-/// <summary>Hardware provenance and live driver constraints are both required at the write boundary.</summary>
+/// <summary>Archived hardware constraints, or explicitly experimental templates bounded by the live driver.</summary>
 public static class NicHardwareCompatibility
 {
     private sealed record Hardware(string Model, bool IsVirtual, DriverInfo? Driver,
@@ -13,6 +13,28 @@ public static class NicHardwareCompatibility
     private static readonly Lazy<Hardware[]> Archive = new(Load);
 
     public static string? Restriction(AdapterSettingCapability live, DriverInfo? driver)
+    {
+        var restriction = ArchiveRestriction(live, driver);
+        return restriction is not null && AllowsExperimentalTemplate(live, driver) ? null : restriction;
+    }
+
+    internal static bool IsUnverifiedTemplate(AdapterSettingCapability live, DriverInfo? driver) =>
+        ArchiveRestriction(live, driver) is not null && AllowsExperimentalTemplate(live, driver);
+
+    private static bool AllowsExperimentalTemplate(AdapterSettingCapability live, DriverInfo? driver)
+    {
+        if (driver is null || string.IsNullOrWhiteSpace(driver.ComponentId) || live.Rejected
+            || live.RegistryDataType != AdapterSettingCapability.RegistrySz || !live.IsEnumerated) return false;
+        var keyword = live.Keyword.ToLowerInvariant();
+        var standard = keyword is "*selectivesuspend" or "*idlerestriction" or "*interruptmoderation"
+            or "*lsov2ipv4" or "*lsov2ipv6" or "*rscipv4" or "*rscipv6";
+        var vendor = keyword is "autodisablegigabit" or "enablepme" or "ulpmode" or "sipsenabled";
+        var family = live.InterfaceDescription.Contains("Intel", StringComparison.OrdinalIgnoreCase)
+            || live.InterfaceDescription.Contains("Realtek", StringComparison.OrdinalIgnoreCase);
+        return (standard || (vendor && family)) && live.Choices.Any(choice => choice.RegistryValue == (keyword == "*idlerestriction" ? "1" : "0"));
+    }
+
+    private static string? ArchiveRestriction(AdapterSettingCapability live, DriverInfo? driver)
     {
         if (AdapterVerificationCatalog.For(live.InterfaceDescription) != AdapterVerification.Verified)
             return "Read-only: this adapter has no characterised hardware report. Create a compatibility report in Preferences.";

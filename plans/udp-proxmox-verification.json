@@ -1,0 +1,123 @@
+{
+  "TestDate": "2026-11-07",
+  "Guest": "Windows 11 development VM",
+  "Endpoint": "198.51.100.31:52347",
+  "ClientAddress": "198.51.100.10",
+  "Scope": "Real host-to-Proxmox-VM LAN path; no preset or NIC setting applied between runs; not an ISP or physical-NIC tuning benchmark.",
+  "Protocol": "STQ1 authenticated UDP echo with receiver receipt summary",
+  "Options": {
+    "DurationSeconds": 30,
+    "PacketsPerSecond": 20,
+    "PacketBytes": 128,
+    "LateThresholdMs": 100,
+    "PacketCount": 600
+  },
+  "TransferredBuildHashesVerified": true,
+  "Runs": [
+    {
+      "StartedAt": "2026-11-07T18:55:44.9682627+01:00",
+      "Endpoint": "198.51.100.31:52347",
+      "LocalAddress": "198.51.100.10",
+      "Sent": 600,
+      "ServerReceived": 600,
+      "Received": 600,
+      "UploadLost": 0,
+      "DownloadLost": 0,
+      "UploadLossPercent": 0,
+      "DownloadLossPercent": 0,
+      "MedianMs": 0.56585,
+      "P95Ms": 1.0605399999999996,
+      "JitterMs": 0.13950984974958258,
+      "Late": 0,
+      "Duplicates": 0,
+      "Reordered": 0,
+      "SchedulingDelays": 0,
+      "ElapsedSeconds": 29.9557241
+    },
+    {
+      "StartedAt": "2026-11-07T18:56:17.1274652+01:00",
+      "Endpoint": "198.51.100.31:52347",
+      "LocalAddress": "198.51.100.10",
+      "Sent": 600,
+      "ServerReceived": 600,
+      "Received": 600,
+      "UploadLost": 0,
+      "DownloadLost": 0,
+      "UploadLossPercent": 0,
+      "DownloadLossPercent": 0,
+      "MedianMs": 0.5279499999999999,
+      "P95Ms": 0.7453649999999997,
+      "JitterMs": 0.1075559265442404,
+      "Late": 0,
+      "Duplicates": 0,
+      "Reordered": 0,
+      "SchedulingDelays": 0,
+      "ElapsedSeconds": 29.9504738
+    }
+  ],
+  "Comparison": {
+    "Outcome": "NoMeasurableChange",
+    "Headline": "No measurable difference",
+    "Metrics": [
+      {
+        "Name": "UDP median RTT",
+        "Before": 0.56585,
+        "After": 0.5279499999999999,
+        "Delta": -0.037900000000000045,
+        "NoiseFloor": 1.0,
+        "IsSignificant": false
+      },
+      {
+        "Name": "UDP P95 RTT",
+        "Before": 1.0605399999999996,
+        "After": 0.7453649999999997,
+        "Delta": -0.31517499999999987,
+        "NoiseFloor": 1.0,
+        "IsSignificant": false
+      },
+      {
+        "Name": "UDP RTT jitter",
+        "Before": 0.13950984974958258,
+        "After": 0.1075559265442404,
+        "Delta": -0.03195392320534218,
+        "NoiseFloor": 1.0,
+        "IsSignificant": false
+      },
+      {
+        "Name": "Upload loss",
+        "Before": 0.0,
+        "After": 0.0,
+        "Delta": 0.0,
+        "NoiseFloor": 0.16666666666666666,
+        "IsSignificant": false
+      },
+      {
+        "Name": "Download loss",
+        "Before": 0.0,
+        "After": 0.0,
+        "Delta": 0.0,
+        "NoiseFloor": 0.16666666666666666,
+        "IsSignificant": false
+      },
+      {
+        "Name": "Late echoes",
+        "Before": 0.0,
+        "After": 0.0,
+        "Delta": 0.0,
+        "NoiseFloor": 0.16666666666666666,
+        "IsSignificant": false
+      }
+    ],
+    "Conditions": "Identical test settings and no deliberate load or network changes; background activity was not experimentally controlled.",
+    "Limitation": "Heuristic comparison, not statistical certification or proof of tuning benefit."
+  },
+  "Cleanup": {
+    "DirectoryRemoved": true,
+    "FirewallRemoved": true,
+    "TaskRemoved": true,
+    "PortReleased": true
+  },
+  "LocalKeyRemoved": true,
+  "RemoteLaunch": "Temporary hidden scheduled task; removed after test. Windows OpenSSH child termination reproduced separately.",
+  "AddressRedaction": "Published addresses are RFC 5737 documentation placeholders; raw reports remain local."
+}

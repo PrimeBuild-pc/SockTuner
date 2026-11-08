@@ -55,6 +55,7 @@ public sealed record AdapterSettingCapability(
 
     public string SettingId => $"nic.{Keyword}";
     public string? WriteRestriction { get; init; }
+    public bool UnverifiedHardwareTemplate { get; init; }
     public bool CanWrite => !Rejected && WriteRestriction is null;
 
     // A leading '*' marks a Microsoft-standardised NDIS keyword with documented semantics;
@@ -63,7 +64,7 @@ public sealed record AdapterSettingCapability(
 
     public EvidenceLevel Evidence => !CanWrite
         ? EvidenceLevel.Blocked
-        : IsStandardKeyword
+        : IsStandardKeyword && !UnverifiedHardwareTemplate
             ? EvidenceLevel.DriverAdvertised
             : EvidenceLevel.Experimental;
 

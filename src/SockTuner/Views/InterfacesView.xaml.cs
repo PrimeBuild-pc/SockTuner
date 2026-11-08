@@ -5,6 +5,7 @@ using SockTuner.Models;
 using SockTuner.Persistence;
 using SockTuner.Services;
 using SockTuner.Services.Diagnosis;
+using SockTuner.Services.Remediation;
 
 namespace SockTuner.Views;
 
@@ -129,10 +130,28 @@ public partial class InterfacesView : UserControl
         QueueDeviceChange(AdapterStateSpecification.SettingId, AdapterStateSpecification.Enabled,
             "enable", requiresFlagged: false);
 
-    private void QueuePowerOff_Click(object sender, RoutedEventArgs e) =>
-        QueueDeviceChange(AdapterPowerSavingSpecification.SettingId,
-            AdapterPowerSavingSpecification.PowerManagementOff.ToString(),
-            "turn power management off on", requiresFlagged: false);
+    private async void QueuePowerOff_Click(object sender, RoutedEventArgs e)
+    {
+        if (InterfaceAdviceGrid.SelectedItem is not InterfaceAdvice advice
+            || !Guid.TryParse(advice.Adapter.Id, out var adapterId) || Plan is not { } plan) return;
+        PowerOffInterfaceButton.IsEnabled = false;
+        try
+        {
+            var capabilities = await Task.Run(() => WindowsAdapterCapabilityInventory.Read().Capabilities);
+            var action = UseCaseProfiles.PowerSavingFor(adapterId, capabilities,
+                advice.Adapter.InterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211);
+            var accepted = plan.Propose(action.Changes);
+            InterfaceActionStatusText.Text = accepted == 0
+                ? Loc.T("No supported power change is available, or the driver already matches. Wake-on-LAN and legacy power bits were preserved.")
+                : Loc.F($"{accepted} supported power change(s) queued. Wake-on-LAN is preserved. Review the tuning plan before applying.");
+        }
+        catch (Exception exception)
+        {
+            AppLog.Write("interfaces.power.failed", exception.Message);
+            InterfaceActionStatusText.Text = Loc.T("Could not read supported power controls. No changes were applied.");
+        }
+        finally { UpdateInterfaceActions(); }
+    }
 
     /// <summary>
     /// Restoring the default removes the value rather than writing a zero, so a null proposal is

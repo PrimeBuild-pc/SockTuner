@@ -44,6 +44,8 @@ public partial class MainWindow : Window
     private IReadOnlyList<NdisPropertyRow> _ndisRows = [];
     private UserPreferences _preferences = new();
     private int _busyCount;
+    private bool _udpQualityRunning;
+    private bool _diagnosticRunning;
     private object? _selectedInventoryItem;
     private System.Windows.Controls.DataGrid? _selectedInventoryGrid;
 
@@ -76,6 +78,14 @@ public partial class MainWindow : Window
         WifiDiagnostics.ObservationUpdated += (_, samples) => ShowDashboardWifi(samples);
         NatDiagnostics.StatusChanged += (_, text) => StatusText.Text = text;
         NatDiagnostics.BusyChanged += (_, busy) => SetBusy(busy);
+        UdpQuality.StatusChanged += (_, text) => StatusText.Text = text;
+        UdpQuality.BusyChanged += (_, busy) =>
+        {
+            _udpQualityRunning = busy;
+            SetBusy(busy);
+            UpdateMeasurementWriteGuards();
+        };
+        TuningPlan.Applied += (_, _) => UdpQuality.CaptureBaselineForApply();
         DnsResolvers.StatusChanged += (_, text) => StatusText.Text = text;
         DnsResolvers.BusyChanged += (_, busy) => SetBusy(busy);
         DnsResolvers.Applied += async (_, _) => await RefreshInventoryAsync();
@@ -577,6 +587,7 @@ public partial class MainWindow : Window
 
     private void SetDiagnosticBusy(bool isBusy)
     {
+        _diagnosticRunning = isBusy;
         SetBusy(isBusy);
         QuickCheckSpinner.Visibility = isBusy ? Visibility.Visible : Visibility.Collapsed;
         QuickCheckButton.IsEnabled = !isBusy;
@@ -595,6 +606,19 @@ public partial class MainWindow : Window
         DiagnosticProfileComboBox.IsEnabled = !isBusy;
         DiagnosticGameComboBox.IsEnabled = !isBusy;
         DiagnosticLoadComboBox.IsEnabled = !isBusy;
+        UpdateMeasurementWriteGuards();
+    }
+
+    private void UpdateMeasurementWriteGuards()
+    {
+        var measuring = _diagnosticRunning || _udpQualityRunning;
+        TuningPlan.IsEnabled = Recommendations.IsEnabled = DnsResolvers.IsEnabled = Interfaces.IsEnabled
+            = InterruptAffinity.IsEnabled = HostDiagnostics.IsEnabled = !measuring;
+        QuickCheckButton.IsEnabled = QuickPresetButton.IsEnabled = QuickRestartButton.IsEnabled
+            = RunDiagnosticButton.IsEnabled = !measuring;
+        UndoLastChangeButton.IsEnabled = !measuring && TuningPlan.CanUndoLastChange;
+        ReRunDiagnosticButton.IsEnabled = !measuring && _baselineBeforeApply is not null;
+        UdpQuality.IsEnabled = !_diagnosticRunning;
     }
 
     private void ClearDiagnosticResults(string value)
@@ -730,6 +754,7 @@ public partial class MainWindow : Window
         Throughput.CancelActiveWork();
         DnsResolvers.CancelActiveWork();
         NatDiagnostics.CancelActiveWork();
+        UdpQuality.CancelActiveWork();
         Preferences.Updates.CancelActiveWork();
         WifiDiagnostics.CancelActiveWork();
     }

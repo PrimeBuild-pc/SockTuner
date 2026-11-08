@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Release builds also verify this version against the Git tag. -->
+    <Version>0.9.0-beta.2</Version>
+  </PropertyGroup>
+</Project>

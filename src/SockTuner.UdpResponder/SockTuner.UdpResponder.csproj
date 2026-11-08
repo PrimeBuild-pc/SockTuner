@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SockTuner\Models\UdpQuality.cs" Link="UdpQuality.cs" />
+    <Compile Include="..\SockTuner\Services\Collection\UdpQualityProbe.cs" Link="UdpQualityProbe.cs" />
+    <Compile Include="..\SockTuner\Services\Collection\UdpQualityProtocol.cs" Link="UdpQualityProtocol.cs" />
+    <Compile Include="..\SockTuner\Services\Collection\UdpQualityResponder.cs" Link="UdpQualityResponder.cs" />
+  </ItemGroup>
+</Project>

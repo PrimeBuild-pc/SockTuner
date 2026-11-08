@@ -51,6 +51,7 @@ public class LocalizationTests
          Path.Combine("Views", "WriteConsentWindow.xaml"),
          Path.Combine("Views", "ReportSavedWindow.xaml"),
          Path.Combine("Views", "ThroughputView.xaml"),
+         Path.Combine("Views", "UdpQualityView.xaml"),
          Path.Combine("Views", "InterfacesView.xaml"),
          Path.Combine("Views", "HistoryView.xaml"),
          Path.Combine("Views", "RecommendationsView.xaml"),
