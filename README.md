@@ -213,6 +213,12 @@ Built with C#, WPF and the Fluent theme: a mature, native toolkit for a Windows-
 tool, with no browser runtime. Read the [architecture](docs/ARCHITECTURE.md) for how inventory,
 diagnostics and the write path fit together.
 
+## Support the project
+
+SockTuner is free and open source. If it helps you, you can support its development:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y6U02AIRB8) [![PayPal](https://img.shields.io/badge/Support-PayPal-0070BA?logo=paypal&logoColor=white)](https://paypal.me/PrimeBuildOfficial)
+
 ## License
 
 [MIT](LICENSE). Compatibility reports and bug reports are welcome through the GitHub issue forms; see
