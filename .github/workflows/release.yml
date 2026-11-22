@@ -175,8 +175,8 @@ jobs:
           WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:WINDOWS_CERTIFICATE)) {
-            "This pre-release is unsigned: expect a SmartScreen prompt and verify the SHA256 checksum published next to this archive before running it." |
-              Set-Content artifacts/SockTuner/UNSIGNED-PREVIEW.txt
+            "This Windows build is unsigned. Verify the SHA-256 checksum published next to this archive before running it. Windows SmartScreen may show a prompt." |
+              Set-Content artifacts/SockTuner/UNSIGNED-BUILD.txt
             exit 0
           }
 
@@ -236,6 +236,11 @@ jobs:
           $liveCommit = (gh api "repos/$env:REPOSITORY/commits/$env:TAG_NAME" --jq '.sha').Trim()
           if ($liveCommit -ne $env:BUILT_COMMIT) { throw "Release tag moved after packaging." }
           $releaseKind = if ($env:TAG_NAME.Contains('-')) { '--prerelease' } else { '--latest' }
+          if (Test-Path -LiteralPath artifacts/SockTuner/UNSIGNED-BUILD.txt) {
+            '' | Add-Content -LiteralPath artifacts/SockTuner/RELEASE-NOTES.md
+            (Get-Content -Raw -LiteralPath artifacts/SockTuner/UNSIGNED-BUILD.txt) |
+              Add-Content -LiteralPath artifacts/SockTuner/RELEASE-NOTES.md
+          }
           gh release create "$env:TAG_NAME" `
             "artifacts/$env:ARCHIVE" `
             "artifacts/$env:ARCHIVE.sha256" `
