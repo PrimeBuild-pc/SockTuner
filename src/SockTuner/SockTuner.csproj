@@ -18,7 +18,7 @@
     <EmbeddedResource Include="Assets\i18n\translations.json" />
     <EmbeddedResource Include="Assets\verified-adapters.json" />
     <EmbeddedResource Include="..\..\alpha-tester-output\*.json" LogicalName="Hardware.%(Filename).json" />
-    <PackageReference Include="System.Management" Version="10.0.14" />
+    <PackageReference Include="System.Management" Version="11.0.0" />
   </ItemGroup>
 
 </Project>
